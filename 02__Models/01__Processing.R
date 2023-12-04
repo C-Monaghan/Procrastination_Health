@@ -2,17 +2,17 @@ rm(list=ls()) # Clearing work space
 
 library(dplyr)
 
-path_data <- "./01__Data/01__Raw_data/"
+path_data <- "./01__Data/01__Raw/"
 
 # Reading in Data -------------------------------------------------------------
 # Tracker file containing information on each participant
 tracker <- haven::read_sav(file.path(path_data, "Tracker.sav"))
 
 # HRS(2020 data)
-health <- haven::read_sav(file.path(path_data, "HRS_2020/Health_2020.sav"))
-cognition <- haven::read_sav(file.path(path_data, "HRS_2020/Cognition_2020.sav"))
-leave_behind <- haven::read_sav(file.path(path_data, "HRS_2020/Leave_Behind_2020.sav"))
-mod_v <- haven::read_sav(file.path(path_data, "HRS_2020/Module_V_2020.sav"))
+health <- haven::read_sav(file.path(path_data, "Health_2020.sav"))
+cognition <- haven::read_sav(file.path(path_data, "Cognition_2020.sav"))
+leave_behind <- haven::read_sav(file.path(path_data, "Leave_Behind_2020.sav"))
+mod_v <- haven::read_sav(file.path(path_data, "Module_V_2020.sav"))
 
 # Filtration -------------------------------------------------------------------
 # Selecting procrastination participants
@@ -26,10 +26,21 @@ cognition <- semi_join(cognition, mod_v, by = c("HHID", "PN"))
 leave_behind <- semi_join(leave_behind, mod_v, by = c("HHID", "PN"))
 
 # Creating singular data -------------------------------------------------------
-hrs_cross_sectional <- cbind(
+health_data <- cbind(
   tracker[, c("HHID", "PN", "GENDER", "BIRTHYR", "RAGE", "DEGREE", "RMARST")],
-  health[, c("RC001", "RC005", "RC010", "RC283","RC030", "RC031", "RC036", "RC039", 
-             "RC038", "RC040", "RC041", "RC272", "RC273", 
+  health[, c(
+    # General Health Problems
+    "RC001", 
+    # Disabling Pain(s)
+    "RC146","RC147", "RC148",
+    # Health behaviour - Smoking and Alcohol
+    "RC128", "RC129", "RC116", "RC117", "RC118",
+    # Health behaviour - Physical Activity
+    "RC225", "RC224", "RC223", "RC301", "RC302", "RC303", "RC304",
+    
+    "RC001", "RC005", "RC010", "RC283","RC030", "RC031", "RC036", "RC039", 
+             "RC038", "RC040", "RC041", "RC260", "RC053", "RC070", "RC272", "RC273", 
+             "RC240", "Rc237",
              "RC146", "RC147", "RC148")],
   cognition[, c(paste0("RD11", 0:7))],
   leave_behind[, c(paste0("RLB035B", 1:10), paste0("RLB035C", 1:5))],
@@ -38,16 +49,40 @@ hrs_cross_sectional <- cbind(
 
 
 # Renaming
-hrs_cross_sectional <- hrs_cross_sectional %>%
+health_data <- health_data %>%
   rename(
-    HHID = "HHID", # Tracker ---------------------------------------------------
+    # TRACKER ------------------------------------------------------------------
+    HHID = "HHID", 
     ID = "PN",
     Gender = "GENDER",
     Birth_year = "BIRTHYR",
     Education = "DEGREE",
     Marital_status = "RMARST",
     Age = "RAGE",
-    Health_assessment = "RC001", # Health --------------------------------------
+    # HEALTH QUESTIONS ---------------------------------------------------------
+    # General Health
+    Health_assessment = "RC001",
+    # Disabling Pain(s)
+    Back_pain = "RC146",
+    Headache = "RC147",
+    Fatigue = "RC148",
+    # Health behavior - Smoking and Alcohol
+    Alcohol = "RC128",
+    Alcohol_number = "RC129",
+    Smoker_ever = "RC116",
+    Smoker_current = "RC117",
+    Smoker_num = "RC118",
+    # Health behaviour - Physical Activity
+    Activity_mild = "RC225",
+    Activity_moderate = "RC224",
+    Activity_vigorous = "RC223",
+    On_feet_min = "RC301",
+    On_feet_hr = "RC302",
+    Sitting_min = "RC303",
+    Sitting_hr = "RC304",
+    
+    
+    
     Blood_pressure = "RC005",
     Diabetes = "RC010",
     Cholesterol = "RC283",
@@ -58,12 +93,15 @@ hrs_cross_sectional <- hrs_cross_sectional %>%
     Seen_doctor_heart_condition = "RC038",
     Heart_attack_recent = "RC040", # HA in last 2 years
     Seen_doctor_heart_attack = "RC041",
+    Angia = "RC260",
+    Stroke = "RC053",
+    Arthritis = "RC270",
     Alzheimers = "RC272",
     Dementia = "RC273",
-    Back_pain = "RC146",
-    Headache = "RC147",
-    Fatigue = "RC148",
-    Depression_1 = "RD110", # Depression (2016) --------------------------------
+    Shingles = "RC240",
+    # MENTAL HEALTH ------------------------------------------------------------
+    # Depression
+    Depression_1 = "RD110",
     Depression_2 = "RD111",
     Depression_3 = "RD112",
     Depression_4 = "RD113",
@@ -71,7 +109,8 @@ hrs_cross_sectional <- hrs_cross_sectional %>%
     Depression_6 = "RD115",
     Depression_7 = "RD116",
     Depression_8 = "RD117",
-    Stress_1 = "RLB035B1", # Perceived Stress Scale ----------------------------
+    # Stress
+    Stress_1 = "RLB035B1",
     Stress_2 = "RLB035B2",
     Stress_3 = "RLB035B3",
     Stress_4 = "RLB035B4",
@@ -81,12 +120,14 @@ hrs_cross_sectional <- hrs_cross_sectional %>%
     Stress_8 = "RLB035B8",
     Stress_9 = "RLB035B9",
     Stress_10 = "RLB035B10",
+    # Anxiety
     Anxiety_1 = "RLB035C1",
     Anxiety_2 = "RLB035C2",
     Anxiety_3 = "RLB035C3",
     Anxiety_4 = "RLB035C4",
     Anxiety_5 = "RLB035C5",
-    Procras_1 = "RV156", # Procrastination -------------------------------------
+    # Procrastination
+    Procras_1 = "RV156",
     Procras_2 = "RV157",
     Procras_3 = "RV158",
     Procras_4 = "RV159",
@@ -101,7 +142,7 @@ hrs_cross_sectional <- hrs_cross_sectional %>%
   )
 
 # Handling Missing Values ------------------------------------------------------
-hrs_cross_sectional <- hrs_cross_sectional %>%
+health_data <- health_data %>%
   mutate(
     Education = replace(Education, Education == 9, NA),
     Marital_status = replace(Marital_status, Marital_status == 5, NA),
@@ -124,7 +165,7 @@ hrs_cross_sectional <- hrs_cross_sectional %>%
   )
 
 # Reversing scoring and collapsing some items ----------------------------------
-hrs_cross_sectional <- hrs_cross_sectional %>%
+health_data <- health_data %>%
   mutate(
     Gender = ifelse(Gender == 1, 0, 1),
     Education = ifelse(Education %in% c(0, 1, 2), 0, 1),
@@ -157,7 +198,23 @@ hrs_cross_sectional <- hrs_cross_sectional %>%
     Stress_8 = recode(Stress_8, '1' = 5, '2' = 4, '3' = 3, '4'= 2, '5' = 1),
   )
 
-# Exporting --------------------------------------------------------------------
-export_path <- "./01__Data/02__Processed_data/"
+# Creating total columns -------------------------------------------------------
+health_data <- health_data %>%
+  mutate(
+    Total_procrastination = rowSums(select(., starts_with("Procras")), na.rm = TRUE),
+    Total_stress = rowSums(select(., starts_with("Stress")), na.rm = TRUE),
+    Total_anxiety = rowSums(select(., starts_with("Anxiety")), na.rm = TRUE),
+    Total_depression = rowSums(select(., starts_with("Depression")), na.rm = TRUE),
+    HRP_count = rowSums(select(., starts_with(c(
+      "Blood_pressure", "Diabetes", "Cholesterol", "Lung_disease", 
+      "Heart_condition", "Back_pain", "Headache", "Fatigue"))), na.rm = TRUE)
+  ) %>%
+  # Changing zeros to NA values
+  mutate(
+    across(c("Total_procrastination", "Total_stress", "Total_anxiety"), ~ ifelse(. %in% 0, NA, .))
+  )
 
-writexl::write_xlsx(hrs_cross_sectional, path = file.path(export_path, "HRS_Cross_Sectional.xlsx"))
+# Exporting --------------------------------------------------------------------
+export_path <- "./01__Data/02__Processed/"
+
+writexl::write_xlsx(health_data, path = file.path(export_path, "Health_HRS.xlsx"))
