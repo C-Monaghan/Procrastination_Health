@@ -132,7 +132,9 @@ health_data <- health_data %>%
     Headache = replace(Headache, Headache %in% c(8, 9), NA),
     Fatigue = replace(Fatigue, Fatigue %in% c(-8, 8), NA),
     Alcohol = replace(Alcohol, Alcohol %in% c(-8, 3, 8, 9), NA),
-    Alcohol_number = replace(Alcohol_number, Alcohol_number %in% c(-8, 8, 9), NA),
+    Alcohol_number = replace(Alcohol_number, is.na(Alcohol_number), 0), # Those who don't drink at all have NA for their number of drinks - this is changed to 0
+    Alcohol_number = replace(Alcohol_number, Alcohol_number %in% c(-8, 8, 9), NA), # We can then change those who actually drink values to NA
+    Smoker_num = ifelse(Smoker_current == 5, 0, Smoker_num), # Those who don't smoke at all have NA for their number of cigarettes - this is changed to 0
     Activity_mild = replace(Activity_mild, Activity_mild %in% c(-8, 8, 9), NA),
     Activity_moderate = replace(Activity_moderate, Activity_moderate %in% c(-8, 8, 9), NA),
     Activity_vigorous = replace(Activity_vigorous, Activity_vigorous %in% c(-8, 8, 9), NA),
