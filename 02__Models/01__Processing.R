@@ -1,10 +1,13 @@
+# Using 2020 HRS data to create a cross sectional dataset of procrastination and
+# health data
+# ------------------------------------------------------------------------------
 rm(list=ls()) # Clearing work space
 
 library(dplyr)
 
 path_data <- "./01__Data/01__Raw/"
 
-# Reading in Data -------------------------------------------------------------
+# Reading in Data --------------------------------------------------------------
 # Tracker file containing information on each participant
 tracker <- haven::read_sav(file.path(path_data, "Tracker.sav"))
 
@@ -27,26 +30,23 @@ leave_behind <- semi_join(leave_behind, mod_v, by = c("HHID", "PN"))
 
 # Creating singular data -------------------------------------------------------
 health_data <- cbind(
-  tracker[, c("HHID", "PN", "GENDER", "BIRTHYR", "RAGE", "DEGREE", "RMARST")],
+  tracker[, c(
+    "HHID", "PN", "GENDER", "BIRTHYR", "RAGE", "DEGREE", "RMARST")],
   health[, c(
-    # General Health Problems
+    # General health assessment
     "RC001", 
-    # Disabling Pain(s)
+    # Disabling Pain - Back, Headache, and Fatigue
     "RC146","RC147", "RC148",
-    # Health behaviour - Smoking and Alcohol
-    "RC128", "RC129", "RC116", "RC117", "RC118",
-    # Health behaviour - Physical Activity
-    "RC225", "RC224", "RC223", "RC301", "RC302", "RC303", "RC304",
-    
-    "RC001", "RC005", "RC010", "RC283","RC030", "RC031", "RC036", "RC039", 
-             "RC038", "RC040", "RC041", "RC260", "RC053", "RC070", "RC272", "RC273", 
-             "RC240", "Rc237",
-             "RC146", "RC147", "RC148")],
+    # Lifestyle - Smoking and Alcohol
+    "RC128", "RC129", "RC117", "RC118",
+    # Lifestyle - Physical Activity
+    "RC225", "RC224", "RC223",
+    # Health Markers - Biological
+    "RC005", "RC010", "RC283", "RC036")],
   cognition[, c(paste0("RD11", 0:7))],
   leave_behind[, c(paste0("RLB035B", 1:10), paste0("RLB035C", 1:5))],
   mod_v[, c(paste0("RV", 156:167))]
 )
-
 
 # Renaming
 health_data <- health_data %>%
@@ -66,39 +66,20 @@ health_data <- health_data %>%
     Back_pain = "RC146",
     Headache = "RC147",
     Fatigue = "RC148",
-    # Health behavior - Smoking and Alcohol
+    # Lifestyle - Smoking and Alcohol
     Alcohol = "RC128",
     Alcohol_number = "RC129",
-    Smoker_ever = "RC116",
     Smoker_current = "RC117",
     Smoker_num = "RC118",
-    # Health behaviour - Physical Activity
+    # Lifestyle - Physical Activity
     Activity_mild = "RC225",
     Activity_moderate = "RC224",
     Activity_vigorous = "RC223",
-    On_feet_min = "RC301",
-    On_feet_hr = "RC302",
-    Sitting_min = "RC303",
-    Sitting_hr = "RC304",
-    
-    
-    
+    # Health Markers - Biological
     Blood_pressure = "RC005",
     Diabetes = "RC010",
     Cholesterol = "RC283",
-    Lung_disease = "RC030",
-    Lung_disease_status = "RC031",
     Heart_condition = "RC036",
-    Heart_condition_status = "RC039",
-    Seen_doctor_heart_condition = "RC038",
-    Heart_attack_recent = "RC040", # HA in last 2 years
-    Seen_doctor_heart_attack = "RC041",
-    Angia = "RC260",
-    Stroke = "RC053",
-    Arthritis = "RC270",
-    Alzheimers = "RC272",
-    Dementia = "RC273",
-    Shingles = "RC240",
     # MENTAL HEALTH ------------------------------------------------------------
     # Depression
     Depression_1 = "RD110",
@@ -126,7 +107,7 @@ health_data <- health_data %>%
     Anxiety_3 = "RLB035C3",
     Anxiety_4 = "RLB035C4",
     Anxiety_5 = "RLB035C5",
-    # Procrastination
+    # PROCRASTINATION ----------------------------------------------------------  
     Procras_1 = "RV156",
     Procras_2 = "RV157",
     Procras_3 = "RV158",
@@ -147,43 +128,41 @@ health_data <- health_data %>%
     Education = replace(Education, Education == 9, NA),
     Marital_status = replace(Marital_status, Marital_status == 5, NA),
     Health_assessment = replace(Health_assessment, Health_assessment %in% c(8, 9), NA),
-    Blood_pressure = replace(Blood_pressure, Blood_pressure == 8, NA),
-    Diabetes = replace(Diabetes, Diabetes == 8, NA),
-    Cholesterol = replace(Cholesterol, Cholesterol == 8, NA),
-    Lung_disease = replace(Lung_disease, Lung_disease %in% c(-8, 8), NA),
-    Lung_disease_status = replace(Lung_disease_status, Lung_disease_status %in% c(4, 6), NA),
-    Heart_condition = replace(Heart_condition, Heart_condition %in% c(8, 9), NA),
-    Heart_condition_status = replace(Heart_condition_status, Heart_condition_status == 8, NA),
-    Heart_attack_recent = replace(Heart_attack_recent, Heart_attack_recent == 8, NA),
-    Seen_doctor_heart_attack = replace(Seen_doctor_heart_attack, Seen_doctor_heart_attack == 8, NA),
-    Alzheimers = replace(Alzheimers, Alzheimers %in% c(-8, 8), NA),
-    Dementia = replace(Dementia, Dementia == 8, NA),
     Back_pain = replace(Back_pain, Back_pain %in% c(8, 9), NA),
     Headache = replace(Headache, Headache %in% c(8, 9), NA),
     Fatigue = replace(Fatigue, Fatigue %in% c(-8, 8), NA),
-    across(c(starts_with("Procras_")), ~ ifelse(. %in% c(-8, 8, 9), NA, .))
+    Alcohol = replace(Alcohol, Alcohol %in% c(-8, 3, 8, 9), NA),
+    Alcohol_number = replace(Alcohol_number, Alcohol_number %in% c(-8, 8, 9), NA),
+    Activity_mild = replace(Activity_mild, Activity_mild %in% c(-8, 8, 9), NA),
+    Activity_moderate = replace(Activity_moderate, Activity_moderate %in% c(-8, 8, 9), NA),
+    Activity_vigorous = replace(Activity_vigorous, Activity_vigorous %in% c(-8, 8, 9), NA),
+    Blood_pressure = replace(Blood_pressure, Blood_pressure == 8, NA),
+    Diabetes = replace(Diabetes, Diabetes == 8, NA),
+    Cholesterol = replace(Cholesterol, Cholesterol == 8, NA),
+    across(c(
+      starts_with("Procras_"), 
+      starts_with("Depression")), ~ ifelse(. %in% c(-8, 8, 9), NA, .))
   )
 
-# Reversing scoring and collapsing some items ----------------------------------
+# Reversing scoring, recoding and collapsing some items ------------------------
 health_data <- health_data %>%
   mutate(
     Gender = ifelse(Gender == 1, 0, 1),
     Education = ifelse(Education %in% c(0, 1, 2), 0, 1),
     Marital_status = ifelse(Marital_status == 1, 1, 0),
-    Health_assessment = ifelse(Health_assessment %in% c(1, 2, 3, 4), 1, 0),
-    Blood_pressure = ifelse(Blood_pressure %in% c(4, 5, 6), 0, 1),
-    Diabetes = ifelse(Diabetes %in% c(4, 5, 6), 0, 1),
-    Cholesterol = ifelse(Cholesterol == 5, 0, 1),
-    Lung_disease = ifelse(Lung_disease %in% c(4, 5, 6), 0, 1),
-    Heart_condition = ifelse(Heart_condition %in% c(4, 5, 6), 0, 1),
-    Seen_doctor_heart_condition = ifelse(Seen_doctor_heart_condition == 5, 0, 1),
-    Heart_attack_recent = ifelse(Heart_attack_recent == 5, 0, 1),
-    Seen_doctor_heart_attack = ifelse(Seen_doctor_heart_attack == 5, 0, 1),
-    Alzheimers = ifelse(Alzheimers == 5, 0, 1),
-    Dementia = ifelse(Dementia == 5, 0, 1),
+    Health_assessment = recode(Health_assessment, '1' = 5, '2' = 4, '3' = 3, '4' = 2, '5' = 1),
     Back_pain = ifelse(Back_pain == 5, 0, 1),
     Headache = ifelse(Headache == 5, 0, 1),
     Fatigue = ifelse(Fatigue == 5, 0, 1),
+    Alcohol = ifelse(Alcohol == 5, 0, 1),
+    Smoker_current = ifelse(Smoker_current == 5, 0, 1),
+    Activity_mild = recode(Activity_mild, '1' = 4, '2' = 3, '3' = 2, '4' = 1, '7' = 5),
+    Activity_moderate = recode(Activity_moderate, '1' = 4, '2' = 3, '3' = 2, '4' = 1, '7' = 5),
+    Activity_vigorous = recode(Activity_vigorous, '1' = 4, '2' = 3, '3' = 2, '4' = 1, '7' = 5),
+    Blood_pressure = ifelse(Blood_pressure %in% c(4, 5, 6), 0, 1),
+    Diabetes = ifelse(Diabetes %in% c(4, 5, 6), 0, 1),
+    Cholesterol = ifelse(Cholesterol == 5, 0, 1),
+    Heart_condition = ifelse(Heart_condition %in% c(4, 5, 6), 0, 1),
     Depression_1 = ifelse(Depression_1 == 5, 0, 1),
     Depression_2 = ifelse(Depression_2 == 5, 0, 1),
     Depression_3 = ifelse(Depression_3 == 5, 0, 1),
@@ -201,17 +180,20 @@ health_data <- health_data %>%
 # Creating total columns -------------------------------------------------------
 health_data <- health_data %>%
   mutate(
-    Total_procrastination = rowSums(select(., starts_with("Procras")), na.rm = TRUE),
+    Total_depression = rowSums(select(., starts_with("Depression")), na.rm = TRUE),
     Total_stress = rowSums(select(., starts_with("Stress")), na.rm = TRUE),
     Total_anxiety = rowSums(select(., starts_with("Anxiety")), na.rm = TRUE),
-    Total_depression = rowSums(select(., starts_with("Depression")), na.rm = TRUE),
-    HRP_count = rowSums(select(., starts_with(c(
-      "Blood_pressure", "Diabetes", "Cholesterol", "Lung_disease", 
-      "Heart_condition", "Back_pain", "Headache", "Fatigue"))), na.rm = TRUE)
+    Total_procrastination = rowSums(select(., starts_with("Procras")), na.rm = TRUE),
+    Health_problems = rowSums(select(., starts_with(c(
+      "Back_pain", "Headache", "Fatigue", "Alcohol", "Smoker_current",
+      "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition"))), na.rm = TRUE)
   ) %>%
   # Changing zeros to NA values
   mutate(
-    across(c("Total_procrastination", "Total_stress", "Total_anxiety"), ~ ifelse(. %in% 0, NA, .))
+    across(c(
+      "Total_stress", 
+      "Total_anxiety", 
+      "Total_procrastination"), ~ ifelse(. %in% 0, NA, .))
   )
 
 # Exporting --------------------------------------------------------------------
