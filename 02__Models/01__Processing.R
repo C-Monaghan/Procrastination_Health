@@ -150,8 +150,7 @@ health_data <- health_data %>%
 health_data <- health_data %>%
   mutate(
     Gender = ifelse(Gender == 1, 0, 1),
-    Education = ifelse(Education %in% c(0, 1, 2), 0, 1),
-    Marital_status = ifelse(Marital_status == 1, 1, 0),
+    College = ifelse(Education %in% c(0, 1, 2), 0, 1), .after = Education,
     Health_assessment = recode(Health_assessment, '1' = 5, '2' = 4, '3' = 3, '4' = 2, '5' = 1),
     Back_pain = ifelse(Back_pain == 5, 0, 1),
     Headache = ifelse(Headache == 5, 0, 1),
@@ -177,6 +176,9 @@ health_data <- health_data %>%
     Stress_5 = recode(Stress_5, '1' = 5, '2' = 4, '3' = 3, '4'= 2, '5' = 1),
     Stress_7 = recode(Stress_7, '1' = 5, '2' = 4, '3' = 3, '4'= 2, '5' = 1),
     Stress_8 = recode(Stress_8, '1' = 5, '2' = 4, '3' = 3, '4'= 2, '5' = 1),
+  ) %>%
+  mutate(
+    Married = ifelse(Marital_status == 1, 1, 0), .after = Marital_status
   )
 
 # Creating total columns -------------------------------------------------------
