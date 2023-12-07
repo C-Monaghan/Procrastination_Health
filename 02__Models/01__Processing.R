@@ -31,7 +31,7 @@ leave_behind <- semi_join(leave_behind, mod_v, by = c("HHID", "PN"))
 # Creating singular data -------------------------------------------------------
 health_data <- cbind(
   tracker[, c(
-    "HHID", "PN", "GENDER", "BIRTHYR", "RAGE", "DEGREE", "RMARST")],
+    "GENDER", "BIRTHYR", "RAGE", "DEGREE", "RMARST")],
   health[, c(
     # General health assessment
     "RC001", 
@@ -42,18 +42,18 @@ health_data <- cbind(
     # Lifestyle - Physical Activity
     "RC225", "RC224", "RC223",
     # Health Markers - Biological
-    "RC005", "RC010", "RC283", "RC036")],
+    "RC005", "RC010", "RC283", "RC036",
+    # Health Behaviors - Protective
+    "RC114", "RC112", "RC110", "RC113", "RC109")],
   cognition[, c(paste0("RD11", 0:7))],
   leave_behind[, c(paste0("RLB035B", 1:10), paste0("RLB035C", 1:5))],
   mod_v[, c(paste0("RV", 156:167))]
 )
 
-# Renaming
+# Renaming and creating ID
 health_data <- health_data %>%
   rename(
     # TRACKER ------------------------------------------------------------------
-    HHID = "HHID", 
-    ID = "PN",
     Gender = "GENDER",
     Birth_year = "BIRTHYR",
     Education = "DEGREE",
@@ -80,6 +80,12 @@ health_data <- health_data %>%
     Diabetes = "RC010",
     Cholesterol = "RC283",
     Heart_condition = "RC036",
+    # Health Behaviours - Protective
+    Prostate_exam = "RC114",
+    Mammogram = "RC112",
+    Cholesterol_screening = "RC110",
+    Pap_smear = "RC113",
+    Flu_shot = "RC109",
     # MENTAL HEALTH ------------------------------------------------------------
     # Depression
     Depression_1 = "RD110",
@@ -120,7 +126,8 @@ health_data <- health_data %>%
     Procras_10 = "RV165",
     Procras_11 = "RV166",
     Procras_12 = "RV167"
-  )
+  ) %>%
+  mutate(ID = seq(1:nrow(health_data)), .before = Gender)
 
 # Handling Missing Values ------------------------------------------------------
 health_data <- health_data %>%
@@ -141,6 +148,11 @@ health_data <- health_data %>%
     Blood_pressure = replace(Blood_pressure, Blood_pressure == 8, NA),
     Diabetes = replace(Diabetes, Diabetes == 8, NA),
     Cholesterol = replace(Cholesterol, Cholesterol == 8, NA),
+    Prostate_exam = replace(Prostate_exam, Prostate_exam %in% c(-8, 8, 9), NA),
+    Mammogram = replace(Mammogram, Mammogram %in% c(-8, 8, 9), NA),
+    Cholesterol_screening = replace(Cholesterol_screening, Cholesterol_screening %in% c(-8, 8, 9), NA),
+    Pap_smear = replace(Pap_smear, Pap_smear %in% c(-8, 8, 9), NA),
+    Flu_shot = replace(Flu_shot, Flu_shot %in% c(-8, 8, 9), NA),
     across(c(
       starts_with("Procras_"), 
       starts_with("Depression")), ~ ifelse(. %in% c(-8, 8, 9), NA, .))
@@ -164,6 +176,11 @@ health_data <- health_data %>%
     Diabetes = ifelse(Diabetes %in% c(4, 5, 6), 0, 1),
     Cholesterol = ifelse(Cholesterol == 5, 0, 1),
     Heart_condition = ifelse(Heart_condition %in% c(4, 5, 6), 0, 1),
+    Prostate_exam = ifelse(Prostate_exam == 5, 0, 1),
+    Mammogram = ifelse(Mammogram == 5, 0, 1),
+    Cholesterol_screening = ifelse(Cholesterol_screening == 5, 0, 1),
+    Pap_smear = ifelse(Pap_smear == 5, 0, 1),
+    Flu_shot = ifelse(Flu_shot == 5, 0, 1),
     Depression_1 = ifelse(Depression_1 == 5, 0, 1),
     Depression_2 = ifelse(Depression_2 == 5, 0, 1),
     Depression_3 = ifelse(Depression_3 == 5, 0, 1),
@@ -190,7 +207,10 @@ health_data <- health_data %>%
     Total_procrastination = rowSums(select(., starts_with("Procras")), na.rm = TRUE),
     Health_problems = rowSums(select(., starts_with(c(
       "Back_pain", "Headache", "Fatigue", "Alcohol", "Smoker_current",
-      "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition"))), na.rm = TRUE)
+      "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition"))), na.rm = TRUE),
+    Health_behaviours = rowSums(select(., starts_with(c(
+      "Prostate_exam", "Mammogram", "Cholesterol_screening", 
+      "Pap_smear", "Flu_shot"))), na.rm = TRUE)
   ) %>%
   # Changing zeros to NA values
   mutate(
