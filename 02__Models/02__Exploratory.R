@@ -46,58 +46,74 @@ health_data %>%
 
 # Visualizing distributions ----------------------------------------------------
 # Procrastination
-health_data %>%
+procrastination_distribution <- health_data %>%
   ggplot(aes(Total_procrastination)) +
   geom_histogram(binwidth = 5, fill = "skyblue", 
                  color = "black", alpha = 0.8) +
   labs(x = "Total Procrastination", y = "Frequency",
-       title = "Histogram of Total Procrastination") +
-  theme_minimal() +
-  ggeasy::easy_center_title()
-
-# Health
-health_data %>%
-  ggplot(aes(Health_problems)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", 
-                 color = "black", alpha = 0.8) +
-  labs(x = "Total Health Problems", y = "Frequency",
-       title = "Histogram of Total Health Related Problems") +
+       title = "") +
   theme_minimal() +
   ggeasy::easy_center_title()
 
 # Depression
-health_data %>%
+depression_distribution<- health_data %>%
   ggplot(aes(Total_depression)) +
   geom_histogram(binwidth = 1, fill = "skyblue", 
                  color = "black", alpha = 0.8) +
   labs(x = "Total Depression", y = "Frequency",
-       title = "Histogram of Total Depression") +
+       title = "") +
   theme_minimal() +
   ggeasy::easy_center_title()
 
 # Anxiety
-health_data %>%
+anxiety_distribution <- health_data %>%
   ggplot(aes(Total_anxiety)) +
   geom_histogram(binwidth = 1, fill = "skyblue", 
                  color = "black", alpha = 0.8) +
   labs(x = "Total Anxiety", y = "Frequency",
-       title = "Histogram of Total Anxiety") +
+       title = "") +
   theme_minimal() +
   ggeasy::easy_center_title()
 
 # Stress
-health_data %>%
+stress_distribution <- health_data %>%
   ggplot(aes(Total_stress)) +
   geom_histogram(binwidth = 2, fill = "skyblue", 
                  color = "black", alpha = 0.8) +
   labs(x = "Total Stress", y = "Frequency",
-       title = "Histogram of Total Stress") +
+       title = "") +
   theme_minimal() +
   ggeasy::easy_center_title()
 
+# Health protection
+protection_distribution <- health_data %>%
+  ggplot(aes(Health_behaviours)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", 
+                 color = "black", alpha = 0.8) +
+  labs(x = "Number of Health Protective Behaviours", y = "Frequency",
+       title = "") +
+  theme_minimal() +
+  ggeasy::easy_center_title()
+
+# Health Problems
+illness_distribution <- health_data %>%
+  ggplot(aes(Health_problems)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", 
+                 color = "black", alpha = 0.8) +
+  labs(x = "Total Health Problems", y = "Frequency",
+       title = "") +
+  theme_minimal() +
+  ggeasy::easy_center_title()
+
+distributions <- cowplot::plot_grid(
+  procrastination_distribution, depression_distribution, 
+  anxiety_distribution, stress_distribution, 
+  illness_distribution, protection_distribution,
+  nrow = 3, ncol = 2)
+
 # Visualizing health behaviors ------------------------------------------------
 # Males
-health_data %>%
+male_health <- health_data %>%
   filter(Gender == 0) %>%
   select(Prostate_exam, Cholesterol_screening, 
          Flu_shot, Total_procrastination) %>%
@@ -133,7 +149,7 @@ health_data %>%
 
 
 # Females
-health_data %>%
+female_health <- health_data %>%
   filter(Gender == 1) %>%
   select(Mammogram, Pap_smear, Cholesterol_screening, 
          Flu_shot, Total_procrastination) %>%
@@ -156,7 +172,7 @@ health_data %>%
     Did = factor(Did)) %>%
   ggplot(aes(x = Health_Protection, y = mean_procrastination, fill = Did)) +
   geom_bar(stat = "identity", position = "dodge", width = .50) +
-  labs(x = "", y = "Total Procrastination", title = "Female Health Protective Behaviours in 2020") +
+  labs(x = "", y = "", title = "Female Health Protective Behaviours in 2020") +
   theme_minimal(base_size = 12) +
   # Add data labels
   geom_text(aes(label = round(mean_procrastination, 2)), 
@@ -168,5 +184,16 @@ health_data %>%
   ggeasy::easy_add_legend_title("") +
   ggeasy::easy_move_legend(to = c("bottom"))
 
+
+health_behaviours <- cowplot::plot_grid(
+  male_health, female_health, ncol = 2, nrow = 1)
+
+# Exporting --------------------------------------------------------------------
+export_path <- "./02__Models/Results/Figures/"
+
+cowplot::save_plot(filename = file.path(export_path, "01__Distributions.png"),
+                   plot = distributions, base_height = 10)
+cowplot::save_plot(filename = file.path(export_path, "02__Health_protection.png"),
+                   plot = health_behaviours, base_height = 10)
 
 
