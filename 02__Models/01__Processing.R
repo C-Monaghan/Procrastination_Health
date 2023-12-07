@@ -12,10 +12,11 @@ path_data <- "./01__Data/01__Raw/"
 tracker <- haven::read_sav(file.path(path_data, "Tracker.sav"))
 
 # HRS(2020 data)
-health <- haven::read_sav(file.path(path_data, "Health_2020.sav"))
-cognition <- haven::read_sav(file.path(path_data, "Cognition_2020.sav"))
-leave_behind <- haven::read_sav(file.path(path_data, "Leave_Behind_2020.sav"))
-mod_v <- haven::read_sav(file.path(path_data, "Module_V_2020.sav"))
+health <- haven::read_sav(file.path(path_data, "Health.sav"))
+services <- haven::read_sav(file.path(path_data, "Health_Services.sav"))
+cognition <- haven::read_sav(file.path(path_data, "Cognition.sav"))
+leave_behind <- haven::read_sav(file.path(path_data, "Leave_Behind.sav"))
+mod_v <- haven::read_sav(file.path(path_data, "Module_V.sav"))
 
 # Filtration -------------------------------------------------------------------
 # Selecting procrastination participants
@@ -25,6 +26,7 @@ mod_v <- mod_v %>%
 # Matching participants across data files
 tracker <- semi_join(tracker, mod_v, by = c("HHID", "PN"))
 health <- semi_join(health, mod_v, by = c("HHID", "PN"))
+services <- semi_join(services, mod_v, by = c("HHID", "PN"))
 cognition <- semi_join(cognition, mod_v, by = c("HHID", "PN"))
 leave_behind <- semi_join(leave_behind, mod_v, by = c("HHID", "PN"))
 
@@ -45,6 +47,7 @@ health_data <- cbind(
     "RC005", "RC010", "RC283", "RC036",
     # Health Behaviors - Protective
     "RC114", "RC112", "RC110", "RC113", "RC109")],
+  services[, c("RN164")],
   cognition[, c(paste0("RD11", 0:7))],
   leave_behind[, c(paste0("RLB035B", 1:10), paste0("RLB035C", 1:5))],
   mod_v[, c(paste0("RV", 156:167))]
@@ -86,6 +89,8 @@ health_data <- health_data %>%
     Cholesterol_screening = "RC110",
     Pap_smear = "RC113",
     Flu_shot = "RC109",
+    # Health services
+    Dental_visit_2_years = "RN164",
     # MENTAL HEALTH ------------------------------------------------------------
     # Depression
     Depression_1 = "RD110",
@@ -153,6 +158,7 @@ health_data <- health_data %>%
     Cholesterol_screening = replace(Cholesterol_screening, Cholesterol_screening %in% c(-8, 8, 9), NA),
     Pap_smear = replace(Pap_smear, Pap_smear %in% c(-8, 8, 9), NA),
     Flu_shot = replace(Flu_shot, Flu_shot %in% c(-8, 8, 9), NA),
+    Dental_visit_2_years = replace(Dental_visit_2_years, Dental_visit_2_years %in% c(-8, 8, 9), NA),
     across(c(
       starts_with("Procras_"), 
       starts_with("Depression")), ~ ifelse(. %in% c(-8, 8, 9), NA, .))
@@ -181,6 +187,7 @@ health_data <- health_data %>%
     Cholesterol_screening = ifelse(Cholesterol_screening == 5, 0, 1),
     Pap_smear = ifelse(Pap_smear == 5, 0, 1),
     Flu_shot = ifelse(Flu_shot == 5, 0, 1),
+    Dental_visit_2_years = ifelse(Dental_visit_2_years == 5, 0, 1),
     Depression_1 = ifelse(Depression_1 == 5, 0, 1),
     Depression_2 = ifelse(Depression_2 == 5, 0, 1),
     Depression_3 = ifelse(Depression_3 == 5, 0, 1),
@@ -210,7 +217,7 @@ health_data <- health_data %>%
       "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition"))), na.rm = TRUE),
     Health_behaviours = rowSums(select(., starts_with(c(
       "Prostate_exam", "Mammogram", "Cholesterol_screening", 
-      "Pap_smear", "Flu_shot"))), na.rm = TRUE)
+      "Pap_smear", "Flu_shot", "Dental_visit_2_years"))), na.rm = TRUE)
   ) %>%
   # Changing zeros to NA values
   mutate(

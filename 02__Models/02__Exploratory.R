@@ -116,7 +116,7 @@ distributions <- cowplot::plot_grid(
 male_health <- health_data %>%
   filter(Gender == 0) %>%
   select(Prostate_exam, Cholesterol_screening, 
-         Flu_shot, Total_procrastination) %>%
+         Flu_shot, Dental_visit_2_years, Total_procrastination) %>%
   tidyr::pivot_longer(cols = !Total_procrastination,
                       names_to = "Health_Protection",
                       values_to = "Did") %>%
@@ -128,31 +128,31 @@ male_health <- health_data %>%
   mutate(Health_Protection = factor(case_when(
     Health_Protection == "Flu_shot" ~ "Flu Shot",
     Health_Protection == "Cholesterol_screening" ~ "Cholesterol Screening",
-    Health_Protection == "Prostate_exam" ~ "Prostate Exam"),
-    levels = c("Flu Shot", "Cholesterol Screening", "Prostate Exam")),
+    Health_Protection == "Prostate_exam" ~ "Prostate Exam",
+    Health_Protection == "Dental_visit_2_years" ~ "Dental Visit (2yrs)"),
+    levels = c("Flu Shot", "Cholesterol Screening", "Dental Visit (2yrs)", "Prostate Exam")),
     Did = ifelse(Did == 0, "Didn\'t Get", "Got"),
     Did = factor(Did)) %>%
   ggplot(aes(x = Health_Protection, y = mean_procrastination, fill = Did)) +
-  geom_bar(stat = "identity", position = "dodge", width = .50) +
-  labs(x = "", y = "Total Procrastination", 
+  geom_bar(stat = "identity", position = "dodge", width = .75) +
+  labs(x = "", y = "Mean Procrastination", 
        title = "Male Health Protective Behaviours in 2020") +
   theme_minimal(base_size = 12) +
   # Add data labels
   geom_text(aes(label = round(mean_procrastination, 2)), 
-            position = position_dodge(width = 0.5), 
+            position = position_dodge(width = 0.75), 
             vjust = -0.5, size = 4) +
   # Scaling y-axis so labels fit
   ylim(0, 30 * 1.1) +
   ggeasy::easy_center_title() +
   ggeasy::easy_add_legend_title("") +
   ggeasy::easy_move_legend(to = c("bottom"))
-
 
 # Females
 female_health <- health_data %>%
   filter(Gender == 1) %>%
   select(Mammogram, Pap_smear, Cholesterol_screening, 
-         Flu_shot, Total_procrastination) %>%
+         Flu_shot, Dental_visit_2_years, Total_procrastination) %>%
   tidyr::pivot_longer(cols = !Total_procrastination,
                       names_to = "Health_Protection",
                       values_to = "Did") %>%
@@ -164,26 +164,26 @@ female_health <- health_data %>%
   mutate(Health_Protection = factor(case_when(
     Health_Protection == "Flu_shot" ~ "Flu Shot",
     Health_Protection == "Cholesterol_screening" ~ "Cholesterol Screening",
+    Health_Protection == "Dental_visit_2_years" ~ "Dental Visit (2yrs)",
     Health_Protection == "Mammogram" ~ "Mammogram",
     Health_Protection == "Pap_smear" ~ "Pap Smear"),
-    levels = c("Flu Shot", "Cholesterol Screening", "Mammogram", 
-               "Pap Smear")),
+    levels = c("Flu Shot", "Cholesterol Screening", "Dental Visit (2yrs)", 
+               "Mammogram", "Pap Smear")),
     Did = ifelse(Did == 0, "Didn\'t Get", "Got"),
     Did = factor(Did)) %>%
   ggplot(aes(x = Health_Protection, y = mean_procrastination, fill = Did)) +
-  geom_bar(stat = "identity", position = "dodge", width = .50) +
+  geom_bar(stat = "identity", position = "dodge", width = .75) +
   labs(x = "", y = "", title = "Female Health Protective Behaviours in 2020") +
   theme_minimal(base_size = 12) +
   # Add data labels
   geom_text(aes(label = round(mean_procrastination, 2)), 
-            position = position_dodge(width = 0.5), 
+            position = position_dodge(width = 0.75), 
             vjust = -0.5, size = 4) +
   # Scaling y-axis so labels fit
   ylim(0, 30 * 1.1) +
   ggeasy::easy_center_title() +
   ggeasy::easy_add_legend_title("") +
   ggeasy::easy_move_legend(to = c("bottom"))
-
 
 health_behaviours <- cowplot::plot_grid(
   male_health, female_health, ncol = 2, nrow = 1)

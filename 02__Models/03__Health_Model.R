@@ -26,7 +26,6 @@ health_model <- '
     # A PATHS
     Health_behaviours ~ a1*pro;
     Total_stress ~ a2*pro;
-
     
     # TOTAL INDIRECT
     HIDE := a1*b1;
