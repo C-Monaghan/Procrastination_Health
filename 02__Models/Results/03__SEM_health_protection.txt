@@ -1,0 +1,153 @@
+lavaan 0.6.16 ended normally after 43 iterations
+
+  Estimator                                         ML
+  Optimization method                           NLMINB
+  Number of model parameters                        46
+
+  Number of observations                          1368
+  Number of missing patterns                        55
+
+Model Test User Model:
+                                                      
+  Test statistic                               370.958
+  Degrees of freedom                                73
+  P-value (Chi-square)                           0.000
+
+Model Test Baseline Model:
+
+  Test statistic                              7545.843
+  Degrees of freedom                                91
+  P-value                                        0.000
+
+User Model versus Baseline Model:
+
+  Comparative Fit Index (CFI)                    0.960
+  Tucker-Lewis Index (TLI)                       0.950
+                                                      
+  Robust Comparative Fit Index (CFI)             0.960
+  Robust Tucker-Lewis Index (TLI)                0.950
+
+Loglikelihood and Information Criteria:
+
+  Loglikelihood user model (H0)             -29435.109
+  Loglikelihood unrestricted model (H1)     -29249.631
+                                                      
+  Akaike (AIC)                               58962.219
+  Bayesian (BIC)                             59202.390
+  Sample-size adjusted Bayesian (SABIC)      59056.266
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.055
+  90 Percent confidence interval - lower         0.049
+  90 Percent confidence interval - upper         0.060
+  P-value H_0: RMSEA <= 0.050                    0.081
+  P-value H_0: RMSEA >= 0.080                    0.000
+                                                      
+  Robust RMSEA                                   0.056
+  90 Percent confidence interval - lower         0.050
+  90 Percent confidence interval - upper         0.062
+  P-value H_0: Robust RMSEA <= 0.050             0.043
+  P-value H_0: Robust RMSEA >= 0.080             0.000
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.030
+
+Parameter Estimates:
+
+  Standard errors                             Standard
+  Information                                 Observed
+  Observed information based on                Hessian
+
+Latent Variables:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  pro =~                                                                
+    Procras_1         1.000                               0.771    0.581
+    Procras_2         1.189    0.049   24.420    0.000    0.917    0.675
+    Procras_3         1.177    0.060   19.484    0.000    0.908    0.676
+    Procras_4         1.152    0.060   19.261    0.000    0.888    0.677
+    Procras_5         1.320    0.065   20.368    0.000    1.018    0.742
+    Procras_6         1.313    0.066   19.953    0.000    1.012    0.721
+    Procras_7         1.348    0.067   20.054    0.000    1.040    0.732
+    Procras_8         1.329    0.065   20.313    0.000    1.025    0.748
+    Procras_9         1.170    0.065   18.034    0.000    0.902    0.620
+    Procras_10        1.159    0.060   19.262    0.000    0.894    0.677
+    Procras_11        1.074    0.057   18.842    0.000    0.828    0.659
+    Procras_12        1.030    0.060   17.046    0.000    0.794    0.570
+
+Regressions:
+                      Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  Health_problems ~                                                        
+    pro        (c)       0.239    0.097    2.458    0.014    0.184    0.070
+    Hlth_bhvr (b1)       0.416    0.062    6.678    0.000    0.416    0.178
+  Health_behaviours ~                                                      
+    pro       (a1)      -0.120    0.042   -2.847    0.004   -0.092   -0.082
+
+Covariances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+ .Procras_1 ~~                                                          
+   .Procras_2         0.424    0.036   11.947    0.000    0.424    0.392
+ .Procras_7 ~~                                                          
+   .Procras_8         0.170    0.030    5.739    0.000    0.170    0.193
+ .Procras_10 ~~                                                         
+   .Procras_11        0.287    0.030    9.607    0.000    0.287    0.313
+
+Intercepts:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+   .Procras_1         2.357    0.036   65.102    0.000    2.357    1.777
+   .Procras_2         2.407    0.037   64.889    0.000    2.407    1.772
+   .Procras_3         2.314    0.037   63.050    0.000    2.314    1.722
+   .Procras_4         2.407    0.036   67.182    0.000    2.407    1.834
+   .Procras_5         2.341    0.037   62.670    0.000    2.341    1.707
+   .Procras_6         2.861    0.038   74.703    0.000    2.861    2.038
+   .Procras_7         2.635    0.039   68.119    0.000    2.635    1.854
+   .Procras_8         2.432    0.037   65.204    0.000    2.432    1.775
+   .Procras_9         2.744    0.040   69.155    0.000    2.744    1.885
+   .Procras_10        2.264    0.036   62.999    0.000    2.264    1.716
+   .Procras_11        1.980    0.034   57.612    0.000    1.980    1.574
+   .Procras_12        2.222    0.038   58.501    0.000    2.222    1.596
+   .Health_problms    3.776    0.164   22.967    0.000    3.776    1.427
+   .Health_behavrs    2.382    0.031   77.837    0.000    2.382    2.104
+    pro               0.000                               0.000    0.000
+
+Variances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+   .Procras_1         1.165    0.048   24.224    0.000    1.165    0.662
+   .Procras_2         1.006    0.043   23.174    0.000    1.006    0.545
+   .Procras_3         0.981    0.042   23.259    0.000    0.981    0.544
+   .Procras_4         0.934    0.040   23.391    0.000    0.934    0.542
+   .Procras_5         0.845    0.038   22.390    0.000    0.845    0.449
+   .Procras_6         0.945    0.042   22.647    0.000    0.945    0.480
+   .Procras_7         0.938    0.042   22.185    0.000    0.938    0.465
+   .Procras_8         0.827    0.038   21.945    0.000    0.827    0.440
+   .Procras_9         1.306    0.054   24.093    0.000    1.306    0.616
+   .Procras_10        0.942    0.040   23.340    0.000    0.942    0.541
+   .Procras_11        0.896    0.038   23.408    0.000    0.896    0.566
+   .Procras_12        1.308    0.053   24.473    0.000    1.308    0.675
+   .Health_problms    6.760    0.259   26.138    0.000    6.760    0.965
+   .Health_behavrs    1.273    0.049   26.133    0.000    1.273    0.993
+    pro               0.595    0.054   11.029    0.000    1.000    1.000
+
+R-Square:
+                   Estimate
+    Procras_1         0.338
+    Procras_2         0.455
+    Procras_3         0.456
+    Procras_4         0.458
+    Procras_5         0.551
+    Procras_6         0.520
+    Procras_7         0.535
+    Procras_8         0.560
+    Procras_9         0.384
+    Procras_10        0.459
+    Procras_11        0.434
+    Procras_12        0.325
+    Health_problms    0.035
+    Health_behavrs    0.007
+
+Defined Parameters:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+    HIDE             -0.050    0.019   -2.611    0.009   -0.038   -0.015
+    Total_effect      0.189    0.098    1.927    0.054    0.146    0.055
+
