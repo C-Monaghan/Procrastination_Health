@@ -1,0 +1,192 @@
+Note. Here we use the two factor structure of the PSS (short 4 items)
+Factor 1 = Perceived Helplessness
+Factor 2 = Perceived Self Efficacy
+
+see paper. https://researchonline.ljmu.ac.uk/id/eprint/12030/1/The%20Factor%20Structure%20of%20the%204-Item%20Perceived%20Stress%20Scale%20in%20English%20Adolescents.pdf
+================================================================================
+lavaan 0.6.16 ended normally after 77 iterations
+
+  Estimator                                         ML
+  Optimization method                           NLMINB
+  Number of model parameters                        62
+
+  Number of observations                          1368
+  Number of missing patterns                        67
+
+Model Test User Model:
+                                                      
+  Test statistic                               487.410
+  Degrees of freedom                               127
+  P-value (Chi-square)                           0.000
+
+Model Test Baseline Model:
+
+  Test statistic                              8111.964
+  Degrees of freedom                               153
+  P-value                                        0.000
+
+User Model versus Baseline Model:
+
+  Comparative Fit Index (CFI)                    0.955
+  Tucker-Lewis Index (TLI)                       0.945
+                                                      
+  Robust Comparative Fit Index (CFI)             0.944
+  Robust Tucker-Lewis Index (TLI)                0.933
+
+Loglikelihood and Information Criteria:
+
+  Loglikelihood user model (H0)             -31065.672
+  Loglikelihood unrestricted model (H1)     -30821.966
+                                                      
+  Akaike (AIC)                               62255.343
+  Bayesian (BIC)                             62579.052
+  Sample-size adjusted Bayesian (SABIC)      62382.103
+
+Root Mean Square Error of Approximation:
+
+  RMSEA                                          0.046
+  90 Percent confidence interval - lower         0.041
+  90 Percent confidence interval - upper         0.050
+  P-value H_0: RMSEA <= 0.050                    0.955
+  P-value H_0: RMSEA >= 0.080                    0.000
+                                                      
+  Robust RMSEA                                   0.055
+  90 Percent confidence interval - lower         0.048
+  90 Percent confidence interval - upper         0.062
+  P-value H_0: Robust RMSEA <= 0.050             0.130
+  P-value H_0: Robust RMSEA >= 0.080             0.000
+
+Standardized Root Mean Square Residual:
+
+  SRMR                                           0.045
+
+Parameter Estimates:
+
+  Standard errors                             Standard
+  Information                                 Observed
+  Observed information based on                Hessian
+
+Latent Variables:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  pro =~                                                                
+    Procras_1         1.000                               0.773    0.583
+    Procras_2         1.188    0.048   24.503    0.000    0.918    0.676
+    Procras_3         1.175    0.060   19.559    0.000    0.908    0.676
+    Procras_4         1.143    0.059   19.261    0.000    0.884    0.673
+    Procras_5         1.314    0.064   20.430    0.000    1.016    0.741
+    Procras_6         1.307    0.065   20.005    0.000    1.011    0.720
+    Procras_7         1.344    0.067   20.130    0.000    1.039    0.732
+    Procras_8         1.325    0.065   20.388    0.000    1.025    0.748
+    Procras_9         1.165    0.064   18.063    0.000    0.900    0.618
+    Procras_10        1.159    0.060   19.366    0.000    0.896    0.680
+    Procras_11        1.074    0.057   18.935    0.000    0.830    0.660
+    Procras_12        1.028    0.060   17.105    0.000    0.795    0.571
+  helplessness =~                                                       
+    Stress_2          1.000                               0.608    0.616
+    Stress_10         1.289    0.304    4.243    0.000    0.784    0.828
+  efficacy =~                                                           
+    Stress_4          1.000                               0.802    0.677
+    Stress_5          1.053    0.201    5.230    0.000    0.845    0.874
+
+Regressions:
+                      Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+  Health_problems ~                                                        
+    pro        (c)       0.425    0.088    4.813    0.000    0.329    0.192
+    hlplssnss (b1)       0.312    0.195    1.598    0.110    0.190    0.111
+    efficacy  (b2)       0.105    0.141    0.743    0.457    0.084    0.049
+    Hlth_bhvr (b3)       0.312    0.034    9.219    0.000    0.312    0.239
+  helplessness ~                                                           
+    pro       (a1)       0.256    0.065    3.919    0.000    0.325    0.325
+  efficacy ~                                                               
+    pro       (a2)       0.357    0.082    4.341    0.000    0.344    0.344
+  Health_behaviours ~                                                      
+    pro       (a3)      -0.212    0.049   -4.341    0.000   -0.164   -0.125
+
+Covariances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+ .Procras_1 ~~                                                          
+   .Procras_2         0.421    0.035   11.902    0.000    0.421    0.390
+ .Procras_7 ~~                                                          
+   .Procras_8         0.170    0.030    5.752    0.000    0.170    0.193
+ .Procras_10 ~~                                                         
+   .Procras_11        0.283    0.030    9.508    0.000    0.283    0.310
+
+Intercepts:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+   .Procras_1         2.358    0.036   65.119    0.000    2.358    1.778
+   .Procras_2         2.407    0.037   64.909    0.000    2.407    1.772
+   .Procras_3         2.313    0.037   63.058    0.000    2.313    1.722
+   .Procras_4         2.406    0.036   67.188    0.000    2.406    1.834
+   .Procras_5         2.341    0.037   62.690    0.000    2.341    1.707
+   .Procras_6         2.861    0.038   74.711    0.000    2.861    2.038
+   .Procras_7         2.634    0.039   68.132    0.000    2.634    1.854
+   .Procras_8         2.432    0.037   65.212    0.000    2.432    1.775
+   .Procras_9         2.744    0.040   69.157    0.000    2.744    1.884
+   .Procras_10        2.263    0.036   63.007    0.000    2.263    1.716
+   .Procras_11        1.980    0.034   57.627    0.000    1.980    1.574
+   .Procras_12        2.222    0.038   58.507    0.000    2.222    1.596
+   .Stress_2          2.217    0.050   44.302    0.000    2.217    2.248
+   .Stress_10         1.946    0.047   41.072    0.000    1.946    2.056
+   .Stress_4          2.287    0.060   38.093    0.000    2.287    1.929
+   .Stress_5          2.398    0.048   49.564    0.000    2.398    2.481
+   .Health_problms    2.664    0.112   23.700    0.000    2.664    1.554
+   .Health_behavrs    3.038    0.036   85.513    0.000    3.038    2.312
+    pro               0.000                               0.000    0.000
+   .helplessness      0.000                               0.000    0.000
+   .efficacy          0.000                               0.000    0.000
+
+Variances:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+   .Procras_1         1.161    0.048   24.228    0.000    1.161    0.660
+   .Procras_2         1.002    0.043   23.185    0.000    1.002    0.543
+   .Procras_3         0.979    0.042   23.283    0.000    0.979    0.543
+   .Procras_4         0.942    0.040   23.464    0.000    0.942    0.547
+   .Procras_5         0.848    0.038   22.447    0.000    0.848    0.451
+   .Procras_6         0.949    0.042   22.697    0.000    0.949    0.481
+   .Procras_7         0.938    0.042   22.237    0.000    0.938    0.465
+   .Procras_8         0.827    0.038   21.989    0.000    0.827    0.441
+   .Procras_9         1.310    0.054   24.125    0.000    1.310    0.618
+   .Procras_10        0.936    0.040   23.334    0.000    0.936    0.538
+   .Procras_11        0.892    0.038   23.411    0.000    0.892    0.564
+   .Procras_12        1.306    0.053   24.488    0.000    1.306    0.674
+   .Stress_2          0.603    0.094    6.392    0.000    0.603    0.620
+   .Stress_10         0.281    0.141    1.996    0.046    0.281    0.314
+   .Stress_4          0.762    0.130    5.854    0.000    0.762    0.542
+   .Stress_5          0.220    0.131    1.676    0.094    0.220    0.236
+   .Health_problms    2.600    0.107   24.407    0.000    2.600    0.884
+   .Health_behavrs    1.700    0.065   26.105    0.000    1.700    0.984
+    pro               0.598    0.054   11.076    0.000    1.000    1.000
+   .helplessness      0.331    0.088    3.761    0.000    0.894    0.894
+   .efficacy          0.568    0.124    4.598    0.000    0.882    0.882
+
+R-Square:
+                   Estimate
+    Procras_1         0.340
+    Procras_2         0.457
+    Procras_3         0.457
+    Procras_4         0.453
+    Procras_5         0.549
+    Procras_6         0.519
+    Procras_7         0.535
+    Procras_8         0.559
+    Procras_9         0.382
+    Procras_10        0.462
+    Procras_11        0.436
+    Procras_12        0.326
+    Stress_2          0.380
+    Stress_10         0.686
+    Stress_4          0.458
+    Stress_5          0.764
+    Health_problms    0.116
+    Health_behavrs    0.016
+    helplessness      0.106
+    efficacy          0.118
+
+Defined Parameters:
+                   Estimate  Std.Err  z-value  P(>|z|)   Std.lv  Std.all
+    SIDE_1            0.080    0.056    1.437    0.151    0.062    0.036
+    SIDE_2            0.037    0.051    0.739    0.460    0.029    0.017
+    HIDE             -0.066    0.017   -3.888    0.000   -0.051   -0.030
+    Total_IE          0.051    0.064    0.796    0.426    0.039    0.023
+    Total_effect      0.476    0.065    7.333    0.000    0.368    0.215
+
