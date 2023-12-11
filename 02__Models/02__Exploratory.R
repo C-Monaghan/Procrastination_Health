@@ -56,7 +56,7 @@ procrastination_distribution <- health_data %>%
   ggeasy::easy_center_title()
 
 # Depression
-depression_distribution<- health_data %>%
+depression_distribution <- health_data %>%
   ggplot(aes(Total_depression)) +
   geom_histogram(binwidth = 1, fill = "skyblue", 
                  color = "black", alpha = 0.8) +
@@ -111,7 +111,41 @@ distributions <- cowplot::plot_grid(
   illness_distribution, protection_distribution,
   nrow = 3, ncol = 2)
 
-# Visualizing health behaviors ------------------------------------------------
+# Visualizing illnesses --------------------------------------------------------
+health_problems <- health_data %>%
+  select(Back_pain:Alcohol, Smoker_current, Blood_pressure:Heart_condition) %>%
+  tidyr::pivot_longer(cols = everything(),
+                      names_to = "Health_Problem",
+                      values_to = "Present") %>%
+  mutate(Health_Problem = factor(case_when(
+    Health_Problem == "Back_pain" ~ "Back Pain",
+    Health_Problem == "Headache" ~ "Headache",
+    Health_Problem == "Fatigue" ~ "Fatigue",
+    Health_Problem == "Alcohol" ~ "Currently Drinking",
+    Health_Problem == "Smoker_current" ~ "Smoking Status",
+    Health_Problem == "Blood_pressure" ~ "Blood Pressure",
+    Health_Problem == "Diabetes" ~ "Diabetes",
+    Health_Problem == "Cholesterol" ~ "Cholesterol",
+    Health_Problem == "Heart_condition" ~ "Heart Condition"), 
+    levels = c("Back Pain", "Headache", "Fatigue", "Currently Drinking",
+               "Smoking Status", "Blood Pressure", "Diabetes", 
+               "Cholesterol", "Heart Condition"))) %>%
+  mutate(Present = ifelse(Present == 0, "No", "Yes"),
+         Present = factor(Present)) %>%
+  filter(complete.cases(Present)) %>%
+  ggplot(aes(x = Health_Problem, fill = Present)) +
+  geom_bar(position = "dodge") +
+  geom_text(stat = "count", aes(label = paste("n =",..count..)), 
+            vjust = -0.5, size = 5, position = position_dodge(width = 0.9)) +
+  labs(x = "Health Problems", y = "Frequency", 
+       title = "Presence of Health Problems")  +
+  theme_minimal(base_size = 15) +
+  ggeasy::easy_rotate_labels(which = c("x"), angle = 20, side = c("middle")) +
+  ggeasy::easy_move_legend(to = "bottom") +
+  ggeasy::easy_remove_legend_title() +
+  ggeasy::easy_center_title()
+
+# Visualizing health behaviors -------------------------------------------------
 # Males
 male_health <- health_data %>%
   filter(Gender == 0) %>%
@@ -195,5 +229,7 @@ cowplot::save_plot(filename = file.path(export_path, "01__Distributions.png"),
                    plot = distributions, base_height = 10)
 cowplot::save_plot(filename = file.path(export_path, "02__Health_protection.png"),
                    plot = health_behaviours, base_height = 10)
+cowplot::save_plot(filename = file.path(export_path, "03__Health_problems.png"),
+                   plot = health_problems, base_height = 14)
 
 
