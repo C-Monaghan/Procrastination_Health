@@ -1,0 +1,127 @@
+# Custom Functions -------------------------------------------------------------
+# Create a histogram
+create_histogram <- function(data, x_variable, x_label, binwidth){
+  ggplot(data = data, aes({{x_variable}})) +
+    geom_histogram(binwidth = binwidth, fill = "skyblue",
+                   colour = "black", alpha = 0.8) +
+    labs(title = "", x = x_label, y = "Frequency") +
+    theme_minimal() +
+    ggeasy::easy_center_title()
+}
+
+# Create a health + procrastination bar chart
+generate_health_plot <- function(data, gender, gender_title, variables) {
+  data %>%
+    filter(Gender == gender) %>%
+    select({{ variables }}, Total_procrastination) %>%
+    tidyr::pivot_longer(
+      cols = !Total_procrastination,
+      names_to = "Health_Protection",
+      values_to = "Did"
+    ) %>%
+    group_by(Health_Protection, Did) %>%
+    summarize(
+      mean_procrastination = round(mean(
+        Total_procrastination, na.rm = TRUE), digits = 2
+      )
+    ) %>%
+    filter(complete.cases(Did)) %>%
+    mutate(
+      Health_Protection = factor(case_when(
+        Health_Protection == "Flu_shot" ~ "Flu Shot",
+        Health_Protection == "Cholesterol_screening" ~ "Cholesterol Screening",
+        Health_Protection == "Dental_visit_2_years" ~ "Dental Visit (2yrs)",
+        Health_Protection == "Prostate_exam" ~ "Prostate Exam",
+        Health_Protection == "Mammogram" ~ "Mammogram",
+        Health_Protection == "Pap_smear" ~ "Pap Smear"
+      ),
+      levels = c(
+        "Flu Shot", "Cholesterol Screening", "Dental Visit (2yrs)",
+        "Prostate Exam", "Mammogram", "Pap Smear"
+      )),
+      Did = ifelse(Did == 0, "Didn\'t Get", "Got"),
+      Did = factor(Did)
+    ) %>%
+    ggplot(aes(x = Health_Protection, y = mean_procrastination, fill = Did)) +
+    geom_bar(stat = "identity", position = "dodge", width = .75) +
+    labs(x = "", y = ifelse(gender == 0, "Mean Procrastination", ""),
+         title = ifelse(gender == 0, paste(gender_title, "Health Protective Behaviours in 2020"), paste(gender_title, "Health Protective Behaviours in 2020"))) +
+    theme_minimal(base_size = 12) +
+    geom_text(aes(label = round(mean_procrastination, 2)),
+              position = position_dodge(width = 0.75),
+              vjust = -0.5, size = 4) +
+    ylim(0, 30 * 1.1) +
+    ggeasy::easy_center_title() +
+    ggeasy::easy_add_legend_title("") +
+    ggeasy::easy_move_legend(to = c("bottom"))
+}
+
+# Create a frequency count bar chart
+process_health_data <- function(data, variables, gender_title, type) {
+  if (type == "problems_frequency") {
+    processed_data <- data %>%
+      select({{variables}}) %>%
+      tidyr::pivot_longer(cols = everything(),
+                          names_to = "Health_Problem",
+                          values_to = "Present") %>%
+      mutate(Health_Problem = factor(case_when(
+        Health_Problem == "Back_pain" ~ "Back Pain",
+        Health_Problem == "Headache" ~ "Headache",
+        Health_Problem == "Fatigue" ~ "Fatigue",
+        Health_Problem == "Alcohol" ~ "Currently Drinking",
+        Health_Problem == "Smoker_current" ~ "Smoking Status",
+        Health_Problem == "Blood_pressure" ~ "Blood Pressure",
+        Health_Problem == "Diabetes" ~ "Diabetes",
+        Health_Problem == "Cholesterol" ~ "Cholesterol",
+        Health_Problem == "Heart_condition" ~ "Heart Condition"), 
+        levels = c("Back Pain", "Headache", "Fatigue", "Currently Drinking",
+                   "Smoking Status", "Blood Pressure", "Diabetes", 
+                   "Cholesterol", "Heart Condition"))) %>%
+      mutate(Present = ifelse(Present == 0, "No", "Yes"),
+             Present = factor(Present)) %>%
+      filter(complete.cases(Present)) %>%
+      ggplot(aes(x = Health_Problem, fill = Present)) +
+      geom_bar(position = "dodge") +
+      geom_text(stat = "count", aes(label = paste("n =", ..count..)), 
+                vjust = -0.5, size = 5, position = position_dodge(width = 0.9)) +
+      labs(x = "", y = "Frequency", 
+           title = "Health Problems") +
+      theme_minimal(base_size = 15) +
+      ggeasy::easy_rotate_labels(which = c("x"), angle = 20, side = c("middle")) +
+      ggeasy::easy_move_legend(to = "bottom") +
+      ggeasy::easy_remove_legend_title() +
+      ggeasy::easy_center_title()
+  } else if(type == "protection_frequency"){
+    processed_data <- data %>%
+      select({{variables}}) %>%
+      tidyr::pivot_longer(cols = everything(),
+                          names_to = "Protection", 
+                          values_to = "Did") %>%
+      mutate(Protection = factor(case_when(
+        Protection == "Flu_shot" ~ "Flu Shot",
+        Protection == "Cholesterol_screening" ~ "Cholesterol Screening",
+        Protection == "Dental_visit_2_years" ~ "Dental Visit (2yrs)",
+        Protection == "Prostate_exam" ~ "Prostate Exam",
+        Protection == "Mammogram" ~ "Mammogram",
+        Protection == "Pap_smear" ~ "Pap Smear"),
+        levels = c("Flu Shot", "Cholesterol Screening", "Dental Visit (2yrs)",
+                   "Prostate Exam", "Mammogram", "Pap Smear"))) %>%
+      mutate(Did = factor(ifelse(Did == 0, "Didn\'t Get", "Got"))) %>%
+      filter(complete.cases(Did)) %>%
+      ggplot(aes(x = Protection, fill = Did)) +
+      geom_bar(position = "dodge") +
+      geom_text(stat = "count", aes(label = paste("n =", ..count..)), 
+                vjust = -0.5, size = 4.5, position = position_dodge(width = 0.9)) +
+      ylim(0, 700) +
+      labs(x = "", y = "Frequency", 
+           title = paste0(gender_title, " ", "Health Protective Behaviours")) +
+      theme_minimal(base_size = 14) +
+      ggeasy::easy_rotate_labels(which = "x", angle = 20, side = "middle") +
+      ggeasy::easy_move_legend(to = "bottom") +
+      ggeasy::easy_remove_legend_title() +
+      ggeasy::easy_center_title()
+  } else {
+    stop("Invalid type. Choose either 'problems_frequency' or 'protection_frequency'.")
+  }
+  return(processed_data)
+}

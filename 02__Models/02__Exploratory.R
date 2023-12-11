@@ -4,23 +4,27 @@ library(dplyr)
 library(naniar)
 library(ggplot2)
 
+# Custom functions
+source(file.path("./02__Models/00__Functions.R"))
+
 path_data <- "./01__Data/02__Processed/"
 
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
-# Seeing missing data ----------------------------------------------------------
+# Visualizing missing data -----------------------------------------------------
 # Whole dataset
 vis_miss(health_data)
 
 # For ONLY total columns
 health_data %>%
-  select(c(starts_with("Total"), "Health_problems")) %>%
+  select(c(starts_with("Total"), "Health_problems", "Health_behaviours")) %>%
   rename("Stress" = Total_stress, 
          "Anxiety" = Total_anxiety,
          "Procrastination" = Total_procrastination, 
          "Depression" = Total_depression,
-         "Health Problems" = Health_problems) %>%
+         "Health Problems" = Health_problems,
+         "Health Behaviours" = Health_behaviours) %>%
   gg_miss_var(show_pct = TRUE) +
   labs(y = "% Missing Data", title = "So much missing data!!") +
   theme_minimal(base_size = 12) +
@@ -46,190 +50,103 @@ health_data %>%
 
 # Visualizing distributions ----------------------------------------------------
 # Procrastination
-procrastination_distribution <- health_data %>%
-  ggplot(aes(Total_procrastination)) +
-  geom_histogram(binwidth = 5, fill = "skyblue", 
-                 color = "black", alpha = 0.8) +
-  labs(x = "Total Procrastination", y = "Frequency",
-       title = "") +
-  theme_minimal() +
-  ggeasy::easy_center_title()
+procrastination_distribution <- create_histogram(
+  data = health_data, x_variable = Total_procrastination, 
+  x_label = "Total Procrastination", binwidth = 5)
 
 # Depression
-depression_distribution <- health_data %>%
-  ggplot(aes(Total_depression)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", 
-                 color = "black", alpha = 0.8) +
-  labs(x = "Total Depression", y = "Frequency",
-       title = "") +
-  theme_minimal() +
-  ggeasy::easy_center_title()
+depression_distribution <- create_histogram(
+  data = health_data, x_variable = Total_depression, 
+  x_label = "Total Depression", binwidth = 1)
 
 # Anxiety
-anxiety_distribution <- health_data %>%
-  ggplot(aes(Total_anxiety)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", 
-                 color = "black", alpha = 0.8) +
-  labs(x = "Total Anxiety", y = "Frequency",
-       title = "") +
-  theme_minimal() +
-  ggeasy::easy_center_title()
+anxiety_distribution <- create_histogram(
+  data = health_data, x_variable = Total_anxiety, 
+  x_label = "Total Anxiety", binwidth = 1)
 
 # Stress
-stress_distribution <- health_data %>%
-  ggplot(aes(Total_stress)) +
-  geom_histogram(binwidth = 2, fill = "skyblue", 
-                 color = "black", alpha = 0.8) +
-  labs(x = "Total Stress", y = "Frequency",
-       title = "") +
-  theme_minimal() +
-  ggeasy::easy_center_title()
-
-# Health protection
-protection_distribution <- health_data %>%
-  ggplot(aes(Health_behaviours)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", 
-                 color = "black", alpha = 0.8) +
-  labs(x = "Number of Health Protective Behaviours", y = "Frequency",
-       title = "") +
-  theme_minimal() +
-  ggeasy::easy_center_title()
+stress_distribution <- create_histogram(
+  data = health_data, x_variable = Total_stress,
+  x_label = "Total Stress", binwidth = 2)
 
 # Health Problems
-illness_distribution <- health_data %>%
-  ggplot(aes(Health_problems)) +
-  geom_histogram(binwidth = 1, fill = "skyblue", 
-                 color = "black", alpha = 0.8) +
-  labs(x = "Total Health Problems", y = "Frequency",
-       title = "") +
-  theme_minimal() +
-  ggeasy::easy_center_title()
+illness_distribution <- create_histogram(
+  data = health_data, x_variable = Health_problems,
+  x_label = "Number of Health Problems", binwidth = 1)
 
-distributions <- cowplot::plot_grid(
-  procrastination_distribution, depression_distribution, 
-  anxiety_distribution, stress_distribution, 
-  illness_distribution, protection_distribution,
+# Health protection
+protection_distribution <- create_histogram(
+  data = health_data, x_variable = Health_behaviours,
+  x_label = "Number of Health Protective Behaviours", binwidth = 1)
+
+# Frequency Analysis -----------------------------------------------------------
+# Health Problems
+problems_frequency <- process_health_data(
+  data = health_data, variables = c(
+  "Back_pain", "Headache", "Fatigue", "Alcohol", "Smoker_current", 
+  "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition"), 
+  type = "problems_frequency")
+
+# Health Protection (Males)
+protection_frequency_male <- health_data %>%
+  filter(Gender == 0) %>%
+  process_health_data(variables = c(
+    "Prostate_exam", "Cholesterol_screening",
+    "Flu_shot", "Dental_visit_2_years"), gender_title = "Male",
+    type = "protection_frequency")
+
+# Health Protection (Females)
+protection_frequency_female <- health_data %>%
+  filter(Gender == 1) %>%
+  process_health_data(variables = c(
+    "Cholesterol_screening", "Flu_shot", "Dental_visit_2_years",
+    "Mammogram", "Pap_smear"), gender_title = "Female",
+    type = "protection_frequency")
+
+# Health and Procrastination ---------------------------------------------------
+health_procrastination_male <- generate_health_plot(
+  data = health_data, gender = 0, gender_title = "Male", 
+  variables = c("Prostate_exam", "Cholesterol_screening", 
+                "Flu_shot", "Dental_visit_2_years"))
+
+health_procrastination_female <- generate_health_plot(
+  data = health_data, gender = 1, gender_title = "Female", 
+  variables = c("Mammogram", "Pap_smear", "Cholesterol_screening",
+                "Flu_shot", "Dental_visit_2_years"))
+
+# Grouping everything together -------------------------------------------------
+# Distributions
+distributions_grouped <- cowplot::plot_grid(
+  procrastination_distribution, 
+  depression_distribution, 
+  anxiety_distribution, 
+  stress_distribution, 
+  illness_distribution, 
+  protection_distribution,
   nrow = 3, ncol = 2)
 
-# Visualizing illnesses --------------------------------------------------------
-health_problems <- health_data %>%
-  select(Back_pain:Alcohol, Smoker_current, Blood_pressure:Heart_condition) %>%
-  tidyr::pivot_longer(cols = everything(),
-                      names_to = "Health_Problem",
-                      values_to = "Present") %>%
-  mutate(Health_Problem = factor(case_when(
-    Health_Problem == "Back_pain" ~ "Back Pain",
-    Health_Problem == "Headache" ~ "Headache",
-    Health_Problem == "Fatigue" ~ "Fatigue",
-    Health_Problem == "Alcohol" ~ "Currently Drinking",
-    Health_Problem == "Smoker_current" ~ "Smoking Status",
-    Health_Problem == "Blood_pressure" ~ "Blood Pressure",
-    Health_Problem == "Diabetes" ~ "Diabetes",
-    Health_Problem == "Cholesterol" ~ "Cholesterol",
-    Health_Problem == "Heart_condition" ~ "Heart Condition"), 
-    levels = c("Back Pain", "Headache", "Fatigue", "Currently Drinking",
-               "Smoking Status", "Blood Pressure", "Diabetes", 
-               "Cholesterol", "Heart Condition"))) %>%
-  mutate(Present = ifelse(Present == 0, "No", "Yes"),
-         Present = factor(Present)) %>%
-  filter(complete.cases(Present)) %>%
-  ggplot(aes(x = Health_Problem, fill = Present)) +
-  geom_bar(position = "dodge") +
-  geom_text(stat = "count", aes(label = paste("n =",..count..)), 
-            vjust = -0.5, size = 5, position = position_dodge(width = 0.9)) +
-  labs(x = "Health Problems", y = "Frequency", 
-       title = "Presence of Health Problems")  +
-  theme_minimal(base_size = 15) +
-  ggeasy::easy_rotate_labels(which = c("x"), angle = 20, side = c("middle")) +
-  ggeasy::easy_move_legend(to = "bottom") +
-  ggeasy::easy_remove_legend_title() +
-  ggeasy::easy_center_title()
+# Health Protection Frequency
+protection_frequency_grouped <- cowplot::plot_grid(
+  protection_frequency_male, 
+  protection_frequency_female, 
+  ncol = 2, nrow = 1)
 
-# Visualizing health behaviors -------------------------------------------------
-# Males
-male_health <- health_data %>%
-  filter(Gender == 0) %>%
-  select(Prostate_exam, Cholesterol_screening, 
-         Flu_shot, Dental_visit_2_years, Total_procrastination) %>%
-  tidyr::pivot_longer(cols = !Total_procrastination,
-                      names_to = "Health_Protection",
-                      values_to = "Did") %>%
-  group_by(Health_Protection, Did) %>%
-  summarize(mean_procrastination = round(mean(
-    Total_procrastination, na.rm = TRUE), 
-    digits = 2)) %>%
-  filter(complete.cases(Did)) %>%
-  mutate(Health_Protection = factor(case_when(
-    Health_Protection == "Flu_shot" ~ "Flu Shot",
-    Health_Protection == "Cholesterol_screening" ~ "Cholesterol Screening",
-    Health_Protection == "Prostate_exam" ~ "Prostate Exam",
-    Health_Protection == "Dental_visit_2_years" ~ "Dental Visit (2yrs)"),
-    levels = c("Flu Shot", "Cholesterol Screening", "Dental Visit (2yrs)", "Prostate Exam")),
-    Did = ifelse(Did == 0, "Didn\'t Get", "Got"),
-    Did = factor(Did)) %>%
-  ggplot(aes(x = Health_Protection, y = mean_procrastination, fill = Did)) +
-  geom_bar(stat = "identity", position = "dodge", width = .75) +
-  labs(x = "", y = "Mean Procrastination", 
-       title = "Male Health Protective Behaviours in 2020") +
-  theme_minimal(base_size = 12) +
-  # Add data labels
-  geom_text(aes(label = round(mean_procrastination, 2)), 
-            position = position_dodge(width = 0.75), 
-            vjust = -0.5, size = 4) +
-  # Scaling y-axis so labels fit
-  ylim(0, 30 * 1.1) +
-  ggeasy::easy_center_title() +
-  ggeasy::easy_add_legend_title("") +
-  ggeasy::easy_move_legend(to = c("bottom"))
-
-# Females
-female_health <- health_data %>%
-  filter(Gender == 1) %>%
-  select(Mammogram, Pap_smear, Cholesterol_screening, 
-         Flu_shot, Dental_visit_2_years, Total_procrastination) %>%
-  tidyr::pivot_longer(cols = !Total_procrastination,
-                      names_to = "Health_Protection",
-                      values_to = "Did") %>%
-  group_by(Health_Protection, Did) %>%
-  summarize(mean_procrastination = round(mean(
-    Total_procrastination, na.rm = TRUE), 
-    digits = 2)) %>%
-  filter(complete.cases(Did)) %>%
-  mutate(Health_Protection = factor(case_when(
-    Health_Protection == "Flu_shot" ~ "Flu Shot",
-    Health_Protection == "Cholesterol_screening" ~ "Cholesterol Screening",
-    Health_Protection == "Dental_visit_2_years" ~ "Dental Visit (2yrs)",
-    Health_Protection == "Mammogram" ~ "Mammogram",
-    Health_Protection == "Pap_smear" ~ "Pap Smear"),
-    levels = c("Flu Shot", "Cholesterol Screening", "Dental Visit (2yrs)", 
-               "Mammogram", "Pap Smear")),
-    Did = ifelse(Did == 0, "Didn\'t Get", "Got"),
-    Did = factor(Did)) %>%
-  ggplot(aes(x = Health_Protection, y = mean_procrastination, fill = Did)) +
-  geom_bar(stat = "identity", position = "dodge", width = .75) +
-  labs(x = "", y = "", title = "Female Health Protective Behaviours in 2020") +
-  theme_minimal(base_size = 12) +
-  # Add data labels
-  geom_text(aes(label = round(mean_procrastination, 2)), 
-            position = position_dodge(width = 0.75), 
-            vjust = -0.5, size = 4) +
-  # Scaling y-axis so labels fit
-  ylim(0, 30 * 1.1) +
-  ggeasy::easy_center_title() +
-  ggeasy::easy_add_legend_title("") +
-  ggeasy::easy_move_legend(to = c("bottom"))
-
-health_behaviours <- cowplot::plot_grid(
-  male_health, female_health, ncol = 2, nrow = 1)
+# Health Procrastination
+health_procrastination_grouped <- cowplot::plot_grid(
+  health_procrastination_male,
+  health_procrastination_female,
+  ncol = 2, nrow = 1
+)
 
 # Exporting --------------------------------------------------------------------
 export_path <- "./02__Models/Results/Figures/"
 
 cowplot::save_plot(filename = file.path(export_path, "01__Distributions.png"),
-                   plot = distributions, base_height = 10)
-cowplot::save_plot(filename = file.path(export_path, "02__Health_protection.png"),
-                   plot = health_behaviours, base_height = 10)
-cowplot::save_plot(filename = file.path(export_path, "03__Health_problems.png"),
-                   plot = health_problems, base_height = 14)
-
+                   plot = distributions_grouped, base_height = 10)
+cowplot::save_plot(filename = file.path(export_path, "02__Health_problem_frequency.png"),
+                   plot = problems_frequency, base_height = 14)
+cowplot::save_plot(filename = file.path(export_path, "03__Health_protection_frequency.png"),
+                   plot = protection_frequency_grouped, base_height = 14)
+cowplot::save_plot(filename = file.path(export_path, "04__Health_problems.png"),
+                   plot = health_procrastination_grouped, base_height = 14)
 
