@@ -41,11 +41,7 @@ health_model_1 <- '
     # TOTAL EFFECT
     Total_effect := c + (a1*b1) + (a2*b2) + (a3*b3)
 '
-# Fitting and reporting model
-fit_1 <- sem(health_model_1, data = health_data, estimator = "ML", missing = "fiml")
-summary(fit_1, fit.measures = TRUE, standardized = TRUE, modindices = FALSE, rsquare = TRUE)
 
-# ------------------------------------------------------------------------------
 # Using only 4 items (short scale) and a 2 factor structure
 health_model_2 <- '
     # LATENT VARIABLES
@@ -77,12 +73,16 @@ health_model_2 <- '
     Total_effect := c + (a1*b1) + (a2*b2) + (a3*b3)
 '
 
-# Fitting and reporting model
+# Fitting and reporting both model
+fit_1 <- sem(health_model_1, data = health_data, estimator = "ML", missing = "fiml")
 fit_2 <- sem(health_model_2, data = health_data, estimator = "ML", missing = "fiml")
+
+summary(fit_1, fit.measures = TRUE, standardized = TRUE, modindices = FALSE, rsquare = TRUE)
 summary(fit_2, fit.measures = TRUE, standardized = TRUE, modindices = FALSE, rsquare = TRUE)
 
 # Comparing model performance
 comparison <- semTools::compareFit(fit_2, fit_1)
+summary(comparison)
 
 # Exporting --------------------------------------------------------------------
 export_path <- "./02__Models/Results/"
