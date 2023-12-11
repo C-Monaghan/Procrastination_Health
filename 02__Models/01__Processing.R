@@ -71,7 +71,7 @@ health_data <- health_data %>%
     Fatigue = "RC148",
     # Lifestyle - Smoking and Alcohol
     Alcohol = "RC128",
-    Alcohol_number = "RC129",
+    Amount_alcohol = "RC129",
     Smoker_current = "RC117",
     Smoker_num = "RC118",
     # Lifestyle - Physical Activity
@@ -144,8 +144,8 @@ health_data <- health_data %>%
     Headache = replace(Headache, Headache %in% c(8, 9), NA),
     Fatigue = replace(Fatigue, Fatigue %in% c(-8, 8), NA),
     Alcohol = replace(Alcohol, Alcohol %in% c(-8, 3, 8, 9), NA),
-    Alcohol_number = replace(Alcohol_number, is.na(Alcohol_number), 0), # Those who don't drink at all have NA for their number of drinks - this is changed to 0
-    Alcohol_number = replace(Alcohol_number, Alcohol_number %in% c(-8, 8, 9), NA), # We can then change those who actually drink values to NA
+    Amount_alcohol = replace(Amount_alcohol, is.na(Amount_alcohol), 0), # Those who don't drink at all have NA for their number of drinks - this is changed to 0
+    Amount_alcohol = replace(Amount_alcohol, Amount_alcohol %in% c(-8, 8, 9), NA), # We can then change those who actually drink values to NA
     Smoker_num = ifelse(Smoker_current == 5, 0, Smoker_num), # Those who don't smoke at all have NA for their number of cigarettes - this is changed to 0
     Activity_mild = replace(Activity_mild, Activity_mild %in% c(-8, 8, 9), NA),
     Activity_moderate = replace(Activity_moderate, Activity_moderate %in% c(-8, 8, 9), NA),
