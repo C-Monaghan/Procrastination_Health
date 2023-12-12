@@ -9,6 +9,16 @@ create_histogram <- function(data, x_variable, x_label, binwidth){
     ggeasy::easy_center_title()
 }
 
+# Create a scatterplot
+create_scatter_plot <- function(data, y_variable, y_label){
+  ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
+    geom_point() +
+    labs(title = paste0("Relationship between Procrastination and ", y_label),
+         x = "Procrastination", y = y_label) + 
+    theme_bw(base_size = 12) +
+    ggeasy::easy_center_title()
+}
+
 # Create a health + procrastination bar chart
 generate_health_plot <- function(data, gender, gender_title, variables) {
   data %>%

@@ -9,7 +9,6 @@ path_data <- "./01__Data/02__Processed/"
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
-
 # Building a model -------------------------------------------------------------
 # Using all 10 stress items and a 2 factor structure
 health_model_1 <- '

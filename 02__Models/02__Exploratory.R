@@ -1,7 +1,6 @@
 rm(list = ls())
 
 library(dplyr)
-library(naniar)
 library(ggplot2)
 
 # Custom functions
@@ -14,10 +13,10 @@ health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
 # Visualizing missing data -----------------------------------------------------
 # Whole dataset
-vis_miss(health_data)
+naniar::vis_miss(health_data)
 
 # For ONLY total columns
-health_data %>%
+missing_percentage <- health_data %>%
   select(c(starts_with("Total"), "Health_problems", "Health_behaviours")) %>%
   rename("Stress" = Total_stress, 
          "Anxiety" = Total_anxiety,
@@ -25,28 +24,26 @@ health_data %>%
          "Depression" = Total_depression,
          "Health Problems" = Health_problems,
          "Health Behaviours" = Health_behaviours) %>%
-  gg_miss_var(show_pct = TRUE) +
+  naniar::gg_miss_var(show_pct = TRUE) +
   labs(y = "% Missing Data", title = "So much missing data!!") +
   theme_minimal(base_size = 12) +
   ggeasy::easy_center_title()
 
 # Visualizing relationships with procrastination -------------------------------
-health_data %>%
-  select(c(starts_with("Total"), "Health_problems")) %>%
-  tidyr::pivot_longer(cols = !Total_procrastination,
-                      names_to = "Measure",
-                      values_to = "Value") %>%
-  mutate(Measure = factor(Measure)) %>%
-  ggplot(aes(x = Total_procrastination, y = Value)) +
-  geom_point(colour = "skyblue") +
-  facet_wrap(~ Measure, labeller = labeller(
-    Measure = c(Total_anxiety = "Anxiety", 
-                Total_depression = "Depression", 
-                Total_stress = "Stress",
-                Health_problems = "Health Problems"))) +
-  labs(x = "Procrastination", y = "Total") +
-  theme_bw(base_size = 12) +
-  ggeasy::easy_remove_legend()
+depression_scatter <- health_data %>%
+  create_scatter_plot(y_variable = Total_depression, y_label = "Depression")
+
+anxiety_scatter <- health_data %>%
+  create_scatter_plot(y_variable = Total_anxiety, y_label = "Anxiety")
+
+stress_scatter <- health_data %>%
+  create_scatter_plot(y_variable = Total_stress, y_label = "Stress")
+
+health_problem_scatter <- health_data %>%
+  create_scatter_plot(y_variable = Health_problems, y_label = "Health Problems")
+
+health_protection_scatter <- health_data %>%
+  create_scatter_plot(y_variable = Health_behaviours, y_label = "Health Protection Behaviours")
 
 # Visualizing distributions ----------------------------------------------------
 # Procrastination
@@ -115,6 +112,12 @@ health_procrastination_female <- generate_health_plot(
                 "Flu_shot", "Dental_visit_2_years"))
 
 # Grouping everything together -------------------------------------------------
+# Scatter Plots
+scatter_grouped <- cowplot::plot_grid(
+  cowplot::plot_grid(depression_scatter, anxiety_scatter, ncol = 1),
+  cowplot::plot_grid(health_problem_scatter, health_protection_scatter, ncol = 1),
+  stress_scatter, nrow = 1, align = "center")
+
 # Distributions
 distributions_grouped <- cowplot::plot_grid(
   procrastination_distribution, 
@@ -149,4 +152,7 @@ cowplot::save_plot(filename = file.path(export_path, "03__Health_protection_freq
                    plot = protection_frequency_grouped, base_height = 14)
 cowplot::save_plot(filename = file.path(export_path, "04__Health_problems.png"),
                    plot = health_procrastination_grouped, base_height = 14)
-
+cowplot::save_plot(filename = file.path(export_path, "05__Scatter_plots.png"),
+                   plot = scatter_grouped, base_height = 14)
+cowplot::save_plot(filename = file.path(export_path, "06__Missing_percentage.png"),
+                   plot = missing_percentage, base_height = 10)
