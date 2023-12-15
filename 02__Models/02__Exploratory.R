@@ -26,7 +26,7 @@ missing_percentage <- health_data %>%
          "Health Behaviours" = Health_behaviours) %>%
   naniar::gg_miss_var(show_pct = TRUE) +
   labs(y = "% Missing Data", title = "So much missing data!!") +
-  theme_minimal(base_size = 12) +
+  theme_bw(base_size = 12) +
   ggeasy::easy_center_title()
 
 # Visualizing relationships with procrastination -------------------------------

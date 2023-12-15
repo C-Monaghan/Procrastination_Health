@@ -5,7 +5,7 @@ create_histogram <- function(data, x_variable, x_label, binwidth){
     geom_histogram(binwidth = binwidth, fill = "skyblue",
                    colour = "black", alpha = 0.8) +
     labs(title = "", x = x_label, y = "Frequency") +
-    theme_minimal() +
+    theme_bw() +
     ggeasy::easy_center_title()
 }
 
@@ -56,7 +56,7 @@ generate_health_plot <- function(data, gender, gender_title, variables) {
     geom_bar(stat = "identity", position = "dodge", width = .75) +
     labs(x = "", y = ifelse(gender == 0, "Mean Procrastination", ""),
          title = ifelse(gender == 0, paste(gender_title, "Health Protective Behaviours in 2020"), paste(gender_title, "Health Protective Behaviours in 2020"))) +
-    theme_minimal(base_size = 12) +
+    theme_bw(base_size = 12) +
     geom_text(aes(label = round(mean_procrastination, 2)),
               position = position_dodge(width = 0.75),
               vjust = -0.5, size = 4) +
@@ -96,8 +96,7 @@ process_health_data <- function(data, variables, gender_title, type) {
                 vjust = -0.5, size = 5, position = position_dodge(width = 0.9)) +
       labs(x = "", y = "Frequency", 
            title = "Health Problems") +
-      theme_minimal(base_size = 15) +
-      ggeasy::easy_rotate_labels(which = c("x"), angle = 20, side = c("middle")) +
+      theme_bw(base_size = 15) +
       ggeasy::easy_move_legend(to = "bottom") +
       ggeasy::easy_remove_legend_title() +
       ggeasy::easy_center_title()
@@ -125,8 +124,7 @@ process_health_data <- function(data, variables, gender_title, type) {
       ylim(0, 700) +
       labs(x = "", y = "Frequency", 
            title = paste0(gender_title, " ", "Health Protective Behaviours")) +
-      theme_minimal(base_size = 14) +
-      ggeasy::easy_rotate_labels(which = "x", angle = 20, side = "middle") +
+      theme_bw(base_size = 14) +
       ggeasy::easy_move_legend(to = "bottom") +
       ggeasy::easy_remove_legend_title() +
       ggeasy::easy_center_title()
