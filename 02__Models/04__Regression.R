@@ -10,7 +10,6 @@ path_data <- "./01__Data/02__Processed/"
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
-# Fitting binary logistic regressions (with no control) ------------------------
 # Defining a vector of health problems
 health_problems <- c("Back_pain", "Headache", "Fatigue", 
                      "Alcohol", "Smoker_current", "Blood_pressure", 
@@ -20,26 +19,23 @@ health_problems <- c("Back_pain", "Headache", "Fatigue",
 health_protection <- c("Prostate_exam", "Mammogram", "Cholesterol_screening",
                        "Pap_smear", "Flu_shot", "Dental_visit_2_years")
 
+# Fitting binary logistic regressions (with no covariate) ----------------------
 # Fitting (health problems)
-problem_models_base <- lapply(health_problems, logit_model, 
-                                predictor = "Total_procrastination", 
-                                data = health_data, type = "base")
+problem_models_base <- lapply(health_problems, logit_model,
+                              predictor = "Total_procrastination",
+                              data = health_data, type = "base")
 
 # Fitting (health protection)
-protection_models_base <- lapply(health_protection, logit_model, 
-                                   predictor = "Total_procrastination", 
-                                   data = health_data, type = "base")
+protection_models_base <- lapply(health_protection, logit_model,
+                                 predictor = "Total_procrastination",
+                                 data = health_data, type = "base")
 
-# health_problems_model[[i]] where i = 1, 2, 3, ..., 9
-
-# health_protection_models[[i]] where i = 1, 2, 3, ..., 6
-
-# Fitting binary logistic regressions (with control) ---------------------------
+# Fitting binary logistic regressions (with covariate) -------------------------
 problem_models_control <- lapply(health_problems, logit_model, 
                                  predictor = "Total_procrastination", 
                                  data = health_data, type = "control")
 
-protection_models_control <- lapply(health_problems, logit_model, 
+protection_models_control <- lapply(health_protection, logit_model, 
                                     predictor = "Total_procrastination", 
                                     data = health_data, type = "control")
 

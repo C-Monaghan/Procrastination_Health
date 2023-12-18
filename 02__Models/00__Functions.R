@@ -147,7 +147,7 @@ logit_model <- function(outcome, predictor, data, type) {
   model_summary <- summary(model)
   odds <- exp(model$coefficients[[2]])
   
-  # Getting odds ratio
+  # Returning info
   return(list(
     type = paste("Binary Logistic Regression for", outcome, "and", predictor),
     model = model, 
@@ -164,7 +164,7 @@ logit_model <- function(outcome, predictor, data, type) {
     model_summary <- summary(model)
     odds <- exp(model$coefficients[[2]])
     
-    # Getting odds ratio
+    # Returning info
     return(list(
       type = paste("Binary Logistic Regression (with control) for", outcome, "and", predictor),
       model = model, 
