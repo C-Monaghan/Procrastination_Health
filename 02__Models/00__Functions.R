@@ -13,6 +13,7 @@ create_histogram <- function(data, x_variable, x_label, binwidth){
 create_scatter_plot <- function(data, y_variable, y_label){
   ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
     geom_point() +
+    geom_smooth(method = "lm", se = FALSE) + 
     labs(title = paste0("Relationship between Procrastination and ", y_label),
          x = "Procrastination", y = y_label) + 
     theme_bw(base_size = 12) +
@@ -132,4 +133,22 @@ process_health_data <- function(data, variables, gender_title, type) {
     stop("Invalid type. Choose either 'problems_frequency' or 'protection_frequency'.")
   }
   return(processed_data)
+}
+
+# Running binary logistic regression
+logit_model <- function(outcome, predictor, data) {
+  # Fit the model
+  model <- glm(formula = paste(outcome, " ~ ", predictor), family = "binomial", data = data)
+  
+  # Saving model summary and odds ratio
+  model_summary <- summary(model)
+  odds <- exp(model$coefficients[[2]])
+  
+  # Getting odds ratio
+  return(list(
+    type = paste("Binary Logistic Regression for", outcome, "and", predictor),
+    model = model, 
+    model_summary = model_summary,
+    odds = paste("Odds Ratio: ", odds)
+    ))
 }
