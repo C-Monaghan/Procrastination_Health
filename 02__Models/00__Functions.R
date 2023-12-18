@@ -136,9 +136,12 @@ process_health_data <- function(data, variables, gender_title, type) {
 }
 
 # Running binary logistic regression
-logit_model <- function(outcome, predictor, data) {
+logit_model <- function(outcome, predictor, data, type) {
+  if(type == "base") {
   # Fit the model
-  model <- glm(formula = paste(outcome, " ~ ", predictor), family = "binomial", data = data)
+  model <- glm(formula = paste(outcome, " ~ ", predictor), 
+               family = "binomial", 
+               data = data)
   
   # Saving model summary and odds ratio
   model_summary <- summary(model)
@@ -151,4 +154,22 @@ logit_model <- function(outcome, predictor, data) {
     model_summary = model_summary,
     odds = paste("Odds Ratio: ", odds)
     ))
+  
+  } else if(type == "control") {
+    model <- glm(formula = paste(outcome, " ~ ", predictor, " * Total_depression"), 
+                 family = "binomial", 
+                 data = data)
+    
+    # Saving model summary and odds ratio
+    model_summary <- summary(model)
+    odds <- exp(model$coefficients[[2]])
+    
+    # Getting odds ratio
+    return(list(
+      type = paste("Binary Logistic Regression (with control) for", outcome, "and", predictor),
+      model = model, 
+      model_summary = model_summary,
+      odds = paste("Odds Ratio: ", odds)
+    ))
+  }
 }
