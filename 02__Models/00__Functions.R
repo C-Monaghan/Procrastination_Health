@@ -173,3 +173,18 @@ logit_model <- function(outcome, predictor, data, type) {
     ))
   }
 }
+
+# Create a logistic regresssion curve
+generate_log_plot <- function(predictor, data) {
+  require(ggplot2)
+  require(ggeasy)
+  
+  ggplot(data = data, aes(x = Total_procrastination, y = {{predictor}})) +
+    geom_point(alpha = 0.5, size = 0.75) +
+    geom_smooth(method = "glm", se = FALSE, 
+                method.args = list(family = binomial), 
+                col = "red", lty = 2) +
+    theme_bw() +
+    xlab("Total Procrastination") +
+    easy_remove_gridlines()
+}
