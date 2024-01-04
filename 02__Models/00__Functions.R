@@ -1,6 +1,9 @@
 # Custom Functions -------------------------------------------------------------
 # Create a histogram
 create_histogram <- function(data, x_variable, x_label, binwidth){
+  require(ggplot2)
+  require(ggeasy)
+  
   ggplot(data = data, aes({{x_variable}})) +
     geom_histogram(binwidth = binwidth, fill = "skyblue",
                    colour = "black", alpha = 0.8) +
@@ -11,9 +14,12 @@ create_histogram <- function(data, x_variable, x_label, binwidth){
 
 # Create a scatterplot
 create_scatter_plot <- function(data, y_variable, y_label){
+  require(ggplot2)
+  require(ggeasy)
+  
   ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
     geom_point() +
-    geom_smooth(method = "lm", se = FALSE) + 
+    geom_smooth(method = "lm", se = TRUE) + 
     labs(title = paste0("Relationship between Procrastination and ", y_label),
          x = "Procrastination", y = y_label) + 
     theme_bw(base_size = 12) +
@@ -22,6 +28,11 @@ create_scatter_plot <- function(data, y_variable, y_label){
 
 # Create a health + procrastination bar chart
 generate_health_plot <- function(data, gender, gender_title, variables) {
+  require(dplyr)
+  require(tidyr)
+  require(ggplot2)
+  require(ggeasy)
+  
   data %>%
     filter(Gender == gender) %>%
     select({{ variables }}, Total_procrastination) %>%
@@ -69,6 +80,11 @@ generate_health_plot <- function(data, gender, gender_title, variables) {
 
 # Create a frequency count bar chart
 process_health_data <- function(data, variables, gender_title, type) {
+  require(dplyr)
+  require(tidyr)
+  require(ggplot2)
+  require(ggeasy)
+  
   if (type == "problems_frequency") {
     processed_data <- data %>%
       select({{variables}}) %>%
@@ -137,14 +153,21 @@ process_health_data <- function(data, variables, gender_title, type) {
 
 # Running binary logistic regression
 logit_model <- function(outcome, predictor, data, type) {
+  require(DescTools)
+  
   if(type == "base") {
   # Fit the model
   model <- glm(formula = paste(outcome, " ~ ", predictor), 
                family = "binomial", 
                data = data)
   
-  # Saving model summary and odds ratio
+  # Generating goodness of fit stats (using DescTools)
+  goodness_fit <- DescTools::PseudoR2(model, which = "all")
+  
+  # Saving model summary
   model_summary <- summary(model)
+  
+  # Saving odds ratio
   odds <- exp(model$coefficients[[2]])
   
   # Returning info
@@ -152,6 +175,7 @@ logit_model <- function(outcome, predictor, data, type) {
     type = paste("Binary Logistic Regression for", outcome, "and", predictor),
     model = model, 
     model_summary = model_summary,
+    goodness = goodness_fit,
     odds = paste("Odds Ratio: ", odds)
     ))
   
@@ -160,8 +184,13 @@ logit_model <- function(outcome, predictor, data, type) {
                  family = "binomial", 
                  data = data)
     
-    # Saving model summary and odds ratio
+    # Generating goodness of fit stats (using DescTools)
+    goodness_fit <- DescTools::PseudoR2(model, which = "all")
+    
+    # Saving model summary
     model_summary <- summary(model)
+    
+    # Saving odds ratio
     odds <- exp(model$coefficients[[2]])
     
     # Returning info
@@ -169,6 +198,7 @@ logit_model <- function(outcome, predictor, data, type) {
       type = paste("Binary Logistic Regression (with control) for", outcome, "and", predictor),
       model = model, 
       model_summary = model_summary,
+      goodness = goodness_fit,
       odds = paste("Odds Ratio: ", odds)
     ))
   }
@@ -181,7 +211,7 @@ generate_log_plot <- function(predictor, data) {
   
   ggplot(data = data, aes(x = Total_procrastination, y = {{predictor}})) +
     geom_point(alpha = 0.5, size = 0.75) +
-    geom_smooth(method = "glm", se = FALSE, 
+    geom_smooth(method = "glm", se = TRUE, 
                 method.args = list(family = binomial), 
                 col = "red", lty = 2) +
     theme_bw() +
