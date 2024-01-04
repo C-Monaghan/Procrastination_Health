@@ -114,9 +114,13 @@ health_procrastination_female <- generate_health_plot(
 # Grouping everything together -------------------------------------------------
 # Scatter Plots
 scatter_grouped <- cowplot::plot_grid(
-  cowplot::plot_grid(depression_scatter, anxiety_scatter, ncol = 1),
-  cowplot::plot_grid(health_problem_scatter, health_protection_scatter, ncol = 1),
-  stress_scatter, nrow = 1, align = "center")
+  depression_scatter, 
+  anxiety_scatter, 
+  health_problem_scatter, 
+  health_protection_scatter, 
+  stress_scatter, 
+  NULL,
+  nrow = 2, ncol = 3)
 
 # Distributions
 distributions_grouped <- cowplot::plot_grid(

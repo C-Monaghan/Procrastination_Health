@@ -1,7 +1,5 @@
 rm(list = ls())
 
-library(dplyr)
-
 # Custom functions
 source(file.path("./02__Models/00__Functions.R"))
 
