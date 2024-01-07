@@ -5,7 +5,8 @@ library(sjPlot)
 # Loading regression results
 load(file = "02__Models/Results/RData/01__Problem_Models_BASE.RData")
 load(file = "02__Models/Results/RData/02__Protection_Models_BASE.RData")
-
+load(file = "02__Models/Results/RData/03__Problem_Models_CONTROL.RData")
+load(file = "02__Models/Results/RData/04__Protection_Models_CONTROL.RData")
 
 # Defining a vector of health problems
 health_problems <- c("Back Pain", "Headache", "Fatigue", 
@@ -16,6 +17,8 @@ health_problems <- c("Back Pain", "Headache", "Fatigue",
 health_protection <- c("Prostate Exam", "Mammogram", "Cholesterol Screening",
                        "Pap Smear", "Flu Shot", "Dental Visit (2yrs)")
 
+# Creating HTML Tables
+# Base models
 problem_table <- tab_model(
   problem_models_base[[1]]$model, problem_models_base[[2]]$model,
   problem_models_base[[3]]$model, problem_models_base[[4]]$model,
@@ -39,6 +42,27 @@ tab_model(
   collapse.ci = TRUE, p.style = "stars",
   file = file.path("./02__Models/Results/Tables/02__Health_Protection_Log_Table.html")
 )
+
+# Control Models
+tab_model(
+  problem_models_control[[1]]$model, problem_models_control[[2]]$model,
+  problem_models_control[[3]]$model, problem_models_control[[4]]$model,
+  problem_models_control[[5]]$model, problem_models_control[[6]]$model,
+  problem_models_control[[7]]$model, problem_models_control[[8]]$model,
+  problem_models_control[[9]]$model,
+  pred.labels = c("Intercept", "Procrastination", "Depression", "Procrastination x Depression"),
+  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems",
+  dv.labels = health_problems, 
+  collapse.ci = TRUE, p.style = "stars")
+
+tab_model(
+  protection_models_control[[1]]$model, protection_models_control[[2]]$model,
+  protection_models_control[[3]]$model, protection_models_control[[4]]$model,
+  protection_models_control[[5]]$model, protection_models_control[[6]]$model,
+  pred.labels = c("Intercept", "Procrastination", "Depression", "Procrastination x Depression"),
+  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours",
+  dv.labels = health_protection, 
+  collapse.ci = TRUE, p.style = "stars")
 
 
 
