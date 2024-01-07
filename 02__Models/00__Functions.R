@@ -158,7 +158,7 @@ logit_model <- function(outcome, predictor, data, type) {
   if(type == "base") {
   # Fit the model
   model <- glm(formula = paste(outcome, " ~ ", predictor), 
-               family = "binomial", 
+               family = binomial(link = "logit"), 
                data = data)
   
   # Generating goodness of fit stats (using DescTools)
@@ -181,7 +181,7 @@ logit_model <- function(outcome, predictor, data, type) {
   
   } else if(type == "control") {
     model <- glm(formula = paste(outcome, " ~ ", predictor, " * Total_depression"), 
-                 family = "binomial", 
+                 family = binomial(link = "logit"), 
                  data = data)
     
     # Generating goodness of fit stats (using DescTools)
@@ -204,7 +204,7 @@ logit_model <- function(outcome, predictor, data, type) {
   }
 }
 
-# Create a logistic regresssion curve
+# Create a logistic regression curve
 generate_log_plot <- function(predictor, data) {
   require(ggplot2)
   require(ggeasy)
