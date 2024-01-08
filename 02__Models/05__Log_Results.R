@@ -1,6 +1,7 @@
 rm(list = ls())
 
 library(sjPlot)
+library(dplyr)
 
 # Custom functions
 source(file.path("./02__Models/00__Functions.R"))
@@ -97,9 +98,56 @@ odds_protection_base <- log_odds_plot(health_protection_base, title = "Log Odds 
 odds_protection_control <- log_odds_plot(health_protection_control, title = "Log Odds for Health Protection (Control)")
 
 # Exporting --------------------------------------------------------------------
-export_path <- "./02__Models/Results/Figures/02__GLM_Plots"
+export_path <- "./02__Models/Results/Figures/02__GLM_Plots/02__Odds_Plots/"
 
-cowplot::save_plot(filename = file.path(export_path, "03__Odds_Problem_Base.png"), plot = odds_problem_base)
-cowplot::save_plot(filename = file.path(export_path, "04__Odds_Problem_Control.png"), plot = odds_problem_control)
-cowplot::save_plot(filename = file.path(export_path, "05__Odds_Protection_Base.png"), plot = odds_protection_base)
-cowplot::save_plot(filename = file.path(export_path, "06__Odds_Protection_Control.png"), plot = odds_protection_control)
+cowplot::save_plot(filename = file.path(export_path, "01__Odds_Problem_Base.png"), plot = odds_problem_base)
+cowplot::save_plot(filename = file.path(export_path, "02__Odds_Problem_Control.png"), plot = odds_problem_control)
+cowplot::save_plot(filename = file.path(export_path, "03__Odds_Protection_Base.png"), plot = odds_protection_base)
+cowplot::save_plot(filename = file.path(export_path, "04__Odds_Protection_Control.png"), plot = odds_protection_control)
+
+
+# Plotting log odds on one graph (test) ----------------------------------------
+health_problems_combined <- rbind(health_problem_base, health_problem_control) %>%
+  tibble::rownames_to_column("Health_problem") %>%
+  mutate(Health_problem = rep(health_problems, times = 2),
+         Depression_control = factor(rep(c("No", "Yes"), each = 9)))
+
+health_protection_combined <- rbind(health_protection_base, health_protection_control) %>%
+  tibble::rownames_to_column("Health_protection") %>%
+  mutate(Health_problem = rep(health_protection, times = 2),
+         Depression_control = factor(rep(c("No", "Yes"), each = 6)))
+
+problem_odds_combined <- ggplot(health_problems_combined, aes(y = Health_problem, colour = Depression_control)) +
+  geom_point(aes(x = log_odds), size = 3, alpha = 0.8) +
+  geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), 
+                 height = 0.5, linewidth = 1, alpha = 0.4) +
+  geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
+  xlim(0.9, 1.1) +
+  labs(x = "Odds (95% CI)", y = "", title = "Log Odds for Health Problems") +
+  theme_bw() +
+  ggeasy::easy_center_title() +
+  ggeasy::easy_add_legend_title("Controlling for Depression") +
+  ggeasy::easy_move_legend(to = "bottom")
+
+protection_odds_combined <- ggplot(health_protection_combined, aes(y = Health_problem, colour = Depression_control)) +
+  geom_point(aes(x = log_odds), size = 3, alpha = 0.8) +
+  geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), 
+                 height = 0.5, linewidth = 1, alpha = 0.4) +
+  geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
+  xlim(0.9, 1.1) +
+  labs(x = "Odds (95% CI)", y = "", title = "Log Odds for Health Problems") +
+  theme_bw() +
+  ggeasy::easy_center_title() +
+  ggeasy::easy_add_legend_title("Controlling for Depression") +
+  ggeasy::easy_move_legend(to = "bottom")
+
+cowplot::save_plot(
+  filename = file.path(export_path, "01__Combined/01__Health_Problems_Odds.png"), 
+  plot = problem_odds_combined)
+
+cowplot::save_plot(
+  filename = file.path(export_path, "01__Combined/02__Health_Protection_Odds.png"), 
+  plot = protection_odds_combined)
+
+
+
