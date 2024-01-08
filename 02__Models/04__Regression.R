@@ -65,9 +65,9 @@ save(problem_models_control, file = file.path(export_path, "RData/03__Problem_Mo
 save(protection_models_control, file = file.path(export_path, "RData/04__Protection_Models_CONTROL.RData"))
 
 # Plots
-cowplot::save_plot(filename = file.path(export_path, "Figures/07__Health_Problems_logit.png"),
+cowplot::save_plot(filename = file.path(export_path, "Figures/02__GLM_Plots/01__Health_Problems_logit.png"),
                    plot = problems_plot, base_height = 10)
-cowplot::save_plot(filename = file.path(export_path, "Figures/08__Health_Protection_logit.png"),
+cowplot::save_plot(filename = file.path(export_path, "Figures/02__GLM_Plots/02__Health_Protection_logit.png"),
                    plot = protection_plot, base_height = 8)
 
 # OLD CODE
@@ -75,3 +75,9 @@ cowplot::save_plot(filename = file.path(export_path, "Figures/08__Health_Protect
 # summary(model)
 # 
 # anova(model, test = "Chisq")
+# 
+# 
+
+
+
+

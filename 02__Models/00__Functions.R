@@ -218,3 +218,32 @@ generate_log_plot <- function(predictor, data) {
     xlab("Total Procrastination") +
     easy_remove_gridlines()
 }
+
+# Process GLM results
+process_glm_results <- function(model_list){
+  glm_results <- list(
+    log_odds = rep(NA, length(model_list)),
+    ci_lower = rep(NA, length(model_list)),
+    ci_upper = rep(NA, length(model_list))
+  )
+  
+  for (i in seq_along(model_list)) {
+    glm_results$log_odds[i] <- exp(model_list[[i]]$model$coefficients[[2]])
+    conf_int <- confint(model_list[[i]]$model)[2, ]
+    glm_results$ci_lower[i] <- exp(conf_int[1])
+    glm_results$ci_upper[i] <- exp(conf_int[2])
+  }
+  
+  return(glm_results)
+}
+
+# Create log odds plot
+log_odds_plot <- function(data){
+  ggplot(data = data, aes(y = rownames(data))) +
+    geom_point(aes(x = log_odds), colour = "skyblue", size = 3) +
+    geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), height = 0.5, size = 1, color = "skyblue") +
+    geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
+    xlim(0.9, 1.1) +
+    labs(x = "Log Odds (95% CI)", y = "") +
+    theme_minimal()
+}

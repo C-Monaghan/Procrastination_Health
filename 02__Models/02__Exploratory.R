@@ -146,7 +146,7 @@ health_procrastination_grouped <- cowplot::plot_grid(
 )
 
 # Exporting --------------------------------------------------------------------
-export_path <- "./02__Models/Results/Figures/"
+export_path <- "./02__Models/Results/Figures/01__Exploratory"
 
 cowplot::save_plot(filename = file.path(export_path, "01__Distributions.png"),
                    plot = distributions_grouped, base_height = 10)
