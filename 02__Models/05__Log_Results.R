@@ -1,7 +1,6 @@
 rm(list = ls())
 
 library(sjPlot)
-library(ggplot2)
 
 # Custom functions
 source(file.path("./02__Models/00__Functions.R"))
@@ -92,7 +91,15 @@ tab_model(
 )
 
 # Plotting log odds -----------------------------------------------------------
-log_odds_plot(health_problem_base)
-log_odds_plot(health_problem_control)
-log_odds_plot(health_protection_base)
-log_odds_plot(health_protection_control)
+odds_problem_base <- log_odds_plot(data = health_problem_base, title = "Log Odds for Health Problems")
+odds_problem_control <- log_odds_plot(health_problem_control, title = "Log Odds for Health Problems (Control)")
+odds_protection_base <- log_odds_plot(health_protection_base, title = "Log Odds for Health Protection")
+odds_protection_control <- log_odds_plot(health_protection_control, title = "Log Odds for Health Protection (Control)")
+
+# Exporting --------------------------------------------------------------------
+export_path <- "./02__Models/Results/Figures/02__GLM_Plots"
+
+cowplot::save_plot(filename = file.path(export_path, "03__Odds_Problem_Base.png"), plot = odds_problem_base)
+cowplot::save_plot(filename = file.path(export_path, "04__Odds_Problem_Control.png"), plot = odds_problem_control)
+cowplot::save_plot(filename = file.path(export_path, "05__Odds_Protection_Base.png"), plot = odds_protection_base)
+cowplot::save_plot(filename = file.path(export_path, "06__Odds_Protection_Control.png"), plot = odds_protection_control)

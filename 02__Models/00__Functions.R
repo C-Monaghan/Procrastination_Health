@@ -238,12 +238,18 @@ process_glm_results <- function(model_list){
 }
 
 # Create log odds plot
-log_odds_plot <- function(data){
+log_odds_plot <- function(data, title){
+  require(ggplot2)
+  require(ggeasy)
+  
   ggplot(data = data, aes(y = rownames(data))) +
     geom_point(aes(x = log_odds), colour = "skyblue", size = 3) +
-    geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), height = 0.5, size = 1, color = "skyblue") +
+    geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), 
+                   height = 0.5, linewidth = 1, color = "skyblue") +
     geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
     xlim(0.9, 1.1) +
-    labs(x = "Log Odds (95% CI)", y = "") +
-    theme_minimal()
+    labs(x = "Odds (95% CI)", y = "", title = title) +
+    theme_minimal() +
+    easy_center_title()
+  
 }
