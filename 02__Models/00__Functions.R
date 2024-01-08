@@ -249,7 +249,6 @@ log_odds_plot <- function(data, title){
     geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
     xlim(0.9, 1.1) +
     labs(x = "Odds (95% CI)", y = "", title = title) +
-    theme_minimal() +
+    theme_bw() +
     easy_center_title()
-  
 }
