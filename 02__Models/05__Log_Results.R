@@ -14,7 +14,7 @@ load(file = "02__Models/Results/RData/04__Protection_Models_CONTROL.RData")
 
 # Defining a vector of health problems
 health_problems <- c(
-  "Back Pain", "Headache", "Fatigue", "Alcohol", "Smoker Current", 
+  "Back Pain", "Headache", "Fatigue", "Drinking", "Smoking", 
   "Blood Pressure", "Diabetes", "Cholesterol", "Heart Condition")
 
 # Defining a vector of health protective behaviors
@@ -97,6 +97,9 @@ odds_problem_control <- log_odds_plot(health_problem_control, title = "Risk of E
 odds_protection_base <- log_odds_plot(health_protection_base, title = "Chance of Engaging in Health Protective Behaviours")
 odds_protection_control <- log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (Controlling for Depression)", size_font = 7)
 
+odds_plots_combined <- cowplot::plot_grid(odds_problem_base, odds_problem_control,
+                                          odds_protection_base, odds_protection_control,
+                                          nrow = 2, ncol = 2)
 # Exporting --------------------------------------------------------------------
 export_path <- "./02__Models/Results/Figures/02__GLM_Plots/02__Odds_Plots/"
 
@@ -104,9 +107,10 @@ cowplot::save_plot(filename = file.path(export_path, "01__Odds_Problem_Base.png"
 cowplot::save_plot(filename = file.path(export_path, "02__Odds_Problem_Control.png"), plot = odds_problem_control)
 cowplot::save_plot(filename = file.path(export_path, "03__Odds_Protection_Base.png"), plot = odds_protection_base)
 cowplot::save_plot(filename = file.path(export_path, "04__Odds_Protection_Control.png"), plot = odds_protection_control)
+cowplot::save_plot(filename = file.path(export_path, "05__Odds_Combined.png"), plot = odds_plots_combined, base_height = 7)
 
 
-# Plotting log odds on one graph (test) ----------------------------------------
+# Plotting log odds on one graph (test code) -----------------------------------
 health_problems_combined <- rbind(health_problem_base, health_problem_control) %>%
   tibble::rownames_to_column("Health_problem") %>%
   mutate(Health_problem = rep(health_problems, times = 2),

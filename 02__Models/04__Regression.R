@@ -67,10 +67,10 @@ save(protection_models_control, file = file.path(export_path, "RData/04__Protect
 # Plots
 cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/01__Health_Problems_logit.png"),
-  plot = problems_plot, base_height = 10)
+  plot = problems_plot, base_height = 6)
 cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/02__Health_Protection_logit.png"),
-  plot = protection_plot, base_height = 8)
+  plot = protection_plot, base_height = 6)
 
 # OLD CODE
 # model <- glm(Blood_pressure ~ Total_procrastination * Heart_condition, family = "binomial", data = health_data)
