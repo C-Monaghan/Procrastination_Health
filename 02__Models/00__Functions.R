@@ -238,7 +238,7 @@ process_glm_results <- function(model_list){
 }
 
 # Create log odds plot
-log_odds_plot <- function(data, title){
+log_odds_plot <- function(data, title, size_font = 8){
   require(ggplot2)
   require(ggeasy)
   
@@ -250,5 +250,6 @@ log_odds_plot <- function(data, title){
     xlim(0.9, 1.1) +
     labs(x = "Odds (95% CI)", y = "", title = title) +
     theme_bw() +
-    easy_center_title()
+    easy_center_title() +
+    theme(title = element_text(size = size_font))
 }
