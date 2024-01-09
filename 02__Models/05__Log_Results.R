@@ -92,10 +92,10 @@ tab_model(
 )
 
 # Plotting log odds -----------------------------------------------------------
-odds_problem_base <- log_odds_plot(data = health_problem_base, title = "Log Odds for Health Problems")
-odds_problem_control <- log_odds_plot(health_problem_control, title = "Log Odds for Health Problems (Control)")
-odds_protection_base <- log_odds_plot(health_protection_base, title = "Log Odds for Health Protection")
-odds_protection_control <- log_odds_plot(health_protection_control, title = "Log Odds for Health Protection (Control)")
+odds_problem_base <- log_odds_plot(health_problem_base, title = "Risk of Experiencing a Health Problem")
+odds_problem_control <- log_odds_plot(health_problem_control, title = "Risk of Experiencing a Health Problems (Controlling for Depression)")
+odds_protection_base <- log_odds_plot(health_protection_base, title = "Chance of Engaging in Health Protective Behaviours")
+odds_protection_control <- log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (Controlling for Depression)", size_font = 7)
 
 # Exporting --------------------------------------------------------------------
 export_path <- "./02__Models/Results/Figures/02__GLM_Plots/02__Odds_Plots/"
@@ -123,7 +123,7 @@ problem_odds_combined <- ggplot(health_problems_combined, aes(y = Health_problem
                  height = 0.5, linewidth = 1, alpha = 0.4) +
   geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
   xlim(0.9, 1.1) +
-  labs(x = "Odds (95% CI)", y = "", title = "Log Odds for Health Problems") +
+  labs(x = "Odds (95% CI)", y = "", title = "Risk of Experiencing a Health Problem") +
   theme_bw() +
   ggeasy::easy_center_title() +
   ggeasy::easy_add_legend_title("Controlling for Depression") +
@@ -135,7 +135,7 @@ protection_odds_combined <- ggplot(health_protection_combined, aes(y = Health_pr
                  height = 0.5, linewidth = 1, alpha = 0.4) +
   geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
   xlim(0.9, 1.1) +
-  labs(x = "Odds (95% CI)", y = "", title = "Log Odds for Health Problems") +
+  labs(x = "Odds (95% CI)", y = "", title = "Chance of Engaging in Health Protective Behaviours") +
   theme_bw() +
   ggeasy::easy_center_title() +
   ggeasy::easy_add_legend_title("Controlling for Depression") +
