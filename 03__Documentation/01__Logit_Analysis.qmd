@@ -138,9 +138,12 @@ sjPlot::tab_model(
 )
 ```
 
+The results showed that procrastination was a significant predictor of all health problems except for having a heart condition, which had a non-significant positive association. The odds ratios ranged from 0.99 to 1.05, indicating small effects of procrastination on the odds of having a health problem.
+
 ```{r}
 log_odds_plot(health_problem_base, title = "Risk of Experiencing a Health Problem")
 ```
+
 
 ### Control Model
 ```{r}
@@ -156,6 +159,7 @@ sjPlot::tab_model(
   collapse.ci = TRUE, p.style = "stars")
 ```
 
+After controlling for depression, the results showed that procrastination was a significant positive predictor of several health problems (back pain, fatigue, having high blood pressure, and diabetes)
 ```{r}
 log_odds_plot(health_problem_control, title = "Risk of Experiencing a Health Problems (Controlling for Depression)")
 ```
@@ -173,6 +177,8 @@ sjPlot::tab_model(
   collapse.ci = TRUE, p.style = "stars")
 ```
 
+The results showed that procrastination was a significant negative predictor of several health protective behaviors (prostate exam, mammogram, cholesterol screening, and visiting the dentist). The odds ratios ranged from 0.98 to 0.99.
+
 ```{r}
 log_odds_plot(health_protection_base, title = "Chance of Engaging in Health Protective Behaviours")
 ```
@@ -188,6 +194,8 @@ sjPlot::tab_model(
   dv.labels = health_protection, 
   collapse.ci = TRUE, p.style = "stars")
 ```
+
+After controlling for depression, the results showed that procrastination was a significant negative predictor of getting both a prostate and mammogram exam, and visiting the dentist. 
 
 ```{r}
 log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (Controlling for Depression)", size_font = 7)

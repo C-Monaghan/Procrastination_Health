@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Cormac Monaghan">
-<meta name="dcterms.date" content="2024-01-09">
+<meta name="dcterms.date" content="2024-01-10">
 
 <title>Logistic Regression Analyses</title>
 <style>
@@ -3100,7 +3100,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">January 9, 2024</p>
+      <p class="date">January 10, 2024</p>
     </div>
   </div>
   
@@ -3333,6 +3333,7 @@ P(Y = 1 ∣ X) = \frac{1}{1 + e^{{\beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + 
 
 </div>
 </div>
+<p>The results showed that procrastination was a significant predictor of all health problems except for having a heart condition, which had a non-significant positive association. The odds ratios ranged from 0.99 to 1.05, indicating small effects of procrastination on the odds of having a health problem.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -3516,6 +3517,7 @@ P(Y = 1 ∣ X) = \frac{1}{1 + e^{{\beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + 
 
 </div>
 </div>
+<p>After controlling for depression, the results showed that procrastination was a significant positive predictor of several health problems (back pain, fatigue, having high blood pressure, and diabetes)</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -3631,6 +3633,7 @@ P(Y = 1 ∣ X) = \frac{1}{1 + e^{{\beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + 
 
 </div>
 </div>
+<p>The results showed that procrastination was a significant negative predictor of several health protective behaviors (prostate exam, mammogram, cholesterol screening, and visiting the dentist). The odds ratios ranged from 0.98 to 0.99.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -3773,6 +3776,7 @@ P(Y = 1 ∣ X) = \frac{1}{1 + e^{{\beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + 
 
 </div>
 </div>
+<p>After controlling for depression, the results showed that procrastination was a significant negative predictor of getting both a prostate and mammogram exam, and visiting the dentist.</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -4214,61 +4218,69 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb13-140"><a href="#cb13-140" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb13-141"><a href="#cb13-141" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-146"><a href="#cb13-146" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_problem_base, <span class="at">title =</span> <span class="st">&quot;Risk of Experiencing a Health Problem&quot;</span>)</span>
-<span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a><span class="fu">### Control Model</span></span>
-<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-153"><a href="#cb13-153" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
-<span id="cb13-154"><a href="#cb13-154" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">1</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">2</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">3</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">4</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">5</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">6</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-157"><a href="#cb13-157" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">7</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">8</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-158"><a href="#cb13-158" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">9</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;Intercept&quot;</span>, <span class="st">&quot;Procrastination&quot;</span>, <span class="st">&quot;Depression&quot;</span>, <span class="st">&quot;Procrastination x Depression&quot;</span>),</span>
-<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Control)&quot;</span>,</span>
-<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a>  <span class="at">dv.labels =</span> health_problems, </span>
-<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a>  <span class="at">collapse.ci =</span> <span class="cn">TRUE</span>, <span class="at">p.style =</span> <span class="st">&quot;stars&quot;</span>)</span>
-<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_problem_control, <span class="at">title =</span> <span class="st">&quot;Risk of Experiencing a Health Problems (Controlling for Depression)&quot;</span>)</span>
-<span id="cb13-169"><a href="#cb13-169" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-170"><a href="#cb13-170" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-171"><a href="#cb13-171" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Protection</span></span>
-<span id="cb13-172"><a href="#cb13-172" aria-hidden="true" tabindex="-1"></a><span class="fu">### Base Model</span></span>
-<span id="cb13-175"><a href="#cb13-175" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-176"><a href="#cb13-176" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
-<span id="cb13-177"><a href="#cb13-177" aria-hidden="true" tabindex="-1"></a>  protection_models_base[[<span class="dv">1</span>]]<span class="sc">$</span>model, protection_models_base[[<span class="dv">2</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-178"><a href="#cb13-178" aria-hidden="true" tabindex="-1"></a>  protection_models_base[[<span class="dv">3</span>]]<span class="sc">$</span>model, protection_models_base[[<span class="dv">4</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-179"><a href="#cb13-179" aria-hidden="true" tabindex="-1"></a>  protection_models_base[[<span class="dv">5</span>]]<span class="sc">$</span>model, protection_models_base[[<span class="dv">6</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-180"><a href="#cb13-180" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;(Intercept)&quot;</span>, <span class="st">&quot;Procrastination&quot;</span>),</span>
-<span id="cb13-181"><a href="#cb13-181" aria-hidden="true" tabindex="-1"></a>  <span class="at">dv.labels =</span> health_protection, </span>
-<span id="cb13-182"><a href="#cb13-182" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours&quot;</span>,</span>
-<span id="cb13-183"><a href="#cb13-183" aria-hidden="true" tabindex="-1"></a>  <span class="at">collapse.ci =</span> <span class="cn">TRUE</span>, <span class="at">p.style =</span> <span class="st">&quot;stars&quot;</span>)</span>
-<span id="cb13-184"><a href="#cb13-184" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-185"><a href="#cb13-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_protection_base, <span class="at">title =</span> <span class="st">&quot;Chance of Engaging in Health Protective Behaviours&quot;</span>)</span>
-<span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a>The results showed that procrastination was a significant predictor of all health problems except for having a heart condition, which had a non-significant positive association. The odds ratios ranged from 0.99 to 1.05, indicating small effects of procrastination on the odds of having a health problem.</span>
+<span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_problem_base, <span class="at">title =</span> <span class="st">&quot;Risk of Experiencing a Health Problem&quot;</span>)</span>
+<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-150"><a href="#cb13-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-151"><a href="#cb13-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a><span class="fu">### Control Model</span></span>
+<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
+<span id="cb13-157"><a href="#cb13-157" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">1</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">2</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-158"><a href="#cb13-158" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">3</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">4</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">5</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">6</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">7</span>]]<span class="sc">$</span>model, problem_models_control[[<span class="dv">8</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a>  problem_models_control[[<span class="dv">9</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;Intercept&quot;</span>, <span class="st">&quot;Procrastination&quot;</span>, <span class="st">&quot;Depression&quot;</span>, <span class="st">&quot;Procrastination x Depression&quot;</span>),</span>
+<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Control)&quot;</span>,</span>
+<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a>  <span class="at">dv.labels =</span> health_problems, </span>
+<span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a>  <span class="at">collapse.ci =</span> <span class="cn">TRUE</span>, <span class="at">p.style =</span> <span class="st">&quot;stars&quot;</span>)</span>
+<span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a>After controlling for depression, the results showed that procrastination was a significant positive predictor of several health problems (back pain, fatigue, having high blood pressure, and diabetes)</span>
+<span id="cb13-171"><a href="#cb13-171" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-172"><a href="#cb13-172" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_problem_control, <span class="at">title =</span> <span class="st">&quot;Risk of Experiencing a Health Problems (Controlling for Depression)&quot;</span>)</span>
+<span id="cb13-173"><a href="#cb13-173" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-174"><a href="#cb13-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-175"><a href="#cb13-175" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Protection</span></span>
+<span id="cb13-176"><a href="#cb13-176" aria-hidden="true" tabindex="-1"></a><span class="fu">### Base Model</span></span>
+<span id="cb13-179"><a href="#cb13-179" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-180"><a href="#cb13-180" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
+<span id="cb13-181"><a href="#cb13-181" aria-hidden="true" tabindex="-1"></a>  protection_models_base[[<span class="dv">1</span>]]<span class="sc">$</span>model, protection_models_base[[<span class="dv">2</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-182"><a href="#cb13-182" aria-hidden="true" tabindex="-1"></a>  protection_models_base[[<span class="dv">3</span>]]<span class="sc">$</span>model, protection_models_base[[<span class="dv">4</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-183"><a href="#cb13-183" aria-hidden="true" tabindex="-1"></a>  protection_models_base[[<span class="dv">5</span>]]<span class="sc">$</span>model, protection_models_base[[<span class="dv">6</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-184"><a href="#cb13-184" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;(Intercept)&quot;</span>, <span class="st">&quot;Procrastination&quot;</span>),</span>
+<span id="cb13-185"><a href="#cb13-185" aria-hidden="true" tabindex="-1"></a>  <span class="at">dv.labels =</span> health_protection, </span>
+<span id="cb13-186"><a href="#cb13-186" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours&quot;</span>,</span>
+<span id="cb13-187"><a href="#cb13-187" aria-hidden="true" tabindex="-1"></a>  <span class="at">collapse.ci =</span> <span class="cn">TRUE</span>, <span class="at">p.style =</span> <span class="st">&quot;stars&quot;</span>)</span>
+<span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a>The results showed that procrastination was a significant negative predictor of several health protective behaviors (prostate exam, mammogram, cholesterol screening, and visiting the dentist). The odds ratios ranged from 0.98 to 0.99.</span>
 <span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-192"><a href="#cb13-192" aria-hidden="true" tabindex="-1"></a><span class="fu">### Control Model</span></span>
-<span id="cb13-195"><a href="#cb13-195" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-196"><a href="#cb13-196" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
-<span id="cb13-197"><a href="#cb13-197" aria-hidden="true" tabindex="-1"></a>  protection_models_control[[<span class="dv">1</span>]]<span class="sc">$</span>model, protection_models_control[[<span class="dv">2</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-198"><a href="#cb13-198" aria-hidden="true" tabindex="-1"></a>  protection_models_control[[<span class="dv">3</span>]]<span class="sc">$</span>model, protection_models_control[[<span class="dv">4</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-199"><a href="#cb13-199" aria-hidden="true" tabindex="-1"></a>  protection_models_control[[<span class="dv">5</span>]]<span class="sc">$</span>model, protection_models_control[[<span class="dv">6</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-200"><a href="#cb13-200" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;Intercept&quot;</span>, <span class="st">&quot;Procrastination&quot;</span>, <span class="st">&quot;Depression&quot;</span>, <span class="st">&quot;Procrastination x Depression&quot;</span>),</span>
-<span id="cb13-201"><a href="#cb13-201" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Control)&quot;</span>,</span>
-<span id="cb13-202"><a href="#cb13-202" aria-hidden="true" tabindex="-1"></a>  <span class="at">dv.labels =</span> health_protection, </span>
-<span id="cb13-203"><a href="#cb13-203" aria-hidden="true" tabindex="-1"></a>  <span class="at">collapse.ci =</span> <span class="cn">TRUE</span>, <span class="at">p.style =</span> <span class="st">&quot;stars&quot;</span>)</span>
-<span id="cb13-204"><a href="#cb13-204" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-205"><a href="#cb13-205" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-208"><a href="#cb13-208" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-209"><a href="#cb13-209" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_protection_control, <span class="at">title =</span> <span class="st">&quot;Chance of Engaging in Health Protective Behaviours (Controlling for Depression)&quot;</span>, <span class="at">size_font =</span> <span class="dv">7</span>)</span>
-<span id="cb13-210"><a href="#cb13-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-211"><a href="#cb13-211" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-194"><a href="#cb13-194" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-195"><a href="#cb13-195" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_protection_base, <span class="at">title =</span> <span class="st">&quot;Chance of Engaging in Health Protective Behaviours&quot;</span>)</span>
+<span id="cb13-196"><a href="#cb13-196" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-197"><a href="#cb13-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-198"><a href="#cb13-198" aria-hidden="true" tabindex="-1"></a><span class="fu">### Control Model</span></span>
+<span id="cb13-201"><a href="#cb13-201" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-202"><a href="#cb13-202" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
+<span id="cb13-203"><a href="#cb13-203" aria-hidden="true" tabindex="-1"></a>  protection_models_control[[<span class="dv">1</span>]]<span class="sc">$</span>model, protection_models_control[[<span class="dv">2</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-204"><a href="#cb13-204" aria-hidden="true" tabindex="-1"></a>  protection_models_control[[<span class="dv">3</span>]]<span class="sc">$</span>model, protection_models_control[[<span class="dv">4</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-205"><a href="#cb13-205" aria-hidden="true" tabindex="-1"></a>  protection_models_control[[<span class="dv">5</span>]]<span class="sc">$</span>model, protection_models_control[[<span class="dv">6</span>]]<span class="sc">$</span>model,</span>
+<span id="cb13-206"><a href="#cb13-206" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;Intercept&quot;</span>, <span class="st">&quot;Procrastination&quot;</span>, <span class="st">&quot;Depression&quot;</span>, <span class="st">&quot;Procrastination x Depression&quot;</span>),</span>
+<span id="cb13-207"><a href="#cb13-207" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Control)&quot;</span>,</span>
+<span id="cb13-208"><a href="#cb13-208" aria-hidden="true" tabindex="-1"></a>  <span class="at">dv.labels =</span> health_protection, </span>
+<span id="cb13-209"><a href="#cb13-209" aria-hidden="true" tabindex="-1"></a>  <span class="at">collapse.ci =</span> <span class="cn">TRUE</span>, <span class="at">p.style =</span> <span class="st">&quot;stars&quot;</span>)</span>
+<span id="cb13-210"><a href="#cb13-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb13-211"><a href="#cb13-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-212"><a href="#cb13-212" aria-hidden="true" tabindex="-1"></a>After controlling for depression, the results showed that procrastination was a significant negative predictor of getting both a prostate and mammogram exam, and visiting the dentist. </span>
+<span id="cb13-213"><a href="#cb13-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-216"><a href="#cb13-216" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb13-217"><a href="#cb13-217" aria-hidden="true" tabindex="-1"></a><span class="fu">log_odds_plot</span>(health_protection_control, <span class="at">title =</span> <span class="st">&quot;Chance of Engaging in Health Protective Behaviours (Controlling for Depression)&quot;</span>, <span class="at">size_font =</span> <span class="dv">7</span>)</span>
+<span id="cb13-218"><a href="#cb13-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-219"><a href="#cb13-219" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
