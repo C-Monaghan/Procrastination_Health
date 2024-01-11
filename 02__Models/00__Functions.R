@@ -190,6 +190,8 @@ logit_model <- function(outcome, predictor, data, type) {
     # Saving model summary
     model_summary <- summary(model)
     
+    anova <- anova(model, test = "Chisq")
+    
     # Saving odds ratio
     odds <- exp(model$coefficients[[2]])
     
@@ -198,6 +200,7 @@ logit_model <- function(outcome, predictor, data, type) {
       type = paste("Binary Logistic Regression (with control) for", outcome, "and", predictor),
       model = model, 
       model_summary = model_summary,
+      anova = anova,
       goodness = goodness_fit,
       odds = paste("Odds Ratio: ", odds)
     ))

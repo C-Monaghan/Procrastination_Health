@@ -72,14 +72,3 @@ cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/02__Health_Protection_logit.png"),
   plot = protection_plot, base_height = 6)
 
-# OLD CODE
-# model <- glm(Blood_pressure ~ Total_procrastination * Heart_condition, family = "binomial", data = health_data)
-# summary(model)
-# 
-# anova(model, test = "Chisq")
-# 
-# 
-
-
-
-
