@@ -36,7 +36,7 @@ Logistic regression is a statistical method used for predicting the probability 
 The logistic regression equation can be written as:
 
 $$
-P(Y = 1 ∣ X) = \frac{1}{1 + e^{{\beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + \dots + \beta_{n}X_{x}}}}
+P(Y = 1 ∣ X) = \frac{1}{1 + e^{{\beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + \dots + \beta_{n}X_{n}}}}
 $$
 where $P(Y = 1 ∣ X)$ is the probability of the dependent variable ($Y$) being 1 given the values of predictors ($X$). $e$ is the base of the natural logarithm. $\beta_{0}, \beta_{1}, \beta_{2}, \dots \beta_{n}$ are the coefficients representing the effect of each predictor variable on the outcome and $X_{1}, X_{2}, \dots X_{n}$ are the values of the predictor variables.
 
