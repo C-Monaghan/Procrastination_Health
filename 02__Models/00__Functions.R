@@ -180,7 +180,7 @@ logit_model <- function(outcome, predictor, data, type) {
     ))
   
   } else if(type == "control") {
-    model <- glm(formula = paste(outcome, " ~ ", predictor, " * (Total_depression + Education)"), 
+    model <- glm(formula = paste(outcome, " ~ ", predictor, " + Total_depression + Education + Age"), 
                  family = binomial(link = "logit"), 
                  data = data)
     
@@ -257,4 +257,19 @@ log_odds_plot <- function(data, title, size_font = 8){
     theme_bw() +
     easy_center_title() +
     theme(title = element_text(size = size_font))
+}
+
+# Curve Plot
+curve_plot <- function(data, y_variable, title){
+  require(ggplot2)
+  
+  ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
+    geom_jitter(width = 0, height = .1) +
+    geom_smooth(formula = y ~ poly(x,2), se = FALSE, method = "glm", 
+                method.args = list(family = "binomial")) +
+    labs(x = "Procrastination", y = "", title = title) +
+    scale_y_continuous(breaks = c(0, 1)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+    theme_bw() +
+    ggeasy::easy_center_title()
 }
