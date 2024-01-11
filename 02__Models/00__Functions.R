@@ -180,7 +180,7 @@ logit_model <- function(outcome, predictor, data, type) {
     ))
   
   } else if(type == "control") {
-    model <- glm(formula = paste(outcome, " ~ ", predictor, " * Total_depression"), 
+    model <- glm(formula = paste(outcome, " ~ ", predictor, " * (Total_depression + Education)"), 
                  family = binomial(link = "logit"), 
                  data = data)
     
@@ -221,14 +221,19 @@ generate_log_plot <- function(predictor, data) {
 
 # Process GLM results
 process_glm_results <- function(model_list){
+  # Creating an empty list to be filled
   glm_results <- list(
     log_odds = rep(NA, length(model_list)),
     ci_lower = rep(NA, length(model_list)),
     ci_upper = rep(NA, length(model_list))
   )
   
+  # Extracting relevant variables
   for (i in seq_along(model_list)) {
+    # Odds ratio
     glm_results$log_odds[i] <- exp(model_list[[i]]$model$coefficients[[2]])
+    
+    # Confidence Intervals
     conf_int <- confint(model_list[[i]]$model)[2, ]
     glm_results$ci_lower[i] <- exp(conf_int[1])
     glm_results$ci_upper[i] <- exp(conf_int[2])

@@ -73,22 +73,24 @@ tab_model(
   problem_models_control[[5]]$model, problem_models_control[[6]]$model,
   problem_models_control[[7]]$model, problem_models_control[[8]]$model,
   problem_models_control[[9]]$model,
-  pred.labels = c("Intercept", "Procrastination", "Depression", "Procrastination x Depression"),
+  pred.labels = c("Intercept", "Procrastination", "Depression", "Education", 
+                  "Procrastination x Depression", "Procrastination x Education"),
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Control)",
   dv.labels = health_problems, 
   collapse.ci = TRUE, p.style = "stars",
-  file = file.path("./02__Models/Results/Tables/03__CONTROL_Problem_Table.html")
+  file = file.path("./02__Models/Results/Tables/Test/01__CONTROL_Problem_Table.html")
 )
 
 tab_model(
   protection_models_control[[1]]$model, protection_models_control[[2]]$model,
   protection_models_control[[3]]$model, protection_models_control[[4]]$model,
   protection_models_control[[5]]$model, protection_models_control[[6]]$model,
-  pred.labels = c("Intercept", "Procrastination", "Depression", "Procrastination x Depression"),
+  pred.labels = c("Intercept", "Procrastination", "Depression", "Education", 
+                  "Procrastination x Depression", "Procrastination x Education"),
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Control)",
   dv.labels = health_protection, 
   collapse.ci = TRUE, p.style = "stars",
-  file = file.path("./02__Models/Results/Tables/04__CONTROL_Protection_Table.html")
+  file = file.path("./02__Models/Results/Tables/Test/02__CONTROL_Protection_Table.html")
 )
 
 # Plotting log odds -----------------------------------------------------------
