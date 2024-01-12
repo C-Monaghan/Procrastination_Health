@@ -3,7 +3,7 @@ rm(list = ls())
 library(dplyr)
 library(ggplot2)
 
-# Custom functions
+# Custom functions -------------------------------------------------------------
 source(file.path("./02__Models/00__Functions.R"))
 
 path_data <- "./01__Data/02__Processed/"
@@ -118,7 +118,7 @@ scatter_grouped <- cowplot::plot_grid(
   anxiety_scatter, 
   health_problem_scatter, 
   health_protection_scatter, 
-  stress_scatter, 
+  stress_scatter,
   NULL,
   nrow = 2, ncol = 3)
 
@@ -154,7 +154,7 @@ cowplot::save_plot(filename = file.path(export_path, "02__Health_problem_frequen
                    plot = problems_frequency, base_height = 14)
 cowplot::save_plot(filename = file.path(export_path, "03__Health_protection_frequency.png"),
                    plot = protection_frequency_grouped, base_height = 14)
-cowplot::save_plot(filename = file.path(export_path, "04__Health_problems.png"),
+cowplot::save_plot(filename = file.path(export_path, "04__Health_procrastination.png"),
                    plot = health_procrastination_grouped, base_height = 14)
 cowplot::save_plot(filename = file.path(export_path, "05__Scatter_plots.png"),
                    plot = scatter_grouped, base_height = 14)

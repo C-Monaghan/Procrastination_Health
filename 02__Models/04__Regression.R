@@ -9,13 +9,14 @@ path_data <- "./01__Data/02__Processed/"
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
 # Defining a vector of health problems
-health_problems <- c("Back_pain", "Headache", "Fatigue", 
-                     "Alcohol", "Smoker_current", "Blood_pressure", 
-                     "Diabetes", "Cholesterol", "Heart_condition")
+health_problems <- c(
+  "Back_pain", "Headache", "Fatigue", "Smoker_current", "Blood_pressure", 
+  "Diabetes", "Cholesterol", "Heart_condition")
 
 # Defining a vector of health protective behaviors
-health_protection <- c("Prostate_exam", "Mammogram", "Cholesterol_screening",
-                       "Pap_smear", "Flu_shot", "Dental_visit_2_years")
+health_protection <- c(
+  "Prostate_exam", "Mammogram", "Cholesterol_screening", 
+  "Pap_smear", "Flu_shot", "Dental_visit_2_years")
 
 # Fitting binary logistic regressions (with no covariate) ----------------------
 # Fitting (health problems)
@@ -44,15 +45,40 @@ protection_list <- list()
 
 # Generate individual plots
 for (i in 1:length(health_problems)) {
-  problem_list[[i]] <- generate_log_plot(!!as.name(health_problems[i]), data = health_data)
+  problem_list[[i]] <- generate_log_plot(
+    !!as.name(health_problems[i]), 
+    data = health_data, title = gsub("_", " ", health_problems[i]))
   
   if(i <= length(health_protection)){
-    protection_list[[i]] <- generate_log_plot(!!as.name(health_protection[i]), data = health_data)
+    protection_list[[i]] <- generate_log_plot(
+      !!as.name(health_protection[i]), 
+      data = health_data, title = gsub("_", " ", health_protection[i]))
   }
 }
 
-problems_plot <- cowplot::plot_grid(plotlist = problem_list, ncol = 3)
+# Plotting as a grouped plot
+problems_plot <- cowplot::plot_grid(plotlist = problem_list, nrow = 2, ncol = 4)
 protection_plot <- cowplot::plot_grid(plotlist = protection_list, ncol = 3)
+
+# Adding a title to each using ggdraw()
+problem_title <- ggdraw() +
+  draw_label(
+    "Logistic Regression Curves for Health Problems",
+    fontface = 'bold', x = 0.5, hjust = 0.5) +
+  theme_bw()
+
+protection_title <- ggdraw() +
+  draw_label(
+    "Logistic Regression Curves for Health Protection",
+    fontface = 'bold', x = 0.5, hjust = 0.5) +
+  theme_bw()
+
+# Combining the title and the plot
+problems_plot <- cowplot::plot_grid(
+  problem_title, problems_plot, nrow = 2, rel_heights = c(0.1, 0.9))
+
+protection_plot <- cowplot::plot_grid(
+  protection_title, protection_plot, nrow = 2, rel_heights = c(0.1, 0.9))
 
 
 # Exporting --------------------------------------------------------------------
@@ -67,8 +93,14 @@ save(protection_models_control, file = file.path(export_path, "RData/04__Protect
 # Plots
 cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/01__Health_Problems_logit.png"),
-  plot = problems_plot, base_height = 6)
+  plot = problems_plot, base_height = 10)
+
 cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/02__Health_Protection_logit.png"),
+<<<<<<< HEAD
   plot = protection_plot, base_height = 6)
+=======
+  plot = protection_plot, base_height = 8)
+  
+>>>>>>> 24a0d2aef3f38e53fc7f989921452b4171dda9c2
 

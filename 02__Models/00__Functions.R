@@ -18,7 +18,7 @@ create_scatter_plot <- function(data, y_variable, y_label){
   require(ggeasy)
   
   ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
-    geom_point() +
+    geom_jitter() +
     geom_smooth(method = "lm", se = TRUE) + 
     labs(title = paste0("Relationship between Procrastination and ", y_label),
          x = "Procrastination", y = y_label) + 
@@ -180,7 +180,7 @@ logit_model <- function(outcome, predictor, data, type) {
     ))
   
   } else if(type == "control") {
-    model <- glm(formula = paste(outcome, " ~ ", predictor, " * (Total_depression + Education)"), 
+    model <- glm(formula = paste(outcome, " ~ ", predictor, " + Total_depression + Education + Age"), 
                  family = binomial(link = "logit"), 
                  data = data)
     
@@ -208,18 +208,21 @@ logit_model <- function(outcome, predictor, data, type) {
 }
 
 # Create a logistic regression curve
-generate_log_plot <- function(predictor, data) {
+generate_log_plot <- function(predictor, data, title) {
   require(ggplot2)
   require(ggeasy)
   
   ggplot(data = data, aes(x = Total_procrastination, y = {{predictor}})) +
-    geom_point(alpha = 0.5, size = 0.75) +
+    geom_jitter(width = 0, height = .1) +
     geom_smooth(method = "glm", se = TRUE, 
                 method.args = list(family = binomial), 
                 col = "red", lty = 2) +
+    labs(x = "Procrastination", y = "", title = title) +
+    scale_y_continuous(breaks = c(0, 1)) +
     theme_bw() +
-    xlab("Total Procrastination") +
-    easy_remove_gridlines()
+    theme(plot.title = element_text(face = "bold")) +
+    easy_remove_gridlines() +
+    easy_center_title()
 }
 
 # Process GLM results
@@ -260,4 +263,48 @@ log_odds_plot <- function(data, title, size_font = 8){
     theme_bw() +
     easy_center_title() +
     theme(title = element_text(size = size_font))
+}
+
+# Linearity Plot
+linearity_plot <- function(data, y_variable, title){
+  require(ggplot2)
+  
+  ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
+    geom_jitter(width = 0, height = .1) +
+    geom_smooth(formula = y ~ poly(x,2), se = FALSE, method = "glm", 
+                method.args = list(family = "binomial")) +
+    labs(x = "Procrastination", y = "", title = title) +
+    scale_y_continuous(breaks = c(0, 1)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+    theme_bw() +
+    theme(plot.title = element_text(face = "bold")) +
+    ggeasy::easy_center_title()
+}
+
+# Curve Plot
+non_linear_fit <- function(response, data, title){
+  require(ggplot2)
+  
+  fit <- glm(formula = paste(response, "~ Total_procrastination + I(Total_procrastination^2)"), 
+             data = data, family = "binomial")
+  
+  f <- function(x){
+    exp(coef(fit)[2]) * exp(coef(fit)[3]) * exp(2*x*coef(fit)[3])
+  }
+  
+  # Generate x values
+  x_values <- seq(0, 60, length.out = 100)
+  
+  # Create a data frame with x and f(x) values
+  df <- data.frame(x = x_values, y = f(x_values))
+  
+  # Plot the curve using ggplot
+  ggplot(df, aes(x, y)) +
+    geom_line() +
+    geom_hline(yintercept = 1, linetype = "dashed", colour = "red") +
+    xlim(0, 60) +
+    labs(x = "Procrastination", y = "", title = title) +
+    theme_bw() +
+    theme(plot.title = element_text(face = "bold")) +
+    ggeasy::easy_center_title()
 }
