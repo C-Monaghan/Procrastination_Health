@@ -95,9 +95,9 @@ tab_model(
 
 # Plotting log odds -----------------------------------------------------------
 odds_problem_base <- log_odds_plot(health_problem_base, title = "Risk of Experiencing a Health Problem")
-odds_problem_control <- log_odds_plot(health_problem_control, title = "Risk of Experiencing a Health Problems (Controlling for Depression)")
+odds_problem_control <- log_odds_plot(health_problem_control, title = "Risk of Experiencing a Health Problems (with covariates)")
 odds_protection_base <- log_odds_plot(health_protection_base, title = "Chance of Engaging in Health Protective Behaviours")
-odds_protection_control <- log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (Controlling for Depression)", size_font = 7)
+odds_protection_control <- log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (with covariates)", size_font = 7)
 
 odds_plots_combined <- cowplot::plot_grid(
   odds_problem_base, odds_problem_control, odds_protection_base, odds_protection_control,
@@ -117,7 +117,7 @@ cowplot::save_plot(filename = file.path(export_path, "05__Odds_Combined.png"), p
 health_problems_combined <- rbind(health_problem_base, health_problem_control) %>%
   tibble::rownames_to_column("Health_problem") %>%
   mutate(Health_problem = rep(health_problems, times = 2),
-         Depression_control = factor(rep(c("No", "Yes"), each = 9)))
+         Depression_control = factor(rep(c("No", "Yes"), each = 8)))
 
 health_protection_combined <- rbind(health_protection_base, health_protection_control) %>%
   tibble::rownames_to_column("Health_protection") %>%
@@ -133,19 +133,20 @@ problem_odds_combined <- ggplot(health_problems_combined, aes(y = Health_problem
   labs(x = "Odds (95% CI)", y = "", title = "Risk of Experiencing a Health Problem") +
   theme_bw() +
   ggeasy::easy_center_title() +
-  ggeasy::easy_add_legend_title("Controlling for Depression") +
+  ggeasy::easy_add_legend_title("Covariates") +
   ggeasy::easy_move_legend(to = "bottom")
 
 protection_odds_combined <- ggplot(health_protection_combined, aes(y = Health_problem, colour = Depression_control)) +
   geom_point(aes(x = log_odds), size = 3, alpha = 0.8) +
-  geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), 
-                 height = 0.5, linewidth = 1, alpha = 0.4) +
+  geom_errorbarh(
+    aes(xmin = ci_lower, xmax = ci_upper), height = 0.5, 
+    linewidth = 1, alpha = 0.4) +
   geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
   xlim(0.9, 1.1) +
   labs(x = "Odds (95% CI)", y = "", title = "Chance of Engaging in Health Protective Behaviours") +
   theme_bw() +
   ggeasy::easy_center_title() +
-  ggeasy::easy_add_legend_title("Controlling for Depression") +
+  ggeasy::easy_add_legend_title("Covariates") +
   ggeasy::easy_move_legend(to = "bottom")
 
 cowplot::save_plot(
