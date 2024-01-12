@@ -1,5 +1,5 @@
 ---
-title: "Logistic Regression Analyses"
+title: "Procrastination and Health"
 author: "Cormac Monaghan"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 toc: true
@@ -16,6 +16,7 @@ execute:
 
 ```{r setup, include = FALSE}
 library(dplyr)
+library(cowplot)
 
 source(here::here("./02__Models/00__Functions.R"))
 ```
@@ -30,6 +31,85 @@ path_data <- "./01__Data/02__Processed/"
 health_data <- readxl::read_xlsx(here::here(path_data, "Health_HRS.xlsx"))
 ```
 
+# HRS Dataset
+The HRS, administered by the Institute for Social Research at the University of Michigan, is a longitudinal panel study that predominantly focuses on adults over the age of 50. The study collects, biennially, detailed information pertaining to respondent’s physical, cognitive, financial, employment, family, and psychosocial conditions. Similarly, in each wave, experimental modules are administered at the end of the core interview. These modules consist of concise questionnaires designed to explore new topics or supplement existing core survey data. However, each respondent only receives one experimental module, and the sample sizes for each module constitute approximately 10\% of the core sample. 
+
+## Health Problems and Health Protection 
+Within the HRS dataset, we have a data on 9 different health problems and 6 different health protective behaviors. These have been coded as either $0$ (not present/not done) or $1$ (present/done). 
+
+```{r view-data-problem, echo = TRUE}
+health_data %>%
+  select(
+    ID, Age, Gender, Education, College, Back_pain:Alcohol, Smoker_current, 
+    Blood_pressure:Dental_visit_2_years, Total_depression) %>%
+  rename(Drinking = "Alcohol", Smoker = "Smoker_current") %>%
+  head(n = 4) %>%
+  kableExtra::kbl(align = 'c') %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+## Procrastination
+During the 2020 wave of data collection, one of these experimental modules included a module termed "long-term care insurance procrastination”. This module was split into two parts with the second half incorporating a procrastination measure with the aim of investigating how procrastination influences decision-making in later life.]
+
+```{r view-data-procrastination, echo = TRUE}
+health_data %>%
+  select(ID, Procras_1:Procras_12, Total_procrastination) %>%
+  head(n = 4) %>%
+  kableExtra::kbl(align = 'c') %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+# Preliminary Analysis
+## Assessing Linearity
+For each health problem and health protective behavior we can use the `linearity_plot()` function from the [Functions.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/00__Functions.R) script. This function plots each health problem and protective variable on the y-axis against procrastination and applies a smoothing line to asses the relationship using the following argument: `geom_smooth(formula = y ~ poly(x,2), se = FALSE, method = "glm", method.args = list(family = "binomial"))`.
+
+```{r linear-assessment}
+# Defining a vector of health problems
+health_problems <- c(
+  "Back_pain", "Headache", "Fatigue", "Alcohol", "Smoker_current", 
+  "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition")
+
+# Defining a vector of health protective behaviors
+health_protection <- c(
+  "Prostate_exam", "Mammogram", "Cholesterol_screening",
+  "Pap_smear", "Flu_shot", "Dental_visit_2_years")
+
+# Plotting curves --------------------------------------------------------------
+problem_curves <- lapply(health_problems, function(problem){
+  linearity_plot(
+    data = health_data, 
+    y_variable = !!as.name(problem), 
+    title = gsub("_", " ", problem))
+})
+
+protection_curves <- lapply(health_protection, function(protection){
+  linearity_plot(
+    data = health_data, 
+    y_variable = !!as.name(protection), 
+    title = gsub("_", " ", protection))
+})
+```
+
+### Health Problems
+
+```{r problem-linear-plot}
+knitr::include_graphics(here::here("02__Models/Results/Figures/02__GLM_Plots/03__Curve_Plots/01__Problem_Curves.png"))
+```
+
+All health problem variables except for **Alcohol** ("Do you ever drink any alcoholic beverages such as beer, wine, or liquor?") have a linear association with procrastination. As such, a separate logistic regression with an added quadratic term was performed.
+
+### Health Protection
+
+```{r protection-linear-plot}
+knitr::include_graphics(here::here("02__Models/Results/Figures/02__GLM_Plots/03__Curve_Plots/02__Protection_Curves.png"))
+```
+
+All health protective variables have a linear association with procrastination and can be included in the standard logistic regression model.
+
 # Logistic Regression
 Logistic regression is a statistical method used for predicting the probability of a binary outcome based on one or more predictor variables. Unlike linear regression, which predicts continuous values, logistic regression models the probability of the dependent variable belonging to a particular category.
 
@@ -38,167 +118,103 @@ The logistic regression equation can be written as:
 $$
 P(Y = 1 ∣ X) = \frac{1}{1 + e^{{\beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{2} + \dots + \beta_{n}X_{x}}}}
 $$
+
 where $P(Y = 1 ∣ X)$ is the probability of the dependent variable ($Y$) being 1 given the values of predictors ($X$). $e$ is the base of the natural logarithm. $\beta_{0}, \beta_{1}, \beta_{2}, \dots \beta_{n}$ are the coefficients representing the effect of each predictor variable on the outcome and $X_{1}, X_{2}, \dots X_{n}$ are the values of the predictor variables.
 
-## Defining health problems and health protection
-Within the HRS dataset, we have a range of both health problems and health protective behaviors. These have been coded as either $0$ (not present/done) or $1$ (present/done). 
+## Performing logistic regression (no covariates)
+For each variable we will apply a custom `logit_model()` function from the [Functions.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/00__Functions.R) script. This function applies a `glm()` model with the `family = binomial(link = "logit")` argument, whilst also storing summary output, various fit metrics generated by the [DescTools](https://andrisignorell.github.io/DescTools/) package, and the relevant odds ratio for that variable. 
 
-```{r view-data, echo = TRUE}
-health_data %>%
-  select(Back_pain:Alcohol, Smoker_current, Blood_pressure:Dental_visit_2_years,
-         Total_procrastination) %>%
-  str()
-```
+```{r log-model-base}
 
-For the purpose of our analysis we will define these variables into 2 vectors: one for problems and one for protective behaviors
-```{r vector-defining}
-# Defining a vector of health problems
-health_problems <- c("Back_pain", "Headache", "Fatigue", 
-                     "Alcohol", "Smoker_current", "Blood_pressure", 
-                     "Diabetes", "Cholesterol", "Heart_condition")
+# Defining a new vector of health problems without Alcohol
+health_problems_no_alcohol <- c(
+  "Back_pain", "Headache", "Fatigue", "Smoker_current", 
+  "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition")
 
-# Defining a vector of health protective behaviors
-health_protection <- c("Prostate_exam", "Mammogram", "Cholesterol_screening",
-                       "Pap_smear", "Flu_shot", "Dental_visit_2_years")
-```
-
-## Performing logistic analysis
-For each variable we will apply a custom function from the [Functions.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/00__Functions.R) script. This function (`logit_model()`) applies a `glm()` model with the `family = binomial(link = "logit")` argument, whilst also storing summary output, various fit metrics generated by the [DescTools](https://andrisignorell.github.io/DescTools/) package, and the relevant odds ratio for that variable.
-
-```{r log-model}
 # Fitting binary logistic regressions (with no covariate) ----------------------
 # Fitting (health problems)
-problem_models_base <- lapply(health_problems, logit_model,
-                              predictor = "Total_procrastination",
-                              data = health_data, type = "base")
+problem_models_base <- lapply(
+  health_problems_no_alcohol, logit_model, predictor = "Total_procrastination", data = health_data, type = "base")
 
 # Fitting (health protection)
-protection_models_base <- lapply(health_protection, logit_model,
-                                 predictor = "Total_procrastination",
-                                 data = health_data, type = "base")
-
-# Fitting binary logistic regressions (with covariate) -------------------------
-problem_models_control <- lapply(health_problems, logit_model, 
-                                 predictor = "Total_procrastination", 
-                                 data = health_data, type = "control")
-
-protection_models_control <- lapply(health_protection, logit_model, 
-                                    predictor = "Total_procrastination", 
-                                    data = health_data, type = "control")
+protection_models_base <- lapply(
+  health_protection, logit_model, predictor = "Total_procrastination", data = health_data, type = "base")
 ```
 
-# Visualisation
-To better summarize and visualise each model we can create individual HTML tables using the [sjPlot](https://strengejacke.github.io/sjPlot/) package and an odds ratio plot using the `log_odds_plot()` function, again from the [Functions.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/00__Functions.R). 
+After fitting our base model to each variable we can better summarize and visualize our results using individual HTML tables using the [sjPlot](https://strengejacke.github.io/sjPlot/) package and an odds ratio plot using the `log_odds_plot()` function, again from the [Functions.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/00__Functions.R). 
 
 ```{r include = FALSE}
 # Defining a vector of health problems
-health_problems <- c(
-  "Back Pain", "Headache", "Fatigue", "Drinking", "Smoking", 
+health_problems_tidy <- c(
+  "Back Pain", "Headache", "Fatigue", "Smoking", 
   "Blood Pressure", "Diabetes", "Cholesterol", "Heart Condition")
 
 # Defining a vector of health protective behaviors
-health_protection <- c(
+health_protection_tidy <- c(
   "Prostate Exam", "Mammogram", "Cholesterol Screening",
   "Pap Smear", "Flu Shot", "Dental Visit (2yrs)")
 
 # Extracting relevant GLM results ----------------------------------------------
 health_problem_base <- process_glm_results(problem_models_base)
-health_problem_control <- process_glm_results(problem_models_control)
 health_protection_base <- process_glm_results(protection_models_base)
-health_protection_control <- process_glm_results(protection_models_control)
 
 # Changing to dataframe
 health_problem_base <- as.data.frame(health_problem_base)
-health_problem_control <- as.data.frame(health_problem_control)
 health_protection_base <- as.data.frame(health_protection_base)
-health_protection_control <- as.data.frame(health_protection_control)
 
-# Assigning rownames
-rownames(health_problem_base) <- health_problems
-rownames(health_problem_control) <- health_problems
-rownames(health_protection_base) <- health_protection
-rownames(health_protection_control) <- health_protection
-
+# Assigning row names
+rownames(health_problem_base) <- health_problems_tidy
+rownames(health_protection_base) <- health_protection_tidy
 ```
 
-## Health Problems
-### Base Model
+### Health Problems
 
-```{r}
+**Table**
+
+```{r problem-table-base}
 sjPlot::tab_model(
   problem_models_base[[1]]$model, problem_models_base[[2]]$model,
   problem_models_base[[3]]$model, problem_models_base[[4]]$model,
   problem_models_base[[5]]$model, problem_models_base[[6]]$model,
   problem_models_base[[7]]$model, problem_models_base[[8]]$model,
-  problem_models_base[[9]]$model,
-  pred.labels = c("(Intercept)", "Procrastination"),
+  show.intercept = FALSE,
+  pred.labels = "Procrastination",
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems",
-  dv.labels = health_problems, 
-  collapse.ci = TRUE, p.style = "stars"
+  dv.labels = health_problems_tidy, 
+  collapse.ci = TRUE, p.style = "numeric_stars"
 )
 ```
 
-The results showed that procrastination was a significant predictor of all health problems except for having a heart condition, which had a non-significant positive association. The odds ratios ranged from 0.99 to 1.05, indicating small effects of procrastination on the odds of having a health problem.
-
-```{r}
-log_odds_plot(health_problem_base, title = "Risk of Experiencing a Health Problem")
+**Odds Plot**
+```{r problem-odds-base}
+knitr::include_graphics(here::here("02__Models/Results/Figures/02__GLM_Plots/02__Odds_Plots/01__Odds_Problem_Base.png"))
 ```
 
+The results showed that procrastination was a significant predictor of all health problems except for having a heart condition, which had a non-significant positive association.
 
-### Control Model
-```{r}
-sjPlot::tab_model(
-  problem_models_control[[1]]$model, problem_models_control[[2]]$model,
-  problem_models_control[[3]]$model, problem_models_control[[4]]$model,
-  problem_models_control[[5]]$model, problem_models_control[[6]]$model,
-  problem_models_control[[7]]$model, problem_models_control[[8]]$model,
-  problem_models_control[[9]]$model,
-  pred.labels = c("Intercept", "Procrastination", "Depression", "Procrastination x Depression"),
-  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Control)",
-  dv.labels = health_problems, 
-  collapse.ci = TRUE, p.style = "stars")
-```
+### Health Protection
 
-After controlling for depression, the results showed that procrastination was a significant positive predictor of several health problems (back pain, fatigue, having high blood pressure, and diabetes)
-```{r}
-log_odds_plot(health_problem_control, title = "Risk of Experiencing a Health Problems (Controlling for Depression)")
-```
-
-## Health Protection
-### Base Model
-```{r}
+**Table**
+```{r protection-table-base}
 sjPlot::tab_model(
   protection_models_base[[1]]$model, protection_models_base[[2]]$model,
   protection_models_base[[3]]$model, protection_models_base[[4]]$model,
-  protection_models_base[[5]]$model, protection_models_base[[6]]$model,
-  pred.labels = c("(Intercept)", "Procrastination"),
+  protection_models_base[[5]]$model, protection_models_base[[6]]$model, 
+  show.intercept = FALSE,
+  pred.labels = "Procrastination", 
   dv.labels = health_protection, 
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours",
-  collapse.ci = TRUE, p.style = "stars")
+  collapse.ci = TRUE, p.style = "numeric_stars"
+  )
 ```
 
-The results showed that procrastination was a significant negative predictor of several health protective behaviors (prostate exam, mammogram, cholesterol screening, and visiting the dentist). The odds ratios ranged from 0.98 to 0.99.
-
-```{r}
-log_odds_plot(health_protection_base, title = "Chance of Engaging in Health Protective Behaviours")
+**Odds Plot**
+```{r protection-odds-base}
+knitr::include_graphics(here::here("02__Models/Results/Figures/02__GLM_Plots/02__Odds_Plots/03__Odds_Protection_Base.png"))
 ```
 
-### Control Model
-```{r}
-sjPlot::tab_model(
-  protection_models_control[[1]]$model, protection_models_control[[2]]$model,
-  protection_models_control[[3]]$model, protection_models_control[[4]]$model,
-  protection_models_control[[5]]$model, protection_models_control[[6]]$model,
-  pred.labels = c("Intercept", "Procrastination", "Depression", "Procrastination x Depression"),
-  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Control)",
-  dv.labels = health_protection, 
-  collapse.ci = TRUE, p.style = "stars")
-```
+The results showed that procrastination was a significant negative predictor of several health protective behaviors (prostate exam, mammogram, cholesterol screening, and visiting the dentist).
 
-After controlling for depression, the results showed that procrastination was a significant negative predictor of getting both a prostate and mammogram exam, and visiting the dentist. 
-
-```{r}
-log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (Controlling for Depression)", size_font = 7)
-
-```
+## Performing logistic regression (with covariates)
+This time, we will perform the same analysis but with the addition of several covariates into our model (namely Age, Education, and Depression). Again, we will be applying the `logit_model()` function to the data, but with the addition of a `type = control` argument.
 

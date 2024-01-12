@@ -18,7 +18,7 @@ create_scatter_plot <- function(data, y_variable, y_label){
   require(ggeasy)
   
   ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
-    geom_point() +
+    geom_jitter() +
     geom_smooth(method = "lm", se = TRUE) + 
     labs(title = paste0("Relationship between Procrastination and ", y_label),
          x = "Procrastination", y = y_label) + 

@@ -78,3 +78,13 @@ cowplot::save_plot(
   filename = file.path(export_path, "04__Protection_Abline.png"),
   plot = protection_abline_group, 
   base_height = 5)
+
+
+
+
+fit <- glm(
+  formula = Headache ~ Total_procrastination + I(Total_procrastination^2), 
+  data = health_data,
+  family = "binomial")
+
+anova(fit, test = "Chisq")

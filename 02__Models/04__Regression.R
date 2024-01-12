@@ -1,7 +1,5 @@
 rm(list = ls())
 
-library(cowplot)
-
 # Custom functions
 source(file.path("./02__Models/00__Functions.R"))
 
@@ -11,13 +9,14 @@ path_data <- "./01__Data/02__Processed/"
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
 # Defining a vector of health problems
-health_problems <- c("Back_pain", "Headache", "Fatigue", 
-                     "Alcohol", "Smoker_current", "Blood_pressure", 
-                     "Diabetes", "Cholesterol", "Heart_condition")
+health_problems <- c(
+  "Back_pain", "Headache", "Fatigue", "Smoker_current", "Blood_pressure", 
+  "Diabetes", "Cholesterol", "Heart_condition")
 
 # Defining a vector of health protective behaviors
-health_protection <- c("Prostate_exam", "Mammogram", "Cholesterol_screening",
-                       "Pap_smear", "Flu_shot", "Dental_visit_2_years")
+health_protection <- c(
+  "Prostate_exam", "Mammogram", "Cholesterol_screening", 
+  "Pap_smear", "Flu_shot", "Dental_visit_2_years")
 
 # Fitting binary logistic regressions (with no covariate) ----------------------
 # Fitting (health problems)
@@ -58,8 +57,8 @@ for (i in 1:length(health_problems)) {
 }
 
 # Plotting as a grouped plot
-problems_plot <- plot_grid(plotlist = problem_list, nrow = 3, ncol = 3)
-protection_plot <- plot_grid(plotlist = protection_list, ncol = 3)
+problems_plot <- cowplot::plot_grid(plotlist = problem_list, nrow = 2, ncol = 4)
+protection_plot <- cowplot::plot_grid(plotlist = protection_list, ncol = 3)
 
 # Adding a title to each using ggdraw()
 problem_title <- ggdraw() +
@@ -75,11 +74,11 @@ protection_title <- ggdraw() +
   theme_bw()
 
 # Combining the title and the plot
-problems_plot <- plot_grid(problem_title, problems_plot, 
-                           nrow = 2, rel_heights = c(0.1, 0.9))
+problems_plot <- cowplot::plot_grid(
+  problem_title, problems_plot, nrow = 2, rel_heights = c(0.1, 0.9))
 
-protection_plot <- plot_grid(protection_title, protection_plot, 
-                             nrow = 2, rel_heights = c(0.1, 0.9))
+protection_plot <- cowplot::plot_grid(
+  protection_title, protection_plot, nrow = 2, rel_heights = c(0.1, 0.9))
 
 
 # Exporting --------------------------------------------------------------------
@@ -92,21 +91,12 @@ save(problem_models_control, file = file.path(export_path, "RData/03__Problem_Mo
 save(protection_models_control, file = file.path(export_path, "RData/04__Protection_Models_CONTROL.RData"))
 
 # Plots
-save_plot(
+cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/01__Health_Problems_logit.png"),
   plot = problems_plot, base_height = 10)
-save_plot(
+
+cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/02__Health_Protection_logit.png"),
   plot = protection_plot, base_height = 8)
-
-# OLD CODE
-# model <- glm(Blood_pressure ~ Total_procrastination * Heart_condition, family = "binomial", data = health_data)
-# summary(model)
-# 
-# anova(model, test = "Chisq")
-# 
-# 
-
-
-
+  
 
