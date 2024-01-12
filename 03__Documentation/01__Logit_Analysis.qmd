@@ -258,7 +258,7 @@ sjPlot::tab_model(
   show.intercept = FALSE,
   pred.labels = c("Procrastination", "Depression", "Education", "Age"),
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Control)",
-  dv.labels = health_problems, 
+  dv.labels = health_problems_tidy, 
   collapse.ci = TRUE, p.style = "numeric_stars"
 )
 ```
@@ -280,7 +280,7 @@ sjPlot::tab_model(
   show.intercept = FALSE,
   pred.labels = c("Procrastination", "Depression", "Education", "Age"),
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Control)",
-  dv.labels = health_protection, 
+  dv.labels = health_protection_tidy, 
   collapse.ci = TRUE, p.style = "numeric_stars"
 )
 ```
