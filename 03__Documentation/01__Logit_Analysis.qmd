@@ -97,19 +97,19 @@ protection_curves <- lapply(health_protection, function(protection){
 
 ### Health Problems
 
+All health problem variables except for **Alcohol** ("Do you ever drink any alcoholic beverages such as beer, wine, or liquor?") have a linear association with procrastination. As such, a separate logistic regression with an added quadratic term was performed.
+
 ```{r problem-linear-plot}
 knitr::include_graphics(here::here(path_graphics, "03__Curve_Plots/01__Problem_Curves.png"))
 ```
 
-All health problem variables except for **Alcohol** ("Do you ever drink any alcoholic beverages such as beer, wine, or liquor?") have a linear association with procrastination. As such, a separate logistic regression with an added quadratic term was performed.
-
 ### Health Protection
+
+All health protective variables have a linear association with procrastination and can be included in the standard logistic regression model.
 
 ```{r protection-linear-plot}
 knitr::include_graphics(here::here(path_graphics, "03__Curve_Plots/02__Protection_Curves.png"))
 ```
-
-All health protective variables have a linear association with procrastination and can be included in the standard logistic regression model.
 
 # Logistic Regression
 Logistic regression is a statistical method used for predicting the probability of a binary outcome based on one or more predictor variables. Unlike linear regression, which predicts continuous values, logistic regression models the probability of the dependent variable belonging to a particular category.
@@ -257,7 +257,7 @@ sjPlot::tab_model(
   problem_models_control[[7]]$model, problem_models_control[[8]]$model,
   show.intercept = FALSE,
   pred.labels = c("Procrastination", "Depression", "Education", "Age"),
-  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Control)",
+  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Covariates)",
   dv.labels = health_problems_tidy, 
   collapse.ci = TRUE, p.style = "numeric_stars"
 )
@@ -279,7 +279,7 @@ sjPlot::tab_model(
   protection_models_control[[5]]$model, protection_models_control[[6]]$model,
   show.intercept = FALSE,
   pred.labels = c("Procrastination", "Depression", "Education", "Age"),
-  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Control)",
+  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Covariates)",
   dv.labels = health_protection_tidy, 
   collapse.ci = TRUE, p.style = "numeric_stars"
 )
@@ -299,7 +299,7 @@ A quadratic term is a variable raised to the power of two, such as $x^2$. Adding
     geom_jitter(width = 0, height = .1) +
     geom_smooth(formula = y ~ poly(x,2), se = FALSE, method = "glm", 
                 method.args = list(family = "binomial")) +
-    labs(x = "Procrastination", y = "", title = "Drinking") +
+    labs(x = "Procrastination", y = "", title = "Alcohol Consumption") +
     scale_y_continuous(breaks = c(0, 1)) +
     scale_x_continuous(breaks = seq(0, 60, by = 10)) +
     theme_bw() +
@@ -310,20 +310,30 @@ A quadratic term is a variable raised to the power of two, such as $x^2$. Adding
 A logistic regression with a quadratic term can be written as:
 
 $$
-log(\frac{p}{1 - p}) = \beta_{0} + \beta_{1}X_{1} + \beta_{2}X_{1}^2 
+log(\frac{p}{1 - p}) = \beta_{0} + \beta_{1}X + \beta_{2}X^2 
 $$
-
-where $p$ is the probability of our outcome being $1$, $\beta_{1}$ representing the linear effect of $X_{1}$ on of the log odds of $p$, and $\beta_{2}$ representing the quadratic effect of $X_{1}$ on of the log odds of $p$.
+where $p$ is the probability of our outcome being $1$. $\beta_{1}$ representing the linear effect of $X$ on the log odds of $p$, and $\beta_{2}$ representing the quadratic effect of $X$ on the log odds of $p$.
 
 ## Performing logistic regression (no covariates)
-To start, we will perform a logistic regression with no covariates. This can be done by applying a generalized linear model using the `glm()` but with an expansion to the `formula` argument: `formula = Alcohol ~ Total_procrastination + I(Total_Procrastination^2)`, where `I(Total_Procrastination^2)` represents our quadratic effect ($\beta_{2}X_{1}^2$).
+Similar to before, we will start by performing a logistic regression with no covariates. This can be done by applying a generalized linear model using the `glm()` but with an expansion to the `formula` argument: `formula = Alcohol ~ Total_procrastination + I(Total_Procrastination^2)`, where `I(Total_Procrastination^2)` represents our quadratic effect ($\beta_{2}X^2$).
 
 ```{r quadratic-fit-base}
-fit <- glm(formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2), 
-           data = health_data, 
-           family = "binomial")
+fit <- glm(
+  formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2), 
+  data = health_data,
+  family = binomial(link = "logit"))
 ```
 
 
+```{r}
+sjPlot::tab_model(
+  fit, 
+  show.intercept = FALSE, 
+  pred.labels = c("Procrastination", "Procrastination²"),
+  dv.labels = "Alcohol Consumption",
+  title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption",
+  collapse.ci = TRUE, p.style = "numeric_stars"
+  )
+```
 
 
