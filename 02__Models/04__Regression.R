@@ -61,14 +61,14 @@ problems_plot <- cowplot::plot_grid(plotlist = problem_list, nrow = 2, ncol = 4)
 protection_plot <- cowplot::plot_grid(plotlist = protection_list, ncol = 3)
 
 # Adding a title to each using ggdraw()
-problem_title <- ggdraw() +
-  draw_label(
+problem_title <- cowplot::ggdraw() +
+  cowplot::draw_label(
     "Logistic Regression Curves for Health Problems",
     fontface = 'bold', x = 0.5, hjust = 0.5) +
   theme_bw()
 
-protection_title <- ggdraw() +
-  draw_label(
+protection_title <- cowplot::ggdraw() +
+  cowplot::draw_label(
     "Logistic Regression Curves for Health Protection",
     fontface = 'bold', x = 0.5, hjust = 0.5) +
   theme_bw()
@@ -97,10 +97,17 @@ cowplot::save_plot(
 
 cowplot::save_plot(
   filename = file.path(export_path, "Figures/02__GLM_Plots/01__Logit_Plots/02__Health_Protection_logit.png"),
-<<<<<<< HEAD
   plot = protection_plot, base_height = 6)
-=======
-  plot = protection_plot, base_height = 8)
-  
->>>>>>> 24a0d2aef3f38e53fc7f989921452b4171dda9c2
+
+
+# Quadratic fit ----------------------------------------------------------------
+fit <- glm(
+  formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2),
+  data = health_data,
+  family = binomial(link = "logit"))
+
+summary(fit)
+
+exp(fit$coefficients[2])
+exp(fit$coefficients[3])
 
