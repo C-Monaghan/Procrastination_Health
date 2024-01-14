@@ -230,7 +230,7 @@ process_glm_results <- function(model_list, type){
   if(type == "base"){
   # Creating an empty list to be filled
   glm_results <- list(
-    log_odds = rep(NA, length(model_list)),
+    odds = rep(NA, length(model_list)),
     ci_lower = rep(NA, length(model_list)),
     ci_upper = rep(NA, length(model_list))
   )
@@ -238,7 +238,7 @@ process_glm_results <- function(model_list, type){
   # Extracting relevant variables
   for (i in seq_along(model_list)) {
     # Odds ratio
-    glm_results$log_odds[i] <- exp(model_list[[i]]$model$coefficients[[2]])
+    glm_results$odds[i] <- exp(model_list[[i]]$model$coefficients[[2]])
     
     # Confidence Intervals
     conf_int <- confint(model_list[[i]]$model)[2, ]
@@ -247,11 +247,10 @@ process_glm_results <- function(model_list, type){
   }
   
   return(glm_results)
-  }
-  else if(type == "control"){
+  } else if(type == "control"){
     # Create an empty nested list to be filled 
     glm_results <- list(
-      coefficients = vector("list", length(model_list)),
+      odds = vector("list", length(model_list)),
       ci_lower = vector("list", length(model_list)),
       ci_upper = vector("list", length(model_list))
     )
@@ -259,7 +258,7 @@ process_glm_results <- function(model_list, type){
     # Extracting relevant variables
     for(i in seq_along(model_list)){
       # Odds Ratio
-      glm_results$coefficients[[i]] <- exp(coef(model_list[[i]]$model)[-1])
+      glm_results$odds[[i]] <- exp(coef(model_list[[i]]$model)[-1])
       
       # Confidence Intervals
       ci <- exp(confint(model_list[[i]]$model))
@@ -276,13 +275,13 @@ process_glm_results <- function(model_list, type){
 log_odds_plot <- function(data, title, size_font = 8){
   require(ggplot2)
   require(ggeasy)
-  
-  ggplot(data = data, aes(y = rownames(data))) +
-    geom_point(aes(x = log_odds), colour = "skyblue", size = 3) +
-    geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), 
-                   height = 0.5, linewidth = 1, color = "skyblue") +
+
+  ggplot(data = data, aes(y = response)) +
+    geom_point(aes(x = odds), colour = "skyblue", size = 3) +
+    geom_errorbarh(
+      aes(xmin = ci_lower, xmax = ci_upper),
+      height = 0.5, linewidth = 1, color = "skyblue") +
     geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
-    xlim(0.9, 1.1) +
     labs(x = "Odds (95% CI)", y = "", title = title) +
     theme_bw() +
     easy_center_title() +

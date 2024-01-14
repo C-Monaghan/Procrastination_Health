@@ -23,58 +23,53 @@ health_protection <- c(
   "Pap Smear", "Flu Shot", "Dental Visit (2yrs)")
 
 # Extracting GLM results (BASE MODELS) -----------------------------------------
-health_problem_base <- process_glm_results(
-  model_list = problem_models_base, type = "base")
+health_problem_base <- problem_models_base %>%
+  process_glm_results(type = "base") %>%
+  as.data.frame() %>%
+  mutate(response = health_problems, .before = odds)
 
-health_protection_base <- process_glm_results(
-  model_list = protection_models_base, type = "base")
+health_protection_base <- protection_models_base %>%
+  process_glm_results(type = "base") %>%
+  as.data.frame() %>%
+  mutate(response = health_protection, .before = odds)
 
-# Changing to dataframe
-health_problem_base <- as.data.frame(health_problem_base)
-health_protection_base <- as.data.frame(health_protection_base)
+# Extracting GLM results (COVARIATE MODELS) ------------------------------------
+health_problem_control <- problem_models_control %>%
+    process_glm_results(type = "control")
 
-# Assigning rownames
-rownames(health_problem_base) <- health_problems
-rownames(health_protection_base) <- health_protection
-
-# Extracting GLM results (CONTROL MODELS) --------------------------------------
-health_problem_control <- process_glm_results(
-  model_list = problem_models_control, type = "control")
-
-health_protection_control <- process_glm_results(
-  model_list = protection_models_control, type = "control")
+health_protection_control <- protection_models_control %>%
+    process_glm_results(type = "control")
 
 # Changing to dataframe
-health_problem_control <- do.call(rbind, lapply(seq_along(health_problem_control$coefficients), function(i) {
-  data.frame(
-    coefficients = health_problem_control$coefficients[[i]],
-    ci_lower = health_problem_control$ci_lower[[i]],
-    ci_upper = health_problem_control$ci_upper[[i]], row.names = NULL
-  )
-}))
+health_problem_control <- do.call(
+  rbind, lapply(seq_along(health_problem_control$odds), function(i) {
+    data.frame(odds = health_problem_control$odds[[i]],
+               ci_lower = health_problem_control$ci_lower[[i]],
+               ci_upper = health_problem_control$ci_upper[[i]], 
+               row.names = NULL)}))
 
-health_protection_control <- do.call(rbind, lapply(seq_along(health_protection_control$coefficients), function(i) {
-  data.frame(
-    coefficients = health_protection_control$coefficients[[i]],
-    ci_lower = health_protection_control$ci_lower[[i]],
-    ci_upper = health_protection_control$ci_upper[[i]], row.names = NULL
-  )
-}))
+health_protection_control <- do.call(
+  rbind, lapply(seq_along(health_protection_control$odds), function(i) {
+  data.frame(odds = health_protection_control$odds[[i]],
+             ci_lower = health_protection_control$ci_lower[[i]],
+             ci_upper = health_protection_control$ci_upper[[i]], 
+             row.names = NULL)}))
 
 # Creating columns for predictor and response
 health_problem_control <- health_problem_control %>%
-  mutate(health_problem = rep(
-    health_problems, each = 4), .before = coefficients) %>%
-  mutate(predictor = rep(
-    c("Procrastination", "Depression", "Education", "Age"), 
-    times = (nrow(health_problem_control) / 4)), .before = coefficients)
+  mutate(response = rep(health_problems, 
+                              each = 4), 
+         .before = odds) %>%
+  mutate(predictor = rep(c("Procrastination", "Depression", "Education", "Age"), 
+                         times = (nrow(.) / 4)), 
+         .before = odds)
 
 health_protection_control <- health_protection_control %>%
-  mutate(health_problem = rep(
-    health_protection, each = 4), .before = coefficients) %>%
-  mutate(predictor = rep(
-    c("Procrastination", "Depression", "Education", "Age"), 
-    times = (nrow(health_protection_control) / 4)), .before = coefficients)
+  mutate(response = rep(health_protection, each = 4), 
+         .before = odds) %>%
+  mutate(predictor = rep(c("Procrastination", "Depression", "Education", "Age"),
+                         times = (nrow(.) / 4)), 
+         .before = odds)
 
 # Creating HTML Tables ---------------------------------------------------------
 # Base models
@@ -103,7 +98,7 @@ tab_model(
   file = file.path("./02__Models/Results/Tables/02__BASE_Protection_Table.html")
 )
 
-# Control Models
+# Covariate Models
 tab_model(
   problem_models_control[[1]]$model, problem_models_control[[2]]$model,
   problem_models_control[[3]]$model, problem_models_control[[4]]$model,
@@ -129,14 +124,33 @@ tab_model(
   file = file.path("./02__Models/Results/Tables/Test/02__CONTROL_Protection_Table.html")
 )
 
-# Plotting log odds -----------------------------------------------------------
-odds_problem_base <- log_odds_plot(health_problem_base, title = "Risk of Experiencing a Health Problem")
+# Removing unnecessary variables -----------------------------------------------
+rm(problem_models_base, problem_models_control, 
+   protection_models_base, protection_models_control)
+
+# Plotting log odds ------------------------------------------------------------
+# Base plots
+odds_problem_base <- health_problem_base %>%
+  log_odds_plot(title = "Risk of Experiencing a Health Problem")
+
+odds_protection_base <- health_protection_base %>%
+  log_odds_plot(title = "Chance of Engaging in Health Protective Behaviours")
+
+# Covariate Plots
+health_protection_control %>%
+  filter(predictor == "Age") %>%
+  log_odds_plot(title = "Chance of Engaging in Health Protective Behaviours")
+
+
+
 odds_problem_control <- log_odds_plot(health_problem_control, title = "Risk of Experiencing a Health Problems (with covariates)")
-odds_protection_base <- log_odds_plot(health_protection_base, title = "Chance of Engaging in Health Protective Behaviours")
 odds_protection_control <- log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (with covariates)", size_font = 7)
 
 odds_plots_combined <- cowplot::plot_grid(
-  odds_problem_base, odds_problem_control, odds_protection_base, odds_protection_control,
+  odds_problem_base, 
+  odds_problem_control, 
+  odds_protection_base, 
+  odds_protection_control,
   nrow = 2, ncol = 2)
 
 # Exporting --------------------------------------------------------------------
