@@ -213,9 +213,9 @@ generate_log_plot <- function(predictor, data, title) {
   require(ggeasy)
   
   ggplot(data = data, aes(x = Total_procrastination, y = {{predictor}})) +
-    geom_jitter(width = 0, height = .1) +
+    geom_jitter(size = 0.75, width = 0, height = .1) +
     geom_smooth(method = "glm", se = TRUE, 
-                method.args = list(family = binomial), 
+                method.args = list(family = binomial(link = "logit")), 
                 col = "red", lty = 2) +
     labs(x = "Procrastination", y = "", title = title) +
     scale_y_continuous(breaks = c(0, 1)) +
