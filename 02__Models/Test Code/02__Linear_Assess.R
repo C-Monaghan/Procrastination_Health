@@ -83,8 +83,31 @@ cowplot::save_plot(
 
 
 fit <- glm(
-  formula = Headache ~ Total_procrastination + I(Total_procrastination^2), 
+  formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2), 
   data = health_data,
-  family = "binomial")
+  family = binomial(link = "logit"))
 
 anova(fit, test = "Chisq")
+
+summary(fit)
+
+f <- function(x){
+  exp(coef(fit)[2]) * exp(coef(fit)[3]) * exp(2*x*coef(fit)[3])
+}
+
+curve(f(x), xlim = c(0, 60))
+abline(h = 1, lty = 2)
+
+uniroot(function(x) f(x)-1, lower = 0, upper = 60)
+
+
+turning_point <- - coef(fit)[2] / (2 * coef(fit)[3])
+
+turning_point <- (-coef(fit)[2] - coef(fit)[3]) / (2*coef(fit)[3])
+
+predicted_log_odds <- predict(fit, 
+                              newdata = data.frame(Total_procrastination = turning_point), 
+                              type = "link")
+
+cat("Turning Point (x):", turning_point, "\n")
+cat("Predicted Log Odds:", predicted_log_odds, "\n")
