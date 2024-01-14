@@ -226,7 +226,8 @@ generate_log_plot <- function(predictor, data, title) {
 }
 
 # Process GLM results
-process_glm_results <- function(model_list){
+process_glm_results <- function(model_list, type){
+  if(type == "base"){
   # Creating an empty list to be filled
   glm_results <- list(
     log_odds = rep(NA, length(model_list)),
@@ -246,6 +247,29 @@ process_glm_results <- function(model_list){
   }
   
   return(glm_results)
+  }
+  else if(type == "control"){
+    # Create an empty nested list to be filled 
+    glm_results <- list(
+      coefficients = vector("list", length(model_list)),
+      ci_lower = vector("list", length(model_list)),
+      ci_upper = vector("list", length(model_list))
+    )
+    
+    # Extracting relevant variables
+    for(i in seq_along(model_list)){
+      # Odds Ratio
+      glm_results$coefficients[[i]] <- exp(coef(model_list[[i]]$model)[-1])
+      
+      # Confidence Intervals
+      ci <- exp(confint(model_list[[i]]$model))
+      
+      glm_results$ci_lower[[i]] <- ci[-1, 1]
+      glm_results$ci_upper[[i]] <- ci[-1, 2]
+    }
+    
+    return(glm_results)
+  }
 }
 
 # Create log odds plot

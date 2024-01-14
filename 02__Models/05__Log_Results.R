@@ -1,7 +1,7 @@
 rm(list = ls())
 
-library(sjPlot)
 library(dplyr)
+library(sjPlot)
 
 # Custom functions
 source(file.path("./02__Models/00__Functions.R"))
@@ -22,23 +22,59 @@ health_protection <- c(
   "Prostate Exam", "Mammogram", "Cholesterol Screening",
   "Pap Smear", "Flu Shot", "Dental Visit (2yrs)")
 
-# Extracting relevant GLM results ----------------------------------------------
-health_problem_base <- process_glm_results(problem_models_base)
-health_problem_control <- process_glm_results(problem_models_control)
-health_protection_base <- process_glm_results(protection_models_base)
-health_protection_control <- process_glm_results(protection_models_control)
+# Extracting GLM results (BASE MODELS) -----------------------------------------
+health_problem_base <- process_glm_results(
+  model_list = problem_models_base, type = "base")
+
+health_protection_base <- process_glm_results(
+  model_list = protection_models_base, type = "base")
 
 # Changing to dataframe
 health_problem_base <- as.data.frame(health_problem_base)
-health_problem_control <- as.data.frame(health_problem_control)
 health_protection_base <- as.data.frame(health_protection_base)
-health_protection_control <- as.data.frame(health_protection_control)
 
 # Assigning rownames
 rownames(health_problem_base) <- health_problems
-rownames(health_problem_control) <- health_problems
 rownames(health_protection_base) <- health_protection
-rownames(health_protection_control) <- health_protection
+
+# Extracting GLM results (CONTROL MODELS) --------------------------------------
+health_problem_control <- process_glm_results(
+  model_list = problem_models_control, type = "control")
+
+health_protection_control <- process_glm_results(
+  model_list = protection_models_control, type = "control")
+
+# Changing to dataframe
+health_problem_control <- do.call(rbind, lapply(seq_along(health_problem_control$coefficients), function(i) {
+  data.frame(
+    coefficients = health_problem_control$coefficients[[i]],
+    ci_lower = health_problem_control$ci_lower[[i]],
+    ci_upper = health_problem_control$ci_upper[[i]], row.names = NULL
+  )
+}))
+
+health_protection_control <- do.call(rbind, lapply(seq_along(health_protection_control$coefficients), function(i) {
+  data.frame(
+    coefficients = health_protection_control$coefficients[[i]],
+    ci_lower = health_protection_control$ci_lower[[i]],
+    ci_upper = health_protection_control$ci_upper[[i]], row.names = NULL
+  )
+}))
+
+# Creating columns for predictor and response
+health_problem_control <- health_problem_control %>%
+  mutate(health_problem = rep(
+    health_problems, each = 4), .before = coefficients) %>%
+  mutate(predictor = rep(
+    c("Procrastination", "Depression", "Education", "Age"), 
+    times = (nrow(health_problem_control) / 4)), .before = coefficients)
+
+health_protection_control <- health_protection_control %>%
+  mutate(health_problem = rep(
+    health_protection, each = 4), .before = coefficients) %>%
+  mutate(predictor = rep(
+    c("Procrastination", "Depression", "Education", "Age"), 
+    times = (nrow(health_protection_control) / 4)), .before = coefficients)
 
 # Creating HTML Tables ---------------------------------------------------------
 # Base models
