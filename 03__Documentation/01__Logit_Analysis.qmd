@@ -151,7 +151,7 @@ protection_models_base <- lapply(
 
 After fitting our base model to each variable we can better summarize and visualize our results using individual HTML tables using the [sjPlot](https://strengejacke.github.io/sjPlot/) package and an odds ratio plot using the `log_odds_plot()` function, again from the [Functions.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/00__Functions.R). 
 
-```{r include = FALSE}
+```{r}
 # Defining a vector of health problems
 health_problems_tidy <- c(
   "Back Pain", "Headache", "Fatigue", "Smoking", 
@@ -161,18 +161,6 @@ health_problems_tidy <- c(
 health_protection_tidy <- c(
   "Prostate Exam", "Mammogram", "Cholesterol Screening",
   "Pap Smear", "Flu Shot", "Dental Visit (2yrs)")
-
-# Extracting relevant GLM results ----------------------------------------------
-health_problem_base <- process_glm_results(problem_models_base)
-health_protection_base <- process_glm_results(protection_models_base)
-
-# Changing to dataframe
-health_problem_base <- as.data.frame(health_problem_base)
-health_protection_base <- as.data.frame(health_protection_base)
-
-# Assigning row names
-rownames(health_problem_base) <- health_problems_tidy
-rownames(health_protection_base) <- health_protection_tidy
 ```
 
 ### Health Problems
@@ -195,7 +183,7 @@ sjPlot::tab_model(
 
 **Odds Plot**
 ```{r problem-odds-base}
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/01__Odds_Problem_Base.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/01__Base/01__Odds_Problem_Base.png"))
 ```
 
 The results showed that procrastination was a significant predictor of all health problems except for having a heart condition, which had a non-significant positive association.
@@ -218,7 +206,7 @@ sjPlot::tab_model(
 
 **Odds Plot**
 ```{r protection-odds-base}
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/03__Odds_Protection_Base.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/01__Base/02__Odds_Protection_Base.png"))
 ```
 
 The results showed that procrastination was a significant negative predictor of several health protective behaviors (prostate exam, mammogram, cholesterol screening, and visiting the dentist).
@@ -257,7 +245,7 @@ sjPlot::tab_model(
   problem_models_control[[7]]$model, problem_models_control[[8]]$model,
   show.intercept = FALSE,
   pred.labels = c("Procrastination", "Depression", "Education", "Age"),
-  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Covariates)",
+  title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with covariates)",
   dv.labels = health_problems_tidy, 
   collapse.ci = TRUE, p.style = "numeric_stars"
 )
@@ -265,7 +253,7 @@ sjPlot::tab_model(
 
 **Odds Plot**
 ```{r problem-odds-control}
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Odds_Problem_Control.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/01__Odds_Procrastination.png"))
 ```
 
 ### Health Protection
@@ -288,7 +276,7 @@ sjPlot::tab_model(
 **Odds Plot**
 
 ```{r protection-odds-control}
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/04__Odds_Protection_Control.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/01__Odds_Procrastination.png"))
 ```
 
 # Logistic Regression (Quadratic)
@@ -334,6 +322,26 @@ sjPlot::tab_model(
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption",
   collapse.ci = TRUE, p.style = "numeric_stars"
   )
+```
+
+
+# Additional Plots
+## Odds plots (Health Problems)
+
+```{r additional-plots-problems}
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/02__Odds_Depression.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/03__Odds_Education.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/04__Odds_Age.png"))
+
+```
+
+## Odds plots (Health Protection)
+
+```{r additional-plots-protection}
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/02__Odds_Depression.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/03__Odds_Education.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/04__Odds_Age.png"))
+
 ```
 
 
