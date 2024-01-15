@@ -267,6 +267,15 @@ process_glm_results <- function(model_list, type){
       glm_results$ci_upper[[i]] <- ci[-1, 2]
     }
     
+    # Converting to data frame
+    glm_results <- do.call(
+      rbind, lapply(seq_along(glm_results$odds), function(i) {
+        data.frame(
+          odds = glm_results$odds[[i]],
+          ci_lower = glm_results$ci_lower[[i]],
+          ci_upper = glm_results$ci_upper[[i]],
+          row.names = NULL)}))
+    
     return(glm_results)
   }
 }
@@ -275,6 +284,13 @@ process_glm_results <- function(model_list, type){
 log_odds_plot <- function(data, title, size_font = 8){
   require(ggplot2)
   require(ggeasy)
+  
+  # Calculate the range based on ci_lower and ci_upper
+  range_ci <- range(c(data$ci_lower, data$ci_upper))
+  
+  # Determine the symmetric xlim with 1 in the center
+  xlim_lower <- min(c(range_ci[1], 2 - range_ci[2]))
+  xlim_upper <- max(c(range_ci[2], 2 - range_ci[1]))
 
   ggplot(data = data, aes(y = response)) +
     geom_point(aes(x = odds), colour = "skyblue", size = 3) +
@@ -282,6 +298,7 @@ log_odds_plot <- function(data, title, size_font = 8){
       aes(xmin = ci_lower, xmax = ci_upper),
       height = 0.5, linewidth = 1, color = "skyblue") +
     geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
+    xlim(c(xlim_lower, xlim_upper)) +
     labs(x = "Odds (95% CI)", y = "", title = title) +
     theme_bw() +
     easy_center_title() +

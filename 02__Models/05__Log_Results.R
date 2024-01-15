@@ -22,57 +22,36 @@ health_protection <- c(
   "Prostate Exam", "Mammogram", "Cholesterol Screening",
   "Pap Smear", "Flu Shot", "Dental Visit (2yrs)")
 
-# Extracting GLM results (BASE MODELS) -----------------------------------------
+# Define a vector of predictors
+predictors <- c(
+  "Procrastination", "Depression", "Education","Age"
+)
+
+# Extracting GLM results -------------------------------------------------------
+# BASE MODELS
 health_problem_base <- problem_models_base %>%
   process_glm_results(type = "base") %>%
   as.data.frame() %>%
   mutate(response = health_problems, .before = odds)
-
+  
 health_protection_base <- protection_models_base %>%
   process_glm_results(type = "base") %>%
   as.data.frame() %>%
   mutate(response = health_protection, .before = odds)
 
-# Extracting GLM results (COVARIATE MODELS) ------------------------------------
+# COVARIATE MODELS
 health_problem_control <- problem_models_control %>%
-    process_glm_results(type = "control")
+  process_glm_results(type = "control") %>%
+  mutate(response = rep(health_problems, each = 4), .before = odds) %>%
+  mutate(predictor = rep(predictors, times = (nrow(.) / 4)), .before = odds)
 
 health_protection_control <- protection_models_control %>%
-    process_glm_results(type = "control")
-
-# Changing to dataframe
-health_problem_control <- do.call(
-  rbind, lapply(seq_along(health_problem_control$odds), function(i) {
-    data.frame(odds = health_problem_control$odds[[i]],
-               ci_lower = health_problem_control$ci_lower[[i]],
-               ci_upper = health_problem_control$ci_upper[[i]], 
-               row.names = NULL)}))
-
-health_protection_control <- do.call(
-  rbind, lapply(seq_along(health_protection_control$odds), function(i) {
-  data.frame(odds = health_protection_control$odds[[i]],
-             ci_lower = health_protection_control$ci_lower[[i]],
-             ci_upper = health_protection_control$ci_upper[[i]], 
-             row.names = NULL)}))
-
-# Creating columns for predictor and response
-health_problem_control <- health_problem_control %>%
-  mutate(response = rep(health_problems, 
-                              each = 4), 
-         .before = odds) %>%
-  mutate(predictor = rep(c("Procrastination", "Depression", "Education", "Age"), 
-                         times = (nrow(.) / 4)), 
-         .before = odds)
-
-health_protection_control <- health_protection_control %>%
-  mutate(response = rep(health_protection, each = 4), 
-         .before = odds) %>%
-  mutate(predictor = rep(c("Procrastination", "Depression", "Education", "Age"),
-                         times = (nrow(.) / 4)), 
-         .before = odds)
+    process_glm_results(type = "control") %>%
+  mutate(response = rep(health_protection, each = 4), .before = odds) %>%
+  mutate(predictor = rep(predictors, times = (nrow(.) / 4)), .before = odds)
 
 # Creating HTML Tables ---------------------------------------------------------
-# Base models
+# BASE MODELS
 tab_model(
   problem_models_base[[1]]$model, problem_models_base[[2]]$model,
   problem_models_base[[3]]$model, problem_models_base[[4]]$model,
@@ -98,14 +77,14 @@ tab_model(
   file = file.path("./02__Models/Results/Tables/02__BASE_Protection_Table.html")
 )
 
-# Covariate Models
+# COVARIATE MODELS
 tab_model(
   problem_models_control[[1]]$model, problem_models_control[[2]]$model,
   problem_models_control[[3]]$model, problem_models_control[[4]]$model,
   problem_models_control[[5]]$model, problem_models_control[[6]]$model,
   problem_models_control[[7]]$model, problem_models_control[[8]]$model,
   show.intercept = FALSE,
-  pred.labels = c("Procrastination", "Depression", "Education", "Age"),
+  pred.labels = predictors,
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Problems (with Control)",
   dv.labels = health_problems, 
   collapse.ci = TRUE, p.style = "numeric_stars",
@@ -117,34 +96,37 @@ tab_model(
   protection_models_control[[3]]$model, protection_models_control[[4]]$model,
   protection_models_control[[5]]$model, protection_models_control[[6]]$model,
   show.intercept = FALSE,
-  pred.labels = c("Procrastination", "Depression", "Education", "Age"),
+  pred.labels = predictors,
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours (with Control)",
   dv.labels = health_protection, 
   collapse.ci = TRUE, p.style = "numeric_stars",
   file = file.path("./02__Models/Results/Tables/Test/02__CONTROL_Protection_Table.html")
 )
 
-# Removing unnecessary variables -----------------------------------------------
-rm(problem_models_base, problem_models_control, 
-   protection_models_base, protection_models_control)
-
 # Plotting log odds ------------------------------------------------------------
-# Base plots
+# BASE PLOTS
 odds_problem_base <- health_problem_base %>%
   log_odds_plot(title = "Risk of Experiencing a Health Problem")
 
 odds_protection_base <- health_protection_base %>%
   log_odds_plot(title = "Chance of Engaging in Health Protective Behaviours")
 
-# Covariate Plots
-health_protection_control %>%
-  filter(predictor == "Age") %>%
-  log_odds_plot(title = "Chance of Engaging in Health Protective Behaviours")
+# COVARIATE PLOTS
+odds_problem_control <- health_problem_control %>%
+  group_by(predictor) %>%
+  group_map(~ log_odds_plot(.x, title = "Risk of Experiencing a Health Problem"))
+
+odds_protection_control <- health_protection_control %>%
+  group_by(predictor) %>%
+  group_map(~ log_odds_plot(.x, title = "Chance of Engaging in Health Protective Behaviours"))
 
 
 
-odds_problem_control <- log_odds_plot(health_problem_control, title = "Risk of Experiencing a Health Problems (with covariates)")
-odds_protection_control <- log_odds_plot(health_protection_control, title = "Chance of Engaging in Health Protective Behaviours (with covariates)", size_font = 7)
+
+
+
+
+
 
 odds_plots_combined <- cowplot::plot_grid(
   odds_problem_base, 
@@ -156,12 +138,24 @@ odds_plots_combined <- cowplot::plot_grid(
 # Exporting --------------------------------------------------------------------
 export_path <- "./02__Models/Results/Figures/02__GLM_Plots/02__Odds_Plots/"
 
-cowplot::save_plot(filename = file.path(export_path, "01__Odds_Problem_Base.png"), plot = odds_problem_base)
-cowplot::save_plot(filename = file.path(export_path, "02__Odds_Problem_Control.png"), plot = odds_problem_control)
-cowplot::save_plot(filename = file.path(export_path, "03__Odds_Protection_Base.png"), plot = odds_protection_base)
-cowplot::save_plot(filename = file.path(export_path, "04__Odds_Protection_Control.png"), plot = odds_protection_control)
-cowplot::save_plot(filename = file.path(export_path, "05__Odds_Combined.png"), plot = odds_plots_combined, base_height = 7)
+# BASE PLOTS
+cowplot::save_plot(filename = file.path(export_path, "01__Base/01__Odds_Problem_Base.png"), 
+                   plot = odds_problem_base)
+cowplot::save_plot(filename = file.path(export_path, "01__Base/02__Odds_Protection_Base.png"), 
+                   plot = odds_protection_base)
 
+# COVARIATE PLOTS
+for(i in 1:length(odds_problem_control)){
+  # Saving problem plots
+  cowplot::save_plot(
+    filename = file.path(export_path, sprintf("02__Covariates/01__Problems/0%d__Odds_%s.png", i, predictors[i])),
+    plot = odds_problem_control[[i]])
+  
+  # Saving protection plots
+  cowplot::save_plot(
+    filename = file.path(export_path, sprintf("02__Covariates/02__Protection/0%d__Odds_%s.png", i, predictors[i])),
+    plot = odds_protection_control[[i]])
+}
 
 # Plotting log odds on one graph (test code) -----------------------------------
 health_problems_combined <- rbind(health_problem_base, health_problem_control) %>%
@@ -206,6 +200,3 @@ cowplot::save_plot(
 cowplot::save_plot(
   filename = file.path(export_path, "01__Combined/02__Health_Protection_Odds.png"), 
   plot = protection_odds_combined)
-
-
-
