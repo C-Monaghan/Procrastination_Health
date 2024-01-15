@@ -306,20 +306,44 @@ where $p$ is the probability of our outcome being $1$. $\beta_{1}$ representing 
 Similar to before, we will start by performing a logistic regression with no covariates. This can be done by applying a generalized linear model using the `glm()` but with an expansion to the `formula` argument: `formula = Alcohol ~ Total_procrastination + I(Total_Procrastination^2)`, where `I(Total_Procrastination^2)` represents our quadratic effect ($\beta_{2}X^2$).
 
 ```{r quadratic-fit-base}
-fit <- glm(
+quad_fit_base <- glm(
   formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2), 
   data = health_data,
   family = binomial(link = "logit"))
 ```
 
+**Table**
 
-```{r}
+```{r quadratic-output-base}
 sjPlot::tab_model(
-  fit, 
+  quad_fit_base, 
   show.intercept = FALSE, 
   pred.labels = c("Procrastination", "Procrastination²"),
   dv.labels = "Alcohol Consumption",
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption",
+  collapse.ci = TRUE, p.style = "numeric_stars"
+  )
+```
+
+## Performing logistic regression (with covariates)
+Again, similar to before we will now add several covariates to our model(namely Age, Education, and Depression).
+
+```{r quadratic-fit-control}
+quad_fit_control <- glm(
+  formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age, 
+  data = health_data,
+  family = binomial(link = "logit"))
+```
+
+**Table**
+
+```{r quadratic-output-control}
+sjPlot::tab_model(
+  quad_fit_control, 
+  show.intercept = FALSE, 
+  pred.labels = c("Procrastination", "Procrastination²", "Depression", "Education", "Age"),
+  dv.labels = "Alcohol Consumption",
+  title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption (with covariates)",
   collapse.ci = TRUE, p.style = "numeric_stars"
   )
 ```
