@@ -108,6 +108,16 @@ fit <- glm(
 
 summary(fit)
 
-exp(fit$coefficients[2])
-exp(fit$coefficients[3])
+health_data %>%
+  select(Alcohol, Total_procrastination) %>%
+  filter(complete.cases(.)) %>%
+  mutate(predicted_probs = predict(fit, type = "response")) %>%
+  ggplot(aes(x = Total_procrastination)) +
+  geom_jitter(aes(y = Alcohol), width = 0, height = 0.1) +
+  geom_line(aes(y = predicted_probs), colour = "red", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+  ylim(c(0, 1)) +
+  labs(x = "Procrastination", y = "Predicted Probability") +
+  theme_bw()
+
 

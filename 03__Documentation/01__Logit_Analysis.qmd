@@ -16,7 +16,6 @@ execute:
 
 ```{r setup, include = FALSE}
 library(dplyr)
-library(cowplot)
 
 source(here::here("./02__Models/00__Functions.R"))
 ```
@@ -83,6 +82,7 @@ health_protection <- c(
 problem_curves <- lapply(health_problems, function(problem){
   linearity_plot(
     data = health_data, 
+    x_variable = "Total_procrastination",
     y_variable = !!as.name(problem), 
     title = gsub("_", " ", problem))
 })
@@ -90,6 +90,7 @@ problem_curves <- lapply(health_problems, function(problem){
 protection_curves <- lapply(health_protection, function(protection){
   linearity_plot(
     data = health_data, 
+    x_variable = "Total_procrastination",
     y_variable = !!as.name(protection), 
     title = gsub("_", " ", protection))
 })
@@ -256,6 +257,8 @@ sjPlot::tab_model(
 knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/01__Odds_Procrastination.png"))
 ```
 
+After adding covariates to our models, the results show that procrastination was a significant predictor of experiencing fatigue, diabetes, blood pressure, and back pain.
+
 ### Health Protection
 
 **Table**
@@ -279,6 +282,8 @@ sjPlot::tab_model(
 knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/01__Odds_Procrastination.png"))
 ```
 
+After adding covariates to our models, the results show that procrastination was a did not predict any health protective behaviors.
+
 # Logistic Regression (Quadratic)
 A quadratic term is a variable raised to the power of two, such as $x^2$. Adding a quadratic term to a logistic regression model can help capture the non-linear relationship between the outcome and the predictor, such as a U-shaped or an inverted U-shaped curve (as seen with our **Alcohol** variable). 
 
@@ -298,12 +303,12 @@ A quadratic term is a variable raised to the power of two, such as $x^2$. Adding
 A logistic regression with a quadratic term can be written as:
 
 $$
-log(\frac{p}{1 - p}) = \beta_{0} + \beta_{1}X + \beta_{2}X^2 
+logit(p) = \beta_{0} + \beta_{1}X + \beta_{2}X^2 
 $$
-where $p$ is the probability of our outcome being $1$. $\beta_{1}$ representing the linear effect of $X$ on the log odds of $p$, and $\beta_{2}$ representing the quadratic effect of $X$ on the log odds of $p$.
+where $p$ is the probability of our outcome being $1$, $\beta_{1}$ representing the linear effect of $X$ on the log odds of $p$, and $\beta_{2}$ representing the quadratic effect of $X$ on the log odds of $p$.
 
 ## Performing logistic regression (no covariates)
-Similar to before, we will start by performing a logistic regression with no covariates. This can be done by applying a generalized linear model using the `glm()` but with an expansion to the `formula` argument: `formula = Alcohol ~ Total_procrastination + I(Total_Procrastination^2)`, where `I(Total_Procrastination^2)` represents our quadratic effect ($\beta_{2}X^2$).
+Similar to before, we will start by performing a logistic regression with no covariates. This can be done by applying a generalized linear model using the `glm()` but with an expansion to the `formula` argument to include `I(Total_procrastination^2)`, where `I(Total_Procrastination^2)` represents our quadratic effect ($\beta_{2}X^2$).
 
 ```{r quadratic-fit-base}
 quad_fit_base <- glm(
@@ -321,12 +326,14 @@ sjPlot::tab_model(
   pred.labels = c("Procrastination", "Procrastination²"),
   dv.labels = "Alcohol Consumption",
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption",
-  collapse.ci = TRUE, p.style = "numeric_stars"
+  collapse.ci = TRUE, p.style = "numeric_stars", digits = 6
   )
 ```
 
+When procrastination is equal to $0$ the odds that $p = 1$ (alcohol consumption is true) are $0.8749060$, which means $p = 1$ is approximately 12.51\% less likely than $p = 0$ (alcohol consumption being false). For every $1$ unit change in procrastination, the odds that $p = 1$ increase by approximately 5.81\% (OR = 1.0580704) and for every 1 unit change in procrastination$^2$, the odds that $p = 1$ decrease by approximately 0.001\% (OR = 0.9988813).
+
 ## Performing logistic regression (with covariates)
-Again, similar to before we will now add several covariates to our model(namely Age, Education, and Depression).
+Again, similar to before we will now add several covariates to our model (namely Age, Education, and Depression).
 
 ```{r quadratic-fit-control}
 quad_fit_control <- glm(
@@ -339,12 +346,12 @@ quad_fit_control <- glm(
 
 ```{r quadratic-output-control}
 sjPlot::tab_model(
-  quad_fit_control, 
+  quad_fit_control,
   show.intercept = FALSE, 
   pred.labels = c("Procrastination", "Procrastination²", "Depression", "Education", "Age"),
   dv.labels = "Alcohol Consumption",
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption (with covariates)",
-  collapse.ci = TRUE, p.style = "numeric_stars"
+  collapse.ci = TRUE, p.style = "numeric_stars", digits = 6
   )
 ```
 

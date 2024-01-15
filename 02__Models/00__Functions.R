@@ -306,10 +306,10 @@ log_odds_plot <- function(data, title, size_font = 8){
 }
 
 # Linearity Plot
-linearity_plot <- function(data, y_variable, title){
+linearity_plot <- function(data, x_variable, y_variable, title){
   require(ggplot2)
   
-  ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
+  ggplot(data = data, aes(x = {{x_variable}}, y = {{y_variable}})) +
     geom_jitter(width = 0, height = .1) +
     geom_smooth(formula = y ~ poly(x,2), se = FALSE, method = "glm", 
                 method.args = list(family = "binomial")) +

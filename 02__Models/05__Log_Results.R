@@ -46,7 +46,7 @@ health_problem_control <- problem_models_control %>%
   mutate(predictor = rep(predictors, times = (nrow(.) / 4)), .before = odds)
 
 health_protection_control <- protection_models_control %>%
-    process_glm_results(type = "control") %>%
+  process_glm_results(type = "control") %>%
   mutate(response = rep(health_protection, each = 4), .before = odds) %>%
   mutate(predictor = rep(predictors, times = (nrow(.) / 4)), .before = odds)
 
