@@ -18,6 +18,7 @@ health_protection <- c(
   "Prostate_exam", "Mammogram", "Cholesterol_screening", 
   "Pap_smear", "Flu_shot", "Dental_visit_2_years")
 
+# Linear Fitting
 # Fitting binary logistic regressions (with no covariate) ----------------------
 # Fitting (health problems)
 problem_models_base <- lapply(health_problems, logit_model,
@@ -101,23 +102,63 @@ cowplot::save_plot(
 
 
 # Quadratic fit ----------------------------------------------------------------
-fit <- glm(
+library(dplyr)
+library(ggplot2)
+
+# Base model 
+fit_1 <- glm(
   formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2),
   data = health_data,
   family = binomial(link = "logit"))
 
-summary(fit)
+# Covariate Model
+fit_2 <- glm(
+  formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age, 
+  data = health_data,
+  family = binomial(link = "logit"))
 
-health_data %>%
-  select(Alcohol, Total_procrastination) %>%
-  filter(complete.cases(.)) %>%
-  mutate(predicted_probs = predict(fit, type = "response")) %>%
-  ggplot(aes(x = Total_procrastination)) +
-  geom_jitter(aes(y = Alcohol), width = 0, height = 0.1) +
-  geom_line(aes(y = predicted_probs), colour = "red", linewidth = 1) +
-  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-  ylim(c(0, 1)) +
-  labs(x = "Procrastination", y = "Predicted Probability") +
-  theme_bw()
+# Outputting model summary
+summary(fit_1)
+summary(fit_2)
 
+# Creating a function to extract the odds ratio
+odds_base <- function(x){
+  exp((coef(fit_1)[3] * x^2) + (coef(fit_1)[2] * x) + coef(fit_1)[1])
+}
 
+odds_covariate <- function(x){
+  exp((coef(fit_2)[3] * x^2) + (coef(fit_2)[2] * x) + coef(fit_2)[1])
+}
+
+# Plotting ---------------------------------------------------------------------
+# Base Plot
+alcohol_base <- health_data %>%
+  ggplot(aes(x = Total_procrastination, y = Alcohol)) +
+  stat_function(fun = odds_base, geom = "line", colour = "blue", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+  scale_y_continuous(breaks = seq(0.4, 1.8, by = 0.2)) +
+  geom_hline(yintercept = 1, linetype = "dashed", linewidth = .5, colour = "red") + 
+  labs(x = "Procrastination", y = "Predicted Odds", 
+       title = "Odds of Alcohol Consumption - Procrastination") +
+  theme_bw() +
+  ggeasy::easy_center_title()
+
+# Covariate Plot
+alcohol_covaiate <- health_data %>%
+  ggplot(aes(x = Total_procrastination, y = Alcohol)) +
+  stat_function(fun = odds_covariate, geom = "line", colour = "blue", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+  labs(x = "Procrastination", y = "Predicted Odds", 
+       title = "Odds of Alcohol Consumption - Procrastination") +
+  theme_bw() +
+  ggeasy::easy_center_title()
+
+# Exporting --------------------------------------------------------------------
+cowplot::save_plot(filename = file.path(
+  export_path, "Figures/02__GLM_Plots/02__Odds_Plots/01__Base/03__Alcohol_Plot.png"),
+  plot = alcohol_base)
+
+cowplot::save_plot(filename = file.path(
+  export_path, "Figures/02__GLM_Plots/02__Odds_Plots/02__Covariates/01__Alcohol_Plot.png"),
+  plot = alcohol_covaiate)
+  
