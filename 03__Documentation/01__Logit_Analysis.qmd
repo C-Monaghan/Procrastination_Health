@@ -51,7 +51,7 @@ health_data %>%
 ```
 
 ## Procrastination
-During the 2020 wave of data collection, one of these experimental modules included a module termed "long-term care insurance procrastination”. This module was split into two parts with the second half incorporating a procrastination measure with the aim of investigating how procrastination influences decision-making in later life.]
+During the 2020 wave of data collection, one of these experimental modules included a module termed "long-term care insurance procrastination”. This module was split into two parts with the second half incorporating a procrastination measure with the aim of investigating how procrastination influences decision-making in later life.
 
 ```{r view-data-procrastination, echo = TRUE}
 health_data %>%
@@ -308,51 +308,115 @@ $$
 where $p$ is the probability of our outcome being $1$, $\beta_{1}$ representing the linear effect of $X$ on the log odds of $p$, and $\beta_{2}$ representing the quadratic effect of $X$ on the log odds of $p$.
 
 ## Performing logistic regression (no covariates)
-Similar to before, we will start by performing a logistic regression with no covariates. This can be done by applying a generalized linear model using the `glm()` but with an expansion to the `formula` argument to include `I(Total_procrastination^2)`, where `I(Total_Procrastination^2)` represents our quadratic effect ($\beta_{2}X^2$).
+Similar to before, we will start by performing a logistic regression with no covariates. This can be done by applying a generalized linear model using the `glm()` but with an expansion to the `formula` argument to include `I(Total_procrastination^2)`, where `I(Total_procrastination^2)` represents our quadratic effect ($\beta_{2}X^2$).
 
 ```{r quadratic-fit-base}
-quad_fit_base <- glm(
+fit_1 <- glm(
   formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2), 
   data = health_data,
   family = binomial(link = "logit"))
 ```
 
+After fitting this model we get the following coefficients: 
+
+$$
+\beta_0 = -0.1333 \quad \beta_1 = 0.0564 \quad \beta_2 = -0.0011
+$$
+These coefficients indicate that the odds of alcohol consumption $p = 1$ depend on the level of procrastination. Specifically, the odds of alcohol consumption increase as procrastination increases up to a certain point, after which they start to decrease. This is consistent with the inverse U-shaped relationship between procrastination and alcohol consumption.
+
+To quantify this relationship, we can calculate the odds ratios for the linear and quadratic terms of procrastination. The odds ratio for the linear term is $e^{0.0564} =$ 1.058 which means that for every one unit increase in procrastination, the odds of alcohol consumption increase by 5.8\%, holding procrastination$^2$ constant. The odds ratio for the quadratic term is $e^{-0.0011} =$ 0.9989, which means that for every one unit increase in procrastination$^2$, the odds of alcohol consumption decrease by 0.001%, holding procrastination constant.
+
+This can be better summarized and illustrated in the below table and graph
+
 **Table**
 
-```{r quadratic-output-base}
+```{r alcohol_table_base}
 sjPlot::tab_model(
-  quad_fit_base, 
+  fit_1,
   show.intercept = FALSE, 
   pred.labels = c("Procrastination", "Procrastination²"),
   dv.labels = "Alcohol Consumption",
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption",
-  collapse.ci = TRUE, p.style = "numeric_stars", digits = 6
+  collapse.ci = TRUE, p.style = "numeric_stars", digits = 4, digits.p = 3
   )
 ```
 
-When procrastination is equal to $0$ the odds that $p = 1$ (alcohol consumption is true) are $0.8749060$, which means $p = 1$ is approximately 12.51\% less likely than $p = 0$ (alcohol consumption being false). For every $1$ unit change in procrastination, the odds that $p = 1$ increase by approximately 5.81\% (OR = 1.0580704) and for every 1 unit change in procrastination$^2$, the odds that $p = 1$ decrease by approximately 0.001\% (OR = 0.9988813).
+**Figure**
+
+```{r alcohol_graph_base}
+# Creating a function to extract the odds ratio
+odds_base <- function(x){
+  exp((coef(fit_1)[3] * x^2) + (coef(fit_1)[2] * x) + coef(fit_1)[1])
+}
+
+health_data %>%
+  ggplot(aes(x = Total_procrastination, y = Alcohol)) +
+  stat_function(fun = odds_base, geom = "line", colour = "blue", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+  scale_y_continuous(breaks = seq(0.4, 1.8, by = 0.2)) +
+  geom_hline(yintercept = 1, linetype = "dashed", linewidth = .5, colour = "red") + 
+  labs(x = "Procrastination", y = "Predicted Odds", 
+       title = "Odds of Alcohol Consumption - Procrastination") +
+  theme_bw() +
+  ggeasy::easy_center_title()
+```
+
+We can find exactly where the odds of alcohol consumption decrease (the turning point) by applying the **vertex equation** to our function. The vertex equation can be written as $x = -b/(2a)$, where $a$ and $b$ are the coefficients of the linear and quadratic terms, respectively. In our case, the linear term is $\beta_1$ and the quadratic term is $\beta_2$, so we have:
+
+$$
+x = \frac{-\beta_1}{2(\beta_2)} = \frac{-0.0564}{2(-0.0011)} = 25.63636
+$$
+
+This means that the vertex of the logistic function occurs when procrastination is equal to 25.63636.
 
 ## Performing logistic regression (with covariates)
-Again, similar to before we will now add several covariates to our model (namely Age, Education, and Depression).
+Again, we will now add several covariates to our model (namely Age, Education, and Depression).
 
-```{r quadratic-fit-control}
-quad_fit_control <- glm(
+```{r quadratic-fit-covariates}
+fit_2 <- glm(
   formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age, 
   data = health_data,
   family = binomial(link = "logit"))
 ```
 
+This time, after fitting our model, we get the following coefficients:
+
+$$
+\beta_0 = 0.5725 \quad \beta_1 = 0.0483 \quad \beta_2 = -0.0008 \quad \beta_3 = 0.0793 \\
+\beta_4 = 0.2259 \quad \beta_5 = -0.017
+$$
+
+Again, we can summarise and illustrate our model:
+
 **Table**
 
-```{r quadratic-output-control}
+```{r alcohol_table_control}
 sjPlot::tab_model(
-  quad_fit_control,
+  fit_2,
   show.intercept = FALSE, 
   pred.labels = c("Procrastination", "Procrastination²", "Depression", "Education", "Age"),
   dv.labels = "Alcohol Consumption",
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption (with covariates)",
-  collapse.ci = TRUE, p.style = "numeric_stars", digits = 6
+  collapse.ci = TRUE, p.style = "numeric_stars", digits = 4, digits.p = 3
   )
+```
+
+**Figure**
+
+```{r}
+# Creating a function to extract the odds ratio
+odds_covariate <- function(x){
+  exp((coef(fit_2)[3] * x^2) + (coef(fit_2)[2] * x) + coef(fit_2)[1])
+}
+
+health_data %>%
+  ggplot(aes(x = Total_procrastination, y = Alcohol)) +
+  stat_function(fun = odds_covariate, geom = "line", colour = "blue", linewidth = 1) +
+  scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+  labs(x = "Procrastination", y = "Predicted Odds", 
+       title = "Odds of Alcohol Consumption - Procrastination") +
+  theme_bw() +
+  ggeasy::easy_center_title()
 ```
 
 
