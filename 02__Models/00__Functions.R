@@ -18,7 +18,7 @@ create_scatter_plot <- function(data, y_variable, y_label){
   require(ggeasy)
   
   ggplot(data = data, aes(x = Total_procrastination, y = {{y_variable}})) +
-    geom_point() +
+    geom_jitter() +
     geom_smooth(method = "lm", se = TRUE) + 
     labs(title = paste0("Relationship between Procrastination and ", y_label),
          x = "Procrastination", y = y_label) + 
@@ -180,7 +180,7 @@ logit_model <- function(outcome, predictor, data, type) {
     ))
   
   } else if(type == "control") {
-    model <- glm(formula = paste(outcome, " ~ ", predictor, " * (Total_depression + Education)"), 
+    model <- glm(formula = paste(outcome, " ~ ", predictor, " + Total_depression + Education + Age"), 
                  family = binomial(link = "logit"), 
                  data = data)
     
@@ -208,25 +208,29 @@ logit_model <- function(outcome, predictor, data, type) {
 }
 
 # Create a logistic regression curve
-generate_log_plot <- function(predictor, data) {
+generate_log_plot <- function(predictor, data, title) {
   require(ggplot2)
   require(ggeasy)
   
   ggplot(data = data, aes(x = Total_procrastination, y = {{predictor}})) +
-    geom_point(alpha = 0.5, size = 0.75) +
+    geom_jitter(size = 0.75, width = 0, height = .1) +
     geom_smooth(method = "glm", se = TRUE, 
-                method.args = list(family = binomial), 
+                method.args = list(family = binomial(link = "logit")), 
                 col = "red", lty = 2) +
+    labs(x = "Procrastination", y = "", title = title) +
+    scale_y_continuous(breaks = c(0, 1)) +
     theme_bw() +
-    xlab("Total Procrastination") +
-    easy_remove_gridlines()
+    theme(plot.title = element_text(face = "bold")) +
+    easy_remove_gridlines() +
+    easy_center_title()
 }
 
 # Process GLM results
-process_glm_results <- function(model_list){
+process_glm_results <- function(model_list, type){
+  if(type == "base"){
   # Creating an empty list to be filled
   glm_results <- list(
-    log_odds = rep(NA, length(model_list)),
+    odds = rep(NA, length(model_list)),
     ci_lower = rep(NA, length(model_list)),
     ci_upper = rep(NA, length(model_list))
   )
@@ -234,7 +238,7 @@ process_glm_results <- function(model_list){
   # Extracting relevant variables
   for (i in seq_along(model_list)) {
     # Odds ratio
-    glm_results$log_odds[i] <- exp(model_list[[i]]$model$coefficients[[2]])
+    glm_results$odds[i] <- exp(model_list[[i]]$model$coefficients[[2]])
     
     # Confidence Intervals
     conf_int <- confint(model_list[[i]]$model)[2, ]
@@ -243,6 +247,37 @@ process_glm_results <- function(model_list){
   }
   
   return(glm_results)
+  } else if(type == "control"){
+    # Create an empty nested list to be filled 
+    glm_results <- list(
+      odds = vector("list", length(model_list)),
+      ci_lower = vector("list", length(model_list)),
+      ci_upper = vector("list", length(model_list))
+    )
+    
+    # Extracting relevant variables
+    for(i in seq_along(model_list)){
+      # Odds Ratio
+      glm_results$odds[[i]] <- exp(coef(model_list[[i]]$model)[-1])
+      
+      # Confidence Intervals
+      ci <- exp(confint(model_list[[i]]$model))
+      
+      glm_results$ci_lower[[i]] <- ci[-1, 1]
+      glm_results$ci_upper[[i]] <- ci[-1, 2]
+    }
+    
+    # Converting to data frame
+    glm_results <- do.call(
+      rbind, lapply(seq_along(glm_results$odds), function(i) {
+        data.frame(
+          odds = glm_results$odds[[i]],
+          ci_lower = glm_results$ci_lower[[i]],
+          ci_upper = glm_results$ci_upper[[i]],
+          row.names = NULL)}))
+    
+    return(glm_results)
+  }
 }
 
 # Create log odds plot
@@ -250,14 +285,66 @@ log_odds_plot <- function(data, title, size_font = 8){
   require(ggplot2)
   require(ggeasy)
   
-  ggplot(data = data, aes(y = rownames(data))) +
-    geom_point(aes(x = log_odds), colour = "skyblue", size = 3) +
-    geom_errorbarh(aes(xmin = ci_lower, xmax = ci_upper), 
-                   height = 0.5, linewidth = 1, color = "skyblue") +
+  # Calculate the range based on ci_lower and ci_upper
+  range_ci <- range(c(data$ci_lower, data$ci_upper))
+  
+  # Determine the symmetric xlim with 1 in the center
+  xlim_lower <- min(c(range_ci[1], 2 - range_ci[2]))
+  xlim_upper <- max(c(range_ci[2], 2 - range_ci[1]))
+
+  ggplot(data = data, aes(y = response)) +
+    geom_point(aes(x = odds), colour = "skyblue", size = 3) +
+    geom_errorbarh(
+      aes(xmin = ci_lower, xmax = ci_upper),
+      height = 0.5, linewidth = 1, color = "skyblue") +
     geom_vline(xintercept = 1, color = "red", linetype = "dashed") +
-    xlim(0.9, 1.1) +
+    xlim(c(xlim_lower, xlim_upper)) +
     labs(x = "Odds (95% CI)", y = "", title = title) +
     theme_bw() +
     easy_center_title() +
     theme(title = element_text(size = size_font))
+}
+
+# Linearity Plot
+linearity_plot <- function(data, x_variable, y_variable, title){
+  require(ggplot2)
+  
+  ggplot(data = data, aes(x = {{x_variable}}, y = {{y_variable}})) +
+    geom_jitter(width = 0, height = .1) +
+    geom_smooth(formula = y ~ poly(x,2), se = FALSE, method = "glm", 
+                method.args = list(family = "binomial")) +
+    labs(x = "Procrastination", y = "", title = title) +
+    scale_y_continuous(breaks = c(0, 1)) +
+    scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+    theme_bw() +
+    theme(plot.title = element_text(face = "bold")) +
+    ggeasy::easy_center_title()
+}
+
+# Curve Plot
+non_linear_fit <- function(response, data, title){
+  require(ggplot2)
+  
+  fit <- glm(formula = paste(response, "~ Total_procrastination + I(Total_procrastination^2)"), 
+             data = data, family = "binomial")
+  
+  f <- function(x){
+    exp(coef(fit)[2]) * exp(coef(fit)[3]) * exp(2*x*coef(fit)[3])
+  }
+  
+  # Generate x values
+  x_values <- seq(0, 60, length.out = 100)
+  
+  # Create a data frame with x and f(x) values
+  df <- data.frame(x = x_values, y = f(x_values))
+  
+  # Plot the curve using ggplot
+  ggplot(df, aes(x, y)) +
+    geom_line() +
+    geom_hline(yintercept = 1, linetype = "dashed", colour = "red") +
+    xlim(0, 60) +
+    labs(x = "Procrastination", y = "", title = title) +
+    theme_bw() +
+    theme(plot.title = element_text(face = "bold")) +
+    ggeasy::easy_center_title()
 }
