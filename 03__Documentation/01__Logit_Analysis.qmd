@@ -259,6 +259,13 @@ knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates
 
 After adding covariates to our models, the results show that procrastination was a significant predictor of experiencing fatigue, diabetes, blood pressure, and back pain.
 
+**Odds Plot - Additional**
+```{r additional-plots-problems}
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/02__Odds_Depression.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/03__Odds_Education.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/04__Odds_Age.png"))
+```
+
 ### Health Protection
 
 **Table**
@@ -283,6 +290,13 @@ knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates
 ```
 
 After adding covariates to our models, the results show that procrastination was a did not predict any health protective behaviors.
+
+**Odds Plot - Additional**
+```{r additional-plots-protection}
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/02__Odds_Depression.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/03__Odds_Education.png"))
+knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/04__Odds_Age.png"))
+```
 
 # Logistic Regression (Quadratic)
 A quadratic term is a variable raised to the power of two, such as $x^2$. Adding a quadratic term to a logistic regression model can help capture the non-linear relationship between the outcome and the predictor, such as a U-shaped or an inverted U-shaped curve (as seen with our **Alcohol** variable). 
@@ -337,7 +351,7 @@ sjPlot::tab_model(
   pred.labels = c("Procrastination", "Procrastination²"),
   dv.labels = "Alcohol Consumption",
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption",
-  collapse.ci = TRUE, p.style = "numeric_stars", digits = 4, digits.p = 3
+  collapse.ci = TRUE, p.style = "numeric_stars", digits = 3, digits.p = 3
   )
 ```
 
@@ -382,8 +396,8 @@ fit_2 <- glm(
 This time, after fitting our model, we get the following coefficients:
 
 $$
-\beta_0 = 0.5725 \quad \beta_1 = 0.0483 \quad \beta_2 = -0.0008 \quad \beta_3 = 0.0793 \\
-\beta_4 = 0.2259 \quad \beta_5 = -0.017
+\beta_0 = 0.5725 \quad \beta_1 = 0.0483 \quad \beta_2 = -0.0008  \\
+\beta_3 = 0.0793 \quad \beta_4 = 0.2259 \quad \beta_5 = -0.017
 $$
 
 Again, we can summarise and illustrate our model:
@@ -397,7 +411,7 @@ sjPlot::tab_model(
   pred.labels = c("Procrastination", "Procrastination²", "Depression", "Education", "Age"),
   dv.labels = "Alcohol Consumption",
   title = "Logistic Regression Analysis Predicting Likelihood of Alcohol Consumption (with covariates)",
-  collapse.ci = TRUE, p.style = "numeric_stars", digits = 4, digits.p = 3
+  collapse.ci = TRUE, p.style = "numeric_stars", digits = 3, digits.p = 3
   )
 ```
 
@@ -418,25 +432,3 @@ health_data %>%
   theme_bw() +
   ggeasy::easy_center_title()
 ```
-
-
-# Additional Plots
-## Odds plots (Health Problems)
-
-```{r additional-plots-problems}
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/02__Odds_Depression.png"))
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/03__Odds_Education.png"))
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/01__Problems/04__Odds_Age.png"))
-
-```
-
-## Odds plots (Health Protection)
-
-```{r additional-plots-protection}
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/02__Odds_Depression.png"))
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/03__Odds_Education.png"))
-knitr::include_graphics(here::here(path_graphics, "02__Odds_Plots/02__Covariates/02__Protection/04__Odds_Age.png"))
-
-```
-
-
