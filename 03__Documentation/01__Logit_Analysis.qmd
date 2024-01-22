@@ -378,10 +378,10 @@ health_data %>%
 We can find exactly where the odds of alcohol consumption decrease (the turning point) by applying the **vertex equation** to our function. The vertex equation can be written as $x = -b/(2a)$, where $a$ and $b$ are the coefficients of the linear and quadratic terms, respectively. In our case, the linear term is $\beta_1$ and the quadratic term is $\beta_2$, so we have:
 
 $$
-x = \frac{-\beta_1}{2(\beta_2)} = \frac{-0.0564}{2(-0.0011)} = 25.63636
+x = \frac{-\beta_1}{2(\beta_2)} = \frac{-0.0564}{2(-0.0011)} = 25.63636 \approx 26
 $$
 
-This means that the vertex of the logistic function occurs when procrastination is equal to 25.63636.
+This means that the vertex of the logistic function occurs when procrastination is approximately equal to 26 (exactly 25.63636)
 
 ## Performing logistic regression (with covariates)
 Again, we will now add several covariates to our model (namely Age, Education, and Depression).
@@ -468,3 +468,11 @@ new_data %>%
 #   theme_bw() +
 #   ggeasy::easy_center_title()
 ```
+
+Again, we can apply the vertex equation to find the turning point of this graph:
+
+$$
+x = \frac{-\beta_1}{2(\beta_2)} = \frac{-0.0483}{2(-0.0008)} = 30.1875 \approx 30
+$$
+
+After adding covariates to the model the vertex of this function occurs when procrastination is approximately equal to 30 (exactly 30.1875).
