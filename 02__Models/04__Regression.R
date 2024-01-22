@@ -123,11 +123,19 @@ summary(fit_2)
 
 # Creating a function to extract the odds ratio
 odds_base <- function(x){
+  # ax^2 + bx + c
   exp((coef(fit_1)[3] * x^2) + (coef(fit_1)[2] * x) + coef(fit_1)[1])
 }
 
 odds_covariate <- function(x){
-  exp((coef(fit_2)[3] * x^2) + (coef(fit_2)[2] * x) + coef(fit_2)[1])
+  # ax^2 + bx + c1 + c2 + ... + cn
+  
+  c1 <- coef(fit_2)[1]
+  c2 <- coef(fit_2)[4] * mean(health_data$Total_depression, na.rm = TRUE)
+  c3 <- coef(fit_2)[5] * mean(health_data$Education, na.rm = TRUE)
+  c4 <- coef(fit_2)[6] * mean(health_data$Age, na.rm = TRUE)
+  
+  exp((coef(fit_2)[3] * x^2) + (coef(fit_2)[2] * x) + c1 + c2 + c3 + c4)
 }
 
 # Plotting ---------------------------------------------------------------------
@@ -148,6 +156,8 @@ alcohol_covaiate <- health_data %>%
   ggplot(aes(x = Total_procrastination, y = Alcohol)) +
   stat_function(fun = odds_covariate, geom = "line", colour = "blue", linewidth = 1) +
   scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+  scale_y_continuous(breaks = seq(0.75, 1.75, by = 0.25), limits = c(0.75, 1.75)) +
+  geom_hline(yintercept = 1, linetype = "dashed", linewidth = .5, colour = "red") + 
   labs(x = "Procrastination", y = "Predicted Odds", 
        title = "Odds of Alcohol Consumption - Procrastination") +
   theme_bw() +
@@ -161,4 +171,3 @@ cowplot::save_plot(filename = file.path(
 cowplot::save_plot(filename = file.path(
   export_path, "Figures/02__GLM_Plots/02__Odds_Plots/02__Covariates/01__Alcohol_Plot.png"),
   plot = alcohol_covaiate)
-  

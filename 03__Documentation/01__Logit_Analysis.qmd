@@ -417,56 +417,30 @@ sjPlot::tab_model(
 
 **Figure**
 
-We will generate predictions for this logistic regression model using a new dataset (`new_data`). The new dataset is created using the `expand.grid` function, and predicted probabilities are calculated. For this dataset the coefficients $\beta_3$, $\beta_4$, and $\beta_5$ representing depression, education, and age respectively are held constant at their mean values.
+This time our function calculates the predicted odds for increasing values of procrastination whilst holding the values of the covariates constant at the mean.
 
 ```{r alcohol-graph-control}
-# Create a new dataset
-# Procrastination will be from 0 - 60 
-# Everything else will be at their mean value 
-# Just to see the affect of procrastination
+odds_covariate <- function(x){
+  # ax^2 + bx + c1 + c2 + ... + cn
+  
+  c1 <- coef(fit_2)[1]
+  c2 <- coef(fit_2)[4] * mean(health_data$Total_depression, na.rm = TRUE)
+  c3 <- coef(fit_2)[5] * mean(health_data$Education, na.rm = TRUE)
+  c4 <- coef(fit_2)[6] * mean(health_data$Age, na.rm = TRUE)
+  
+  exp((coef(fit_2)[3] * x^2) + (coef(fit_2)[2] * x) + c1 + c2 + c3 + c4)
+}
 
-new_data <- expand.grid(
-  Total_procrastination = seq(min(health_data$Total_procrastination, na.rm = TRUE), 
-                              max(health_data$Total_procrastination, na.rm = TRUE), 
-                              length.out = 100),
-  Total_depression = mean(health_data$Total_depression, na.rm = TRUE),
-  Education = mean(health_data$Education, na.rm = TRUE),
-  Age = mean(health_data$Age, na.rm = TRUE)
-)
-
-# Generate predicted probabilities
-predicted_probs <- predict(fit_2, newdata = new_data, type = "response")
-
-# Adding predictions to the new data frame
-new_data$predicted_probs <- exp(predicted_probs)
-
-new_data %>%
-  ggplot(aes(x = Total_procrastination, y = predicted_probs)) +
-  geom_line(colour = "blue", linewidth = 1) +
+health_data %>%
+  ggplot(aes(x = Total_procrastination, y = Alcohol)) +
+  stat_function(fun = odds_covariate, geom = "line", colour = "blue", linewidth = 1) +
   scale_x_continuous(breaks = seq(0, 60, by = 5)) +
+  scale_y_continuous(breaks = seq(0.75, 1.75, by = 0.25), limits = c(0.75, 1.75)) +
+  geom_hline(yintercept = 1, linetype = "dashed", linewidth = .5, colour = "red") + 
   labs(x = "Procrastination", y = "Predicted Odds", 
-       title = "Predicted Odds of Alcohol Consumption") +
+       title = "Odds of Alcohol Consumption - Procrastination") +
   theme_bw() +
   ggeasy::easy_center_title()
-  
-
-
-# OLD CODE
-# Creating a function to extract the odds ratio
-# odds_covariate <- function(x){
-#   exp((coef(fit_2)[3] * x^2) + (coef(fit_2)[2] * x) + coef(fit_2)[1])
-# }
-# 
-# health_data %>%
-#   ggplot(aes(x = Total_procrastination, y = Alcohol)) +
-#   stat_function(fun = odds_covariate, geom = "line", colour = "blue", linewidth = 1) +
-#   scale_x_continuous(breaks = seq(0, 60, by = 5)) +
-#   ylim(1, 4) +
-#   geom_hline(yintercept = 1, linetype = "dashed", linewidth = .5, colour = "red") + 
-#   labs(x = "Procrastination", y = "Predicted Odds", 
-#        title = "Odds of Alcohol Consumption - Procrastination") +
-#   theme_bw() +
-#   ggeasy::easy_center_title()
 ```
 
 Again, we can apply the vertex equation to find the turning point of this graph:
