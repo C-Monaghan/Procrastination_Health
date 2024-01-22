@@ -338,7 +338,7 @@ $$
 $$
 These coefficients indicate that the odds of alcohol consumption $p = 1$ depend on the level of procrastination. Specifically, the odds of alcohol consumption increase as procrastination increases up to a certain point, after which they start to decrease. This is consistent with the inverse U-shaped relationship between procrastination and alcohol consumption.
 
-To quantify this relationship, we can calculate the odds ratios for the linear and quadratic terms of procrastination. The odds ratio for the linear term is $e^{0.0564} =$ 1.058 which means that for every one unit increase in procrastination, the odds of alcohol consumption increase by 5.8\%, holding procrastination$^2$ constant. The odds ratio for the quadratic term is $e^{-0.0011} =$ 0.9989, which means that for every one unit increase in procrastination$^2$, the odds of alcohol consumption decrease by 0.001%, holding procrastination constant.
+To quantify this relationship, we can calculate the odds ratios for the linear and quadratic terms of procrastination. The odds ratio for the linear term is $e^{0.0564} =$ 1.058 which means that for every one unit increase in procrastination, the odds of alcohol consumption increase by 5.8\%. Meanwhile, the odds ratio for the quadratic term is $e^{-0.0011} =$ 0.9989, which means that for every one unit increase in procrastination$^2$, the odds of alcohol consumption also decrease by 0.001%.
 
 This can be better summarized and illustrated in the below table and graph
 
