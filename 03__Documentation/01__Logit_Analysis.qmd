@@ -69,7 +69,7 @@ health_data %>%
 ## Descriptive Statistics
 The descriptive statistics for each of our continuous study variables (procrastination, depression, and age) are computed and outlined below:
 
-```{r}
+```{r descriptive-table}
 health_data %>%
   filter(complete.cases(Total_procrastination)) %>% 
   select(Age, Total_procrastination, Total_depression) %>%
@@ -94,7 +94,7 @@ health_data %>%
 Additionally frequency analysis for our categorical variables our outline below:
 
 **Education**
-```{r}
+```{r frequency-table}
 frequency <- health_data %>%
   filter(complete.cases(Education) & complete.cases(Total_procrastination)) %>%
   select(Education) %>%
