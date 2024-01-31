@@ -5,6 +5,7 @@ date: "`r format(Sys.time(), '%B %d, %Y')`"
 toc: true
 format:
   html:
+    page-layout: full
     html-math-method: katex
     code-tools: true
     self-contained: true
@@ -16,6 +17,7 @@ execute:
 
 ```{r setup, include = FALSE}
 library(dplyr)
+library(gt)
 
 source(here::here("./02__Models/00__Functions.R"))
 ```
@@ -64,6 +66,58 @@ health_data %>%
 ```
 
 # Preliminary Analysis
+## Descriptive Statistics
+The descriptive statistics for each of our continuous study variables (procrastination, depression, and age) are computed and outlined below:
+
+```{r}
+health_data %>%
+  filter(complete.cases(Total_procrastination)) %>% 
+  select(Age, Total_procrastination, Total_depression) %>%
+  rename(Procrastination = "Total_procrastination", Depression = "Total_depression") %>%
+  tidyr::gather(key = "Variable", value = "Value") %>%
+  group_by(Variable) %>%
+  summarise(
+    Mean = round(mean(Value, na.rm = TRUE), digits = 2),
+    `95\ % CI` = paste0(round(t.test(Value, conf.level = 0.95)$conf.int[1], digits = 2), " - ", round(t.test(Value, conf.level = 0.95)$conf.int[2], digits = 2)),
+    `Std. Error Mean` = round(plotrix::std.error(Value, na.rm = TRUE), digits = 2),
+    Median = median(Value, na.rm = TRUE),
+    SD = round(sd(Value, na.rm = TRUE), digits = 2),
+    Range = paste0(range(Value, na.rm = TRUE)[1], " - ", range(Value, na.rm = TRUE)[2])
+    ) %>% 
+  kableExtra::kbl(caption = "Descriptive Statistics", align = 'c', ) %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+## Frequency Analysis
+Additionally frequency analysis for our categorical variables our outline below:
+
+**Education**
+```{r}
+frequency <- health_data %>%
+  filter(complete.cases(Education) & complete.cases(Total_procrastination)) %>%
+  select(Education) %>%
+  mutate(Education = factor(case_when(
+    Education == 0 ~ "No Degree",
+    Education == 1 ~ "GED",
+    Education == 2 ~ "High School",
+    Education == 3 ~ "College (2 yrs)",
+    Education == 4 ~ "College (4 yrs)",
+    Education == 5 ~ "Masters Degree",
+    Education == 6 ~ "Doctorate"),
+    levels = c("No Degree", "GED", "High School", "College (2 yrs)", 
+               "College (4 yrs)", "Masters Degree", "Doctorate"))) %>%
+  epiDisplay::tab1(graph = FALSE)
+
+frequency$output.table %>%
+  kableExtra::kbl(caption = "Frequency Table", align = 'c') %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+
 ## Assessing Linearity
 For each health problem and health protective behavior we can use the `linearity_plot()` function from the [Functions.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/00__Functions.R) script. This function plots each health problem and protective variable on the y-axis against procrastination and applies a smoothing line to asses the relationship using the following argument: `geom_smooth(formula = y ~ poly(x,2), se = FALSE, method = "glm", method.args = list(family = "binomial"))`.
 
@@ -199,7 +253,7 @@ sjPlot::tab_model(
   protection_models_base[[5]]$model, protection_models_base[[6]]$model, 
   show.intercept = FALSE,
   pred.labels = "Procrastination", 
-  dv.labels = health_protection, 
+  dv.labels = health_protection_tidy, 
   title = "Binary Logistic Regression Analysis Predicting Likelihood of Health Protective Behaviours",
   collapse.ci = TRUE, p.style = "numeric_stars"
   )
