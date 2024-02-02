@@ -281,17 +281,21 @@ process_glm_results <- function(model_list, type){
 }
 
 # Create log odds plot
-log_odds_plot <- function(data, title, size_font = 8){
+log_odds_plot <- function(data, title, xlim_lower = 0.50, xlim_upper = 1.50, size_font = 8){
   require(ggplot2)
   require(ggeasy)
   
-  # Calculate the range based on ci_lower and ci_upper
-  range_ci <- range(c(data$ci_lower, data$ci_upper))
-  
-  # Determine the symmetric xlim with 1 in the center
-  xlim_lower <- min(c(range_ci[1], 2 - range_ci[2]))
-  xlim_upper <- max(c(range_ci[2], 2 - range_ci[1]))
+  # If the x limits equal default values run this code
+  if(xlim_lower == 0.50 & xlim_upper == 1.50){
+    # Calculate the range based on ci_lower and ci_upper
+    range_ci <- range(c(data$ci_lower, data$ci_upper))
+    
+    # Determine the symmetric xlim with 1 in the center
+    xlim_lower <- min(c(range_ci[1], 2 - range_ci[2]))
+    xlim_upper <- max(c(range_ci[2], 2 - range_ci[1]))
+  }
 
+  # Plotting odds
   ggplot(data = data, aes(y = response)) +
     geom_point(aes(x = odds), colour = "skyblue", size = 3) +
     geom_errorbarh(

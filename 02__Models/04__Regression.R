@@ -1,5 +1,9 @@
 rm(list = ls())
 
+library(dplyr)
+library(ggplot2)
+library(modelr)
+
 # Custom functions
 source(file.path("./02__Models/00__Functions.R"))
 
@@ -102,9 +106,6 @@ cowplot::save_plot(
 
 
 # Quadratic fit ----------------------------------------------------------------
-library(dplyr)
-library(ggplot2)
-
 # Base model 
 fit_1 <- glm(
   formula = Alcohol ~ Total_procrastination + I(Total_procrastination^2),

@@ -106,10 +106,10 @@ tab_model(
 # Plotting log odds ------------------------------------------------------------
 # BASE PLOTS
 odds_problem_base <- health_problem_base %>%
-  log_odds_plot(title = "Risk of Experiencing a Health Problem")
+  log_odds_plot(title = "Risk of Experiencing a Health Problem", xlim_lower = 0.90, xlim_upper = 1.10)
 
 odds_protection_base <- health_protection_base %>%
-  log_odds_plot(title = "Chance of Engaging in Health Protective Behaviours")
+  log_odds_plot(title = "Chance of Engaging in Health Protective Behaviours", xlim_lower = 0.90, xlim_upper = 1.10)
 
 # COVARIATE PLOTS
 odds_problem_control <- list()
