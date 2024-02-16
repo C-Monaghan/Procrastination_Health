@@ -1,0 +1,170 @@
+---
+title: "Generalised Additive Models"
+author: "Cormac Monaghan"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+toc: true
+format:
+  html:
+    page-layout: full
+    html-math-method: katex
+    code-tools: true
+    self-contained: true
+    code-fold: true
+    code-summary: "Show the code"
+execute:
+  warning: false
+---
+
+```{r setup, include = FALSE}
+library(dplyr)
+library(mgcv) # For working with GAMs
+
+path_data <- "./01__Data/02__Processed/"
+path_graphics <- "./02__Models/Results/Figures/03__GAM/"
+
+health_data <- readxl::read_xlsx(here::here(path_data, "Health_HRS.xlsx"))
+```
+
+# Generalised Additive Models
+Generalized additive models (GAMs) are a type of statistical model that can capture complex and non-linear relationships between predictor variables and a response variable. GAMs extend the framework of generalized linear models (GLMs) by allowing the response variable to depend on smooth functions of the predictors, rather than on linear combinations of them. This gives GAMs more flexibility and accuracy than GLMs when modeling data that exhibits non-linearity, heteroscedasticity, or interactions.
+
+GAMs can be written as:
+
+$$
+g(E(Y)) = \alpha + f_1(x_1) + f_2(x_2) + ... + f_p(x_p)
+$$
+
+where $g$ is a link function, $E(Y)$ is the expected value of the response variable $Y$, $\alpha$ is an intercept term, and $f_i$ are smooth functions of the predictor variables $x_i$. The smooth functions $f_i$ can be estimated by various methods, such as splines, kernels, or local regression. GAMs can also include parametric terms, such as linear or polynomial terms, or random effects, to account for additional sources of variation or correlation in the data.
+
+# HRS Dataset
+The HRS, administered by the Institute for Social Research at the University of Michigan, is a longitudinal panel study that predominantly focuses on adults over the age of 50. The study collects, biennially, detailed information pertaining to respondent’s physical, cognitive, financial, employment, family, and psychosocial conditions. Similarly, in each wave, experimental modules are administered at the end of the core interview. These modules consist of concise questionnaires designed to explore new topics or supplement existing core survey data. However, each respondent only receives one experimental module, and the sample sizes for each module constitute approximately 10\% of the core sample. 
+
+## Health Problems and Health Protection 
+Within the HRS dataset, we have a data on 9 different health problems and 6 different health protective behaviors. These have been coded as either $0$ (not present/not done) or $1$ (present/done). 
+
+```{r view-data-problem, echo = TRUE}
+health_data %>%
+  select(
+    ID, Age, Gender, Education, College, Back_pain:Alcohol, Smoker_current, 
+    Blood_pressure:Dental_visit_2_years, Total_depression) %>%
+  rename(Drinking = "Alcohol", Smoker = "Smoker_current") %>%
+  head(n = 4) %>%
+  kableExtra::kbl(align = 'c') %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+## Procrastination
+During the 2020 wave of data collection, one of these experimental modules included a module termed "long-term care insurance procrastination”. This module was split into two parts with the second half incorporating a procrastination measure with the aim of investigating how procrastination influences decision-making in later life.
+
+```{r view-data-procrastination, echo = TRUE}
+health_data %>%
+  select(ID, Procras_1:Procras_12, Total_procrastination) %>%
+  head(n = 4) %>%
+  kableExtra::kbl(align = 'c') %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+# Checking for Interactions
+For each of the health variables a logistic regression is fitted to assess for interaction effects - the results of this preliminary analysis indicated that the following variables had an interaction effect
+
+- Prostate Exam $\rightarrow$ Procrastination:Depression
+- Pap Smear $\rightarrow$ Depression:Age
+- Dental Visits $\rightarrow$ Procrastination:Age
+- Cholesterol Screening $\rightarrow$ Depression:Age
+
+**Prostate Exam**
+```{r interaction-prostate}
+prostate_fit <- glm(
+  Prostate_exam ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+broom::tidy(prostate_fit)
+```
+
+**Pap Smear**
+```{r interaction_pap}
+pap_fit <- glm(
+  Pap_smear ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+broom::tidy(pap_fit)
+```
+
+**Dental Visit**
+```{r interaction-dentist}
+dental_fit <- glm(
+  Dental_visit_2_years ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+broom::tidy(dental_fit)
+```
+
+**Cholesterol Screening**
+```{r interaction-cholesterol}
+cholesterol_fit <- glm(
+  Cholesterol_screening ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+broom::tidy(cholesterol_fit)
+```
+
+# Fitting GAMS
+For each of these interactions we can fit and visualize them using GAMs
+
+## Prostate Exam
+```{r gam-prostate}
+fit_1 <- gam(
+  Prostate_exam ~ te(Total_procrastination, Total_depression) + Education + Age,
+  data = health_data, family = "binomial")
+
+summary(fit_1)
+```
+
+```{r gam-prostate-visualise}
+knitr::include_graphics(here::here(path_graphics, "01__Prostate_GAM.png"))
+```
+
+## Pap Smear
+```{r gam-pap}
+fit_2 <- gam(
+  Pap_smear ~ Total_procrastination + Education + te(Total_depression, Age),
+  data = health_data, family = "binomial")
+
+summary(fit_2)
+```
+
+```{r gam-pap-visualise}
+knitr::include_graphics(here::here(path_graphics, "02__Pap_Smear_GAM.png"))
+```
+
+## Dental Visit
+```{r gam-dentist}
+# Dentist
+fit_3 <- gam(
+  Dental_visit_2_years ~ te(Total_procrastination, Age) + Total_depression + Education,
+  data = health_data, family = "binomial")
+
+summary(fit_3)
+```
+
+```{r gam-dentist-visualise}
+knitr::include_graphics(here::here(path_graphics, "03__Dentist_GAM.png"))
+```
+
+## Cholesterol Screening
+```{r gam-cholesterol}
+fit_4 <- gam(
+  Cholesterol_screening ~ Total_procrastination + Education + te(Total_depression, Age),
+  data = health_data, family = "binomial")
+
+summary(fit_4)
+```
+
+```{r gam-cholesterol-visualise}
+knitr::include_graphics(here::here(path_graphics, "04__Cholesterol_GAM.png"))
+```
+
