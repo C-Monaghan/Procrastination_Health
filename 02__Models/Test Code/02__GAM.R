@@ -10,9 +10,9 @@ path_data <- "./01__Data/02__Processed/"
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
 # Interaction Test -------------------------------------------------------------
-fit <- glm(
-  Dental_visit_2_years ~ (Total_procrastination + Total_depression + Age)^2 + Education,
-  data = health_data, family = "binomial")
+# fit <- glm(
+#   Dental_visit_2_years ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+#   data = health_data, family = "binomial")
 
 # summary(fit)
 # anova(fit, test = "Chisq")
@@ -32,12 +32,18 @@ fit_1 <- gam(
 
 summary(fit_1)
 
+fit_1_residuals <- DHARMa::simulateResiduals(fittedModel = fit_1)
+plot(fit_1_residuals)
+
 # Pap Smear
 fit_2 <- gam(
   Pap_smear ~ Total_procrastination + Education + te(Total_depression, Age),
   data = health_data, family = "binomial")
 
 summary(fit_2)
+
+fit_2_residuals <- DHARMa::simulateResiduals(fittedModel = fit_2)
+plot(fit_2_residuals)
 
 # Dentist
 fit_3 <- gam(
@@ -46,12 +52,18 @@ fit_3 <- gam(
 
 summary(fit_3)
 
+fit_3_residuals <- DHARMa::simulateResiduals(fittedModel = fit_3)
+plot(fit_3_residuals)
+
 # Cholesterol Screening
 fit_4 <- gam(
   Cholesterol_screening ~ Total_procrastination + Education + te(Total_depression, Age),
   data = health_data, family = "binomial")
 
 summary(fit_4)
+
+fit_4_residuals <- DHARMa::simulateResiduals(fittedModel = fit_4)
+plot(fit_4_residuals)
 
 # Visualization ----------------------------------------------------------------
 # Prostate Exam
@@ -105,13 +117,6 @@ cowplot::save_plot(filename = file.path(export_path, "03__Dentist_GAM.png"),
                    plot = p3, base_height = 10)
 cowplot::save_plot(filename = file.path(export_path, "04__Cholesterol_GAM.png"), 
                    plot = p4, base_height = 10)
-# health_data %>%
-#   ggplot(aes(x = Age, y = Total_depression, colour = factor(Cholesterol_screening))) +
-#   geom_jitter() +
-#   geom_smooth(se = FALSE, method = "glm") +
-#   theme_bw() +
-#   ggeasy::easy_remove_legend()
-# 
-# plot_model(fit, type = "int")
-# 
-# 
+
+
+
