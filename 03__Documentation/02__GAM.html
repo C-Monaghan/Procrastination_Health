@@ -5007,505 +5007,546 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb70-41"><a href="#cb70-41" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-42"><a href="#cb70-42" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb70-43"><a href="#cb70-43" aria-hidden="true" tabindex="-1"></a><span class="fu"># Generalised Additive Models</span></span>
-<span id="cb70-44"><a href="#cb70-44" aria-hidden="true" tabindex="-1"></a>Generalized additive models (GAMs) are a type of statistical model that can capture complex and non-linear relationships between predictor variables and a response variable. The GAM is a flexible extension of the generalized linear model (GLM). GAMs extend the framework of generalized linear models (GLMs) by allowing the response variable to depend on smooth functions of the predictors, rather than on linear combinations of them. This gives GAMs more flexibility and accuracy than GLMs when modeling data that exhibits non-linearity, heteroscedasticity, or interactions. Similar to the GLM, a link function is used to establish the relationship between the response and explanatory variables in the GAM. However, the linear predictor of the GLM is now replaced by a more general additive predictor of the form $\sum f_1(x_i)$, where $f_i(x_i)$ are unspecified nonparametric functions  </span>
-<span id="cb70-45"><a href="#cb70-45" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-46"><a href="#cb70-46" aria-hidden="true" tabindex="-1"></a>A GAM can be written in the form:</span>
-<span id="cb70-47"><a href="#cb70-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-48"><a href="#cb70-48" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-49"><a href="#cb70-49" aria-hidden="true" tabindex="-1"></a>g(\mu) = \alpha + f_1(x_1) + f_2(x_2) + ... + f_i(x_i)</span>
-<span id="cb70-50"><a href="#cb70-50" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-51"><a href="#cb70-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-52"><a href="#cb70-52" aria-hidden="true" tabindex="-1"></a>where $\mu = E(Y \thicksim X_1, X_2, \dots, X_i), Y_i$ is a response variable, $g(\mu)$ is a link function determined by the distribution form of the response variable, $\alpha$ is an intercept term, and $f_1, \dots, f_i$ are smooth functions of the predictor variables $x_i$. The smooth functions $f_i$ can be estimated by various methods, such as splines, kernels, or local regression. GAMs can also include parametric terms, such as linear or polynomial terms, or random effects, to account for additional sources of variation or correlation in the data.</span>
-<span id="cb70-53"><a href="#cb70-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-54"><a href="#cb70-54" aria-hidden="true" tabindex="-1"></a><span class="fu"># HRS Dataset</span></span>
-<span id="cb70-55"><a href="#cb70-55" aria-hidden="true" tabindex="-1"></a>The HRS, administered by the Institute for Social Research at the University of Michigan, is a longitudinal panel study that predominantly focuses on adults over the age of 50. The study collects, biennially, detailed information pertaining to respondent’s physical, cognitive, financial, employment, family, and psychosocial conditions. Similarly, in each wave, experimental modules are administered at the end of the core interview. These modules consist of concise questionnaires designed to explore new topics or supplement existing core survey data. However, each respondent only receives one experimental module, and the sample sizes for each module constitute approximately 10\% of the core sample. </span>
+<span id="cb70-44"><a href="#cb70-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-45"><a href="#cb70-45" aria-hidden="true" tabindex="-1"></a>Generalized additive models (GAMs) are a type of statistical model that can capture complex and non-linear relationships between predictor variables and a response variable. The GAM is a flexible extension of the generalized linear model (GLM). GAMs extend the framework of generalized linear models (GLMs) by allowing the response variable to depend on smooth functions of the predictors, rather than on linear combinations of them. This gives GAMs more flexibility and accuracy than GLMs when modeling data that exhibits non-linearity, heteroscedasticity, or interactions. Similar to the GLM, a link function is used to establish the relationship between the response and explanatory variables in the GAM. However, the linear predictor of the GLM is now replaced by a more general additive predictor of the form $\sum f_1(x_i)$, where $f_i(x_i)$ are unspecified nonparametric functions</span>
+<span id="cb70-46"><a href="#cb70-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-47"><a href="#cb70-47" aria-hidden="true" tabindex="-1"></a>A GAM can be written in the form:</span>
+<span id="cb70-48"><a href="#cb70-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-49"><a href="#cb70-49" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-50"><a href="#cb70-50" aria-hidden="true" tabindex="-1"></a>g(\mu) = \alpha + f_1(x_1) + f_2(x_2) + ... + f_i(x_i)</span>
+<span id="cb70-51"><a href="#cb70-51" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-52"><a href="#cb70-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-53"><a href="#cb70-53" aria-hidden="true" tabindex="-1"></a>where $\mu = E(Y \thicksim X_1, X_2, \dots, X_i), Y_i$ is a response variable, $g(\mu)$ is a link function determined by the distribution form of the response variable, $\alpha$ is an intercept term, and $f_1, \dots, f_i$ are smooth functions of the predictor variables $x_i$. The smooth functions $f_i$ can be estimated by various methods, such as splines, kernels, or local regression. GAMs can also include parametric terms, such as linear or polynomial terms, or random effects, to account for additional sources of variation or correlation in the data.</span>
+<span id="cb70-54"><a href="#cb70-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-55"><a href="#cb70-55" aria-hidden="true" tabindex="-1"></a><span class="fu"># HRS Dataset</span></span>
 <span id="cb70-56"><a href="#cb70-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-57"><a href="#cb70-57" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Problems and Health Protection </span></span>
-<span id="cb70-58"><a href="#cb70-58" aria-hidden="true" tabindex="-1"></a>Within the HRS dataset, we have a data on 9 different health problems and 6 different health protective behaviors. These have been coded as either $0$ (not present/not done) or $1$ (present/done). </span>
-<span id="cb70-59"><a href="#cb70-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-60"><a href="#cb70-60" aria-hidden="true" tabindex="-1"></a><span class="in">```{r view-data-problem, echo = TRUE}</span></span>
-<span id="cb70-61"><a href="#cb70-61" aria-hidden="true" tabindex="-1"></a>health_data <span class="sc">%&gt;%</span></span>
-<span id="cb70-62"><a href="#cb70-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
-<span id="cb70-63"><a href="#cb70-63" aria-hidden="true" tabindex="-1"></a>    ID, Age, Gender, Education, College, Back_pain<span class="sc">:</span>Alcohol, Smoker_current, </span>
-<span id="cb70-64"><a href="#cb70-64" aria-hidden="true" tabindex="-1"></a>    Blood_pressure<span class="sc">:</span>Dental_visit_2_years, Total_depression) <span class="sc">%&gt;%</span></span>
-<span id="cb70-65"><a href="#cb70-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Drinking =</span> <span class="st">&quot;Alcohol&quot;</span>, <span class="at">Smoker =</span> <span class="st">&quot;Smoker_current&quot;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb70-66"><a href="#cb70-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">4</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb70-67"><a href="#cb70-67" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kbl</span>(<span class="at">align =</span> <span class="st">&#39;c&#39;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb70-68"><a href="#cb70-68" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
-<span id="cb70-69"><a href="#cb70-69" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb70-70"><a href="#cb70-70" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>, <span class="st">&quot;hover&quot;</span>, <span class="st">&quot;condensed&quot;</span>, <span class="st">&quot;responsive&quot;</span>))</span>
-<span id="cb70-71"><a href="#cb70-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-72"><a href="#cb70-72" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-73"><a href="#cb70-73" aria-hidden="true" tabindex="-1"></a><span class="fu">## Procrastination</span></span>
-<span id="cb70-74"><a href="#cb70-74" aria-hidden="true" tabindex="-1"></a>During the 2020 wave of data collection, one of these experimental modules included a module termed &quot;long-term care insurance procrastination”. This module was split into two parts with the second half incorporating a procrastination measure with the aim of investigating how procrastination influences decision-making in later life.</span>
+<span id="cb70-57"><a href="#cb70-57" aria-hidden="true" tabindex="-1"></a>The HRS, administered by the Institute for Social Research at the University of Michigan, is a longitudinal panel study that predominantly focuses on adults over the age of 50. The study collects, biennially, detailed information pertaining to respondent’s physical, cognitive, financial, employment, family, and psychosocial conditions. Similarly, in each wave, experimental modules are administered at the end of the core interview. These modules consist of concise questionnaires designed to explore new topics or supplement existing core survey data. However, each respondent only receives one experimental module, and the sample sizes for each module constitute approximately 10% of the core sample.</span>
+<span id="cb70-58"><a href="#cb70-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-59"><a href="#cb70-59" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Problems and Health Protection</span></span>
+<span id="cb70-60"><a href="#cb70-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-61"><a href="#cb70-61" aria-hidden="true" tabindex="-1"></a>Within the HRS dataset, we have a data on 9 different health problems and 6 different health protective behaviors. These have been coded as either $0$ (not present/not done) or $1$ (present/done).</span>
+<span id="cb70-62"><a href="#cb70-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-63"><a href="#cb70-63" aria-hidden="true" tabindex="-1"></a><span class="in">```{r view-data-problem, echo = TRUE}</span></span>
+<span id="cb70-64"><a href="#cb70-64" aria-hidden="true" tabindex="-1"></a>health_data <span class="sc">%&gt;%</span></span>
+<span id="cb70-65"><a href="#cb70-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb70-66"><a href="#cb70-66" aria-hidden="true" tabindex="-1"></a>    ID, Age, Gender, Education, College, Back_pain<span class="sc">:</span>Alcohol, Smoker_current, </span>
+<span id="cb70-67"><a href="#cb70-67" aria-hidden="true" tabindex="-1"></a>    Blood_pressure<span class="sc">:</span>Dental_visit_2_years, Total_depression) <span class="sc">%&gt;%</span></span>
+<span id="cb70-68"><a href="#cb70-68" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">Drinking =</span> <span class="st">&quot;Alcohol&quot;</span>, <span class="at">Smoker =</span> <span class="st">&quot;Smoker_current&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb70-69"><a href="#cb70-69" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">4</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb70-70"><a href="#cb70-70" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kbl</span>(<span class="at">align =</span> <span class="st">&#39;c&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb70-71"><a href="#cb70-71" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
+<span id="cb70-72"><a href="#cb70-72" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb70-73"><a href="#cb70-73" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>, <span class="st">&quot;hover&quot;</span>, <span class="st">&quot;condensed&quot;</span>, <span class="st">&quot;responsive&quot;</span>))</span>
+<span id="cb70-74"><a href="#cb70-74" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-75"><a href="#cb70-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-76"><a href="#cb70-76" aria-hidden="true" tabindex="-1"></a><span class="in">```{r view-data-procrastination, echo = TRUE}</span></span>
-<span id="cb70-77"><a href="#cb70-77" aria-hidden="true" tabindex="-1"></a>health_data <span class="sc">%&gt;%</span></span>
-<span id="cb70-78"><a href="#cb70-78" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ID, Procras_1<span class="sc">:</span>Procras_12, Total_procrastination) <span class="sc">%&gt;%</span></span>
-<span id="cb70-79"><a href="#cb70-79" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">4</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb70-80"><a href="#cb70-80" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kbl</span>(<span class="at">align =</span> <span class="st">&#39;c&#39;</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb70-81"><a href="#cb70-81" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
-<span id="cb70-82"><a href="#cb70-82" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb70-83"><a href="#cb70-83" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>, <span class="st">&quot;hover&quot;</span>, <span class="st">&quot;condensed&quot;</span>, <span class="st">&quot;responsive&quot;</span>))</span>
-<span id="cb70-84"><a href="#cb70-84" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-85"><a href="#cb70-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-86"><a href="#cb70-86" aria-hidden="true" tabindex="-1"></a><span class="fu"># Checking for Interactions</span></span>
-<span id="cb70-87"><a href="#cb70-87" aria-hidden="true" tabindex="-1"></a>For each of the health variables a logistic regression is fitted to assess for interaction effects - the results of this preliminary analysis indicated that the following variables had an interaction effect</span>
-<span id="cb70-88"><a href="#cb70-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-89"><a href="#cb70-89" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Prostate Exam $\rightarrow$ Procrastination:Depression</span>
-<span id="cb70-90"><a href="#cb70-90" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Pap Smear $\rightarrow$ Depression:Age</span>
-<span id="cb70-91"><a href="#cb70-91" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Dental Visits $\rightarrow$ Procrastination:Age</span>
-<span id="cb70-92"><a href="#cb70-92" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Cholesterol Screening $\rightarrow$ Depression:Age</span>
+<span id="cb70-76"><a href="#cb70-76" aria-hidden="true" tabindex="-1"></a><span class="fu">## Procrastination</span></span>
+<span id="cb70-77"><a href="#cb70-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-78"><a href="#cb70-78" aria-hidden="true" tabindex="-1"></a>During the 2020 wave of data collection, one of these experimental modules included a module termed &quot;long-term care insurance procrastination”. This module was split into two parts with the second half incorporating a procrastination measure with the aim of investigating how procrastination influences decision-making in later life.</span>
+<span id="cb70-79"><a href="#cb70-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-80"><a href="#cb70-80" aria-hidden="true" tabindex="-1"></a><span class="in">```{r view-data-procrastination, echo = TRUE}</span></span>
+<span id="cb70-81"><a href="#cb70-81" aria-hidden="true" tabindex="-1"></a>health_data <span class="sc">%&gt;%</span></span>
+<span id="cb70-82"><a href="#cb70-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(ID, Procras_1<span class="sc">:</span>Procras_12, Total_procrastination) <span class="sc">%&gt;%</span></span>
+<span id="cb70-83"><a href="#cb70-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="at">n =</span> <span class="dv">4</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb70-84"><a href="#cb70-84" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kbl</span>(<span class="at">align =</span> <span class="st">&#39;c&#39;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb70-85"><a href="#cb70-85" aria-hidden="true" tabindex="-1"></a>  kableExtra<span class="sc">::</span><span class="fu">kable_styling</span>(</span>
+<span id="cb70-86"><a href="#cb70-86" aria-hidden="true" tabindex="-1"></a>    <span class="at">full_width =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb70-87"><a href="#cb70-87" aria-hidden="true" tabindex="-1"></a>    <span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">&quot;striped&quot;</span>, <span class="st">&quot;hover&quot;</span>, <span class="st">&quot;condensed&quot;</span>, <span class="st">&quot;responsive&quot;</span>))</span>
+<span id="cb70-88"><a href="#cb70-88" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-89"><a href="#cb70-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-90"><a href="#cb70-90" aria-hidden="true" tabindex="-1"></a><span class="fu"># Checking for Interactions</span></span>
+<span id="cb70-91"><a href="#cb70-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-92"><a href="#cb70-92" aria-hidden="true" tabindex="-1"></a>For each of the health variables a logistic regression is fitted to assess for interaction effects - the results of this preliminary analysis indicated that the following variables had an interaction effect</span>
 <span id="cb70-93"><a href="#cb70-93" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-94"><a href="#cb70-94" aria-hidden="true" tabindex="-1"></a><span class="in">```{r glm-interactions}</span></span>
-<span id="cb70-95"><a href="#cb70-95" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitting Models</span></span>
-<span id="cb70-96"><a href="#cb70-96" aria-hidden="true" tabindex="-1"></a>prostate_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb70-97"><a href="#cb70-97" aria-hidden="true" tabindex="-1"></a>  Prostate_exam <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
-<span id="cb70-98"><a href="#cb70-98" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
-<span id="cb70-99"><a href="#cb70-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-100"><a href="#cb70-100" aria-hidden="true" tabindex="-1"></a>pap_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb70-101"><a href="#cb70-101" aria-hidden="true" tabindex="-1"></a>  Pap_smear <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
-<span id="cb70-102"><a href="#cb70-102" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
-<span id="cb70-103"><a href="#cb70-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-104"><a href="#cb70-104" aria-hidden="true" tabindex="-1"></a>dental_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb70-105"><a href="#cb70-105" aria-hidden="true" tabindex="-1"></a>  Dental_visit_2_years <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
-<span id="cb70-106"><a href="#cb70-106" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
-<span id="cb70-107"><a href="#cb70-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-108"><a href="#cb70-108" aria-hidden="true" tabindex="-1"></a>cholesterol_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
-<span id="cb70-109"><a href="#cb70-109" aria-hidden="true" tabindex="-1"></a>  Cholesterol_screening <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
-<span id="cb70-110"><a href="#cb70-110" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
-<span id="cb70-111"><a href="#cb70-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-112"><a href="#cb70-112" aria-hidden="true" tabindex="-1"></a><span class="co"># Outputting Table</span></span>
-<span id="cb70-113"><a href="#cb70-113" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
-<span id="cb70-114"><a href="#cb70-114" aria-hidden="true" tabindex="-1"></a>  prostate_fit, pap_fit, dental_fit, cholesterol_fit,</span>
-<span id="cb70-115"><a href="#cb70-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.intercept =</span> <span class="cn">FALSE</span>, <span class="at">show.ci =</span> <span class="cn">FALSE</span>, <span class="at">show.r2 =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb70-116"><a href="#cb70-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;Procrastination&quot;</span>, <span class="st">&quot;Depression&quot;</span>, <span class="st">&quot;Age&quot;</span>, <span class="st">&quot;Education&quot;</span>, </span>
-<span id="cb70-117"><a href="#cb70-117" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;Procrastination x Depression&quot;</span>, <span class="st">&quot;Procrastination x Age&quot;</span>, </span>
-<span id="cb70-118"><a href="#cb70-118" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;Depression x Age&quot;</span>),</span>
-<span id="cb70-119"><a href="#cb70-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;GLM Output&quot;</span></span>
-<span id="cb70-120"><a href="#cb70-120" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb70-121"><a href="#cb70-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-122"><a href="#cb70-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-123"><a href="#cb70-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-124"><a href="#cb70-124" aria-hidden="true" tabindex="-1"></a><span class="fu"># Generalised Additive Models</span></span>
-<span id="cb70-125"><a href="#cb70-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-126"><a href="#cb70-126" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Problems</span></span>
-<span id="cb70-127"><a href="#cb70-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-128"><a href="#cb70-128" aria-hidden="true" tabindex="-1"></a>For each health problem we will apply a GAM in the form of:</span>
-<span id="cb70-129"><a href="#cb70-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-130"><a href="#cb70-130" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-131"><a href="#cb70-131" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + f_1(Procrastination) + f_2(Depression) + f3(Age) + \beta_1Education</span>
-<span id="cb70-132"><a href="#cb70-132" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-133"><a href="#cb70-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-136"><a href="#cb70-136" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb70-137"><a href="#cb70-137" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating a vector of health problems</span></span>
-<span id="cb70-138"><a href="#cb70-138" aria-hidden="true" tabindex="-1"></a>health_problems <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Back_pain&quot;</span>, <span class="st">&quot;Headache&quot;</span>, <span class="st">&quot;Fatigue&quot;</span>, <span class="st">&quot;Smoker_current&quot;</span>,</span>
-<span id="cb70-139"><a href="#cb70-139" aria-hidden="true" tabindex="-1"></a>                     <span class="st">&quot;Blood_pressure&quot;</span>, <span class="st">&quot;Diabetes&quot;</span>, <span class="st">&quot;Cholesterol&quot;</span>, <span class="st">&quot;Heart_condition&quot;</span>)</span>
-<span id="cb70-140"><a href="#cb70-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-141"><a href="#cb70-141" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating a empty list to be filled</span></span>
-<span id="cb70-142"><a href="#cb70-142" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb70-143"><a href="#cb70-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-144"><a href="#cb70-144" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop over the response variables and fit the GAM model for each one</span></span>
-<span id="cb70-145"><a href="#cb70-145" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(health_problems)) {</span>
-<span id="cb70-146"><a href="#cb70-146" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb70-147"><a href="#cb70-147" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create a formula with the current response variable</span></span>
-<span id="cb70-148"><a href="#cb70-148" aria-hidden="true" tabindex="-1"></a>  formula <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(health_problems[i], <span class="st">&quot;~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education&quot;</span>))</span>
-<span id="cb70-149"><a href="#cb70-149" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb70-150"><a href="#cb70-150" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Fit the GAM model and store it in the list</span></span>
-<span id="cb70-151"><a href="#cb70-151" aria-hidden="true" tabindex="-1"></a>  fit[[i]] <span class="ot">&lt;-</span> <span class="fu">gam</span>(formula, <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
-<span id="cb70-152"><a href="#cb70-152" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb70-153"><a href="#cb70-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-154"><a href="#cb70-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-155"><a href="#cb70-155" aria-hidden="true" tabindex="-1"></a><span class="fu">### Back Pain</span></span>
-<span id="cb70-156"><a href="#cb70-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-157"><a href="#cb70-157" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-158"><a href="#cb70-158" aria-hidden="true" tabindex="-1"></a><span class="in">```{r back_pain_model}</span></span>
-<span id="cb70-159"><a href="#cb70-159" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">1</span>]])</span>
-<span id="cb70-160"><a href="#cb70-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-94"><a href="#cb70-94" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Prostate Exam $\rightarrow$ Procrastination:Depression</span>
+<span id="cb70-95"><a href="#cb70-95" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Pap Smear $\rightarrow$ Depression:Age</span>
+<span id="cb70-96"><a href="#cb70-96" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Dental Visits $\rightarrow$ Procrastination:Age</span>
+<span id="cb70-97"><a href="#cb70-97" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>Cholesterol Screening $\rightarrow$ Depression:Age</span>
+<span id="cb70-98"><a href="#cb70-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-99"><a href="#cb70-99" aria-hidden="true" tabindex="-1"></a><span class="in">```{r glm-interactions}</span></span>
+<span id="cb70-100"><a href="#cb70-100" aria-hidden="true" tabindex="-1"></a><span class="co"># Fitting Models</span></span>
+<span id="cb70-101"><a href="#cb70-101" aria-hidden="true" tabindex="-1"></a>prostate_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
+<span id="cb70-102"><a href="#cb70-102" aria-hidden="true" tabindex="-1"></a>  Prostate_exam <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
+<span id="cb70-103"><a href="#cb70-103" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb70-104"><a href="#cb70-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-105"><a href="#cb70-105" aria-hidden="true" tabindex="-1"></a>pap_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
+<span id="cb70-106"><a href="#cb70-106" aria-hidden="true" tabindex="-1"></a>  Pap_smear <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
+<span id="cb70-107"><a href="#cb70-107" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb70-108"><a href="#cb70-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-109"><a href="#cb70-109" aria-hidden="true" tabindex="-1"></a>dental_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
+<span id="cb70-110"><a href="#cb70-110" aria-hidden="true" tabindex="-1"></a>  Dental_visit_2_years <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
+<span id="cb70-111"><a href="#cb70-111" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb70-112"><a href="#cb70-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-113"><a href="#cb70-113" aria-hidden="true" tabindex="-1"></a>cholesterol_fit <span class="ot">&lt;-</span> <span class="fu">glm</span>(</span>
+<span id="cb70-114"><a href="#cb70-114" aria-hidden="true" tabindex="-1"></a>  Cholesterol_screening <span class="sc">~</span> (Total_procrastination <span class="sc">+</span> Total_depression <span class="sc">+</span> Age)<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> Education,</span>
+<span id="cb70-115"><a href="#cb70-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>)</span>
+<span id="cb70-116"><a href="#cb70-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-117"><a href="#cb70-117" aria-hidden="true" tabindex="-1"></a><span class="co"># Outputting Table</span></span>
+<span id="cb70-118"><a href="#cb70-118" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
+<span id="cb70-119"><a href="#cb70-119" aria-hidden="true" tabindex="-1"></a>  prostate_fit, pap_fit, dental_fit, cholesterol_fit,</span>
+<span id="cb70-120"><a href="#cb70-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.intercept =</span> <span class="cn">FALSE</span>, <span class="at">show.ci =</span> <span class="cn">FALSE</span>, <span class="at">show.r2 =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb70-121"><a href="#cb70-121" aria-hidden="true" tabindex="-1"></a>  <span class="at">pred.labels =</span> <span class="fu">c</span>(<span class="st">&quot;Procrastination&quot;</span>, <span class="st">&quot;Depression&quot;</span>, <span class="st">&quot;Age&quot;</span>, <span class="st">&quot;Education&quot;</span>, </span>
+<span id="cb70-122"><a href="#cb70-122" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;Procrastination x Depression&quot;</span>, <span class="st">&quot;Procrastination x Age&quot;</span>, </span>
+<span id="cb70-123"><a href="#cb70-123" aria-hidden="true" tabindex="-1"></a>                  <span class="st">&quot;Depression x Age&quot;</span>),</span>
+<span id="cb70-124"><a href="#cb70-124" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;GLM Output&quot;</span></span>
+<span id="cb70-125"><a href="#cb70-125" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb70-126"><a href="#cb70-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-127"><a href="#cb70-127" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-128"><a href="#cb70-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-129"><a href="#cb70-129" aria-hidden="true" tabindex="-1"></a><span class="fu"># Generalised Additive Models</span></span>
+<span id="cb70-130"><a href="#cb70-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-131"><a href="#cb70-131" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Problems</span></span>
+<span id="cb70-132"><a href="#cb70-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-133"><a href="#cb70-133" aria-hidden="true" tabindex="-1"></a>For each health problem we will apply a GAM in the form of:</span>
+<span id="cb70-134"><a href="#cb70-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-135"><a href="#cb70-135" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-136"><a href="#cb70-136" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + f_1(Procrastination) + f_2(Depression) + f3(Age) + \beta_1Education</span>
+<span id="cb70-137"><a href="#cb70-137" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-138"><a href="#cb70-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-141"><a href="#cb70-141" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb70-142"><a href="#cb70-142" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating a vector of health problems</span></span>
+<span id="cb70-143"><a href="#cb70-143" aria-hidden="true" tabindex="-1"></a>health_problems <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Back_pain&quot;</span>, <span class="st">&quot;Headache&quot;</span>, <span class="st">&quot;Fatigue&quot;</span>, <span class="st">&quot;Smoker_current&quot;</span>,</span>
+<span id="cb70-144"><a href="#cb70-144" aria-hidden="true" tabindex="-1"></a>                     <span class="st">&quot;Blood_pressure&quot;</span>, <span class="st">&quot;Diabetes&quot;</span>, <span class="st">&quot;Cholesterol&quot;</span>, <span class="st">&quot;Heart_condition&quot;</span>)</span>
+<span id="cb70-145"><a href="#cb70-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-146"><a href="#cb70-146" aria-hidden="true" tabindex="-1"></a><span class="co"># Creating a empty list to be filled</span></span>
+<span id="cb70-147"><a href="#cb70-147" aria-hidden="true" tabindex="-1"></a>fit <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb70-148"><a href="#cb70-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-149"><a href="#cb70-149" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop over the response variables and fit the GAM model for each one</span></span>
+<span id="cb70-150"><a href="#cb70-150" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(health_problems)) {</span>
+<span id="cb70-151"><a href="#cb70-151" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb70-152"><a href="#cb70-152" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Create a formula with the current response variable</span></span>
+<span id="cb70-153"><a href="#cb70-153" aria-hidden="true" tabindex="-1"></a>  formula <span class="ot">&lt;-</span> <span class="fu">as.formula</span>(<span class="fu">paste</span>(health_problems[i], <span class="st">&quot;~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education&quot;</span>))</span>
+<span id="cb70-154"><a href="#cb70-154" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb70-155"><a href="#cb70-155" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Fit the GAM model and store it in the list</span></span>
+<span id="cb70-156"><a href="#cb70-156" aria-hidden="true" tabindex="-1"></a>  fit[[i]] <span class="ot">&lt;-</span> <span class="fu">gam</span>(formula, <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-157"><a href="#cb70-157" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb70-158"><a href="#cb70-158" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-159"><a href="#cb70-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-160"><a href="#cb70-160" aria-hidden="true" tabindex="-1"></a><span class="fu">### Back Pain</span></span>
 <span id="cb70-161"><a href="#cb70-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-162"><a href="#cb70-162" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-163"><a href="#cb70-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{r back_pain_diagnostics, fig.width=12}</span></span>
-<span id="cb70-164"><a href="#cb70-164" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">1</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-165"><a href="#cb70-165" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-166"><a href="#cb70-166" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-167"><a href="#cb70-167" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-168"><a href="#cb70-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-169"><a href="#cb70-169" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
-<span id="cb70-172"><a href="#cb70-172" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb70-173"><a href="#cb70-173" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">1</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">1</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-174"><a href="#cb70-174" aria-hidden="true" tabindex="-1"></a>  <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-175"><a href="#cb70-175" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing back pain by procrastination&quot;</span>)</span>
-<span id="cb70-176"><a href="#cb70-176" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-177"><a href="#cb70-177" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">1</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">1</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-178"><a href="#cb70-178" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-179"><a href="#cb70-179" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing back pain by depression&quot;</span>)</span>
-<span id="cb70-180"><a href="#cb70-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-181"><a href="#cb70-181" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-182"><a href="#cb70-182" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-183"><a href="#cb70-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-184"><a href="#cb70-184" aria-hidden="true" tabindex="-1"></a><span class="fu">### Headaches</span></span>
-<span id="cb70-185"><a href="#cb70-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-186"><a href="#cb70-186" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-187"><a href="#cb70-187" aria-hidden="true" tabindex="-1"></a><span class="in">```{r headache_fit}</span></span>
-<span id="cb70-188"><a href="#cb70-188" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">2</span>]])</span>
-<span id="cb70-189"><a href="#cb70-189" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-190"><a href="#cb70-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-191"><a href="#cb70-191" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-192"><a href="#cb70-192" aria-hidden="true" tabindex="-1"></a><span class="in">```{r headache_diagnostics, fig.width=12}</span></span>
-<span id="cb70-193"><a href="#cb70-193" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">2</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-194"><a href="#cb70-194" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-195"><a href="#cb70-195" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-196"><a href="#cb70-196" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-197"><a href="#cb70-197" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-198"><a href="#cb70-198" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
-<span id="cb70-199"><a href="#cb70-199" aria-hidden="true" tabindex="-1"></a><span class="in">```{r headache_visualisation}</span></span>
-<span id="cb70-200"><a href="#cb70-200" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">2</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">2</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-201"><a href="#cb70-201" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-202"><a href="#cb70-202" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing headaches by depression&quot;</span>)</span>
-<span id="cb70-203"><a href="#cb70-203" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-204"><a href="#cb70-204" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">2</span>]], <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">2</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-205"><a href="#cb70-205" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-206"><a href="#cb70-206" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Age&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing headaches throughout age&quot;</span>)</span>
-<span id="cb70-207"><a href="#cb70-207" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-208"><a href="#cb70-208" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-209"><a href="#cb70-209" aria-hidden="true" tabindex="-1"></a><span class="fu">### Fatigue</span></span>
-<span id="cb70-210"><a href="#cb70-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-211"><a href="#cb70-211" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-212"><a href="#cb70-212" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fatigue_fit}</span></span>
-<span id="cb70-213"><a href="#cb70-213" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">3</span>]])</span>
-<span id="cb70-214"><a href="#cb70-214" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-215"><a href="#cb70-215" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-216"><a href="#cb70-216" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-217"><a href="#cb70-217" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fatigue_diagnostics, fig.width=12}</span></span>
-<span id="cb70-218"><a href="#cb70-218" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">3</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-162"><a href="#cb70-162" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-163"><a href="#cb70-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-164"><a href="#cb70-164" aria-hidden="true" tabindex="-1"></a><span class="in">```{r back_pain_model}</span></span>
+<span id="cb70-165"><a href="#cb70-165" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">1</span>]])</span>
+<span id="cb70-166"><a href="#cb70-166" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-167"><a href="#cb70-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-168"><a href="#cb70-168" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-169"><a href="#cb70-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-170"><a href="#cb70-170" aria-hidden="true" tabindex="-1"></a><span class="in">```{r back_pain_diagnostics, fig.width=12}</span></span>
+<span id="cb70-171"><a href="#cb70-171" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">1</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-172"><a href="#cb70-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-173"><a href="#cb70-173" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-174"><a href="#cb70-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-175"><a href="#cb70-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-176"><a href="#cb70-176" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
+<span id="cb70-177"><a href="#cb70-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-180"><a href="#cb70-180" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb70-181"><a href="#cb70-181" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">1</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">1</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-182"><a href="#cb70-182" aria-hidden="true" tabindex="-1"></a>  <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-183"><a href="#cb70-183" aria-hidden="true" tabindex="-1"></a>  <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing back pain by procrastination&quot;</span>)</span>
+<span id="cb70-184"><a href="#cb70-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-185"><a href="#cb70-185" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">1</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">1</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-186"><a href="#cb70-186" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-187"><a href="#cb70-187" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing back pain by depression&quot;</span>)</span>
+<span id="cb70-188"><a href="#cb70-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-189"><a href="#cb70-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-190"><a href="#cb70-190" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-191"><a href="#cb70-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-192"><a href="#cb70-192" aria-hidden="true" tabindex="-1"></a><span class="fu">### Headaches</span></span>
+<span id="cb70-193"><a href="#cb70-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-194"><a href="#cb70-194" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-195"><a href="#cb70-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-196"><a href="#cb70-196" aria-hidden="true" tabindex="-1"></a><span class="in">```{r headache_fit}</span></span>
+<span id="cb70-197"><a href="#cb70-197" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">2</span>]])</span>
+<span id="cb70-198"><a href="#cb70-198" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-199"><a href="#cb70-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-200"><a href="#cb70-200" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-201"><a href="#cb70-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-202"><a href="#cb70-202" aria-hidden="true" tabindex="-1"></a><span class="in">```{r headache_diagnostics, fig.width=12}</span></span>
+<span id="cb70-203"><a href="#cb70-203" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">2</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-204"><a href="#cb70-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-205"><a href="#cb70-205" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-206"><a href="#cb70-206" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-207"><a href="#cb70-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-208"><a href="#cb70-208" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
+<span id="cb70-209"><a href="#cb70-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-210"><a href="#cb70-210" aria-hidden="true" tabindex="-1"></a><span class="in">```{r headache_visualisation}</span></span>
+<span id="cb70-211"><a href="#cb70-211" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">2</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">2</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-212"><a href="#cb70-212" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-213"><a href="#cb70-213" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing headaches by depression&quot;</span>)</span>
+<span id="cb70-214"><a href="#cb70-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-215"><a href="#cb70-215" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">2</span>]], <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">2</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-216"><a href="#cb70-216" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-217"><a href="#cb70-217" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Age&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing headaches throughout age&quot;</span>)</span>
+<span id="cb70-218"><a href="#cb70-218" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-219"><a href="#cb70-219" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-220"><a href="#cb70-220" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-221"><a href="#cb70-221" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-222"><a href="#cb70-222" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-223"><a href="#cb70-223" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
-<span id="cb70-224"><a href="#cb70-224" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fatigue_visualisation}</span></span>
-<span id="cb70-225"><a href="#cb70-225" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">3</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">3</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-226"><a href="#cb70-226" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-227"><a href="#cb70-227" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing fatigue by procrastination&quot;</span>)</span>
-<span id="cb70-228"><a href="#cb70-228" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-229"><a href="#cb70-229" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">3</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">3</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-230"><a href="#cb70-230" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-231"><a href="#cb70-231" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing fatigue by depression&quot;</span>)</span>
-<span id="cb70-232"><a href="#cb70-232" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-233"><a href="#cb70-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-234"><a href="#cb70-234" aria-hidden="true" tabindex="-1"></a><span class="fu">### Smoking</span></span>
+<span id="cb70-220"><a href="#cb70-220" aria-hidden="true" tabindex="-1"></a><span class="fu">### Fatigue</span></span>
+<span id="cb70-221"><a href="#cb70-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-222"><a href="#cb70-222" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-223"><a href="#cb70-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-224"><a href="#cb70-224" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fatigue_fit}</span></span>
+<span id="cb70-225"><a href="#cb70-225" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">3</span>]])</span>
+<span id="cb70-226"><a href="#cb70-226" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-227"><a href="#cb70-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-228"><a href="#cb70-228" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-229"><a href="#cb70-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-230"><a href="#cb70-230" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fatigue_diagnostics, fig.width=12}</span></span>
+<span id="cb70-231"><a href="#cb70-231" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">3</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-232"><a href="#cb70-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-233"><a href="#cb70-233" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-234"><a href="#cb70-234" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-235"><a href="#cb70-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-236"><a href="#cb70-236" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-237"><a href="#cb70-237" aria-hidden="true" tabindex="-1"></a><span class="in">```{r smoking_fit}</span></span>
-<span id="cb70-238"><a href="#cb70-238" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">4</span>]])</span>
-<span id="cb70-239"><a href="#cb70-239" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-240"><a href="#cb70-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-241"><a href="#cb70-241" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-242"><a href="#cb70-242" aria-hidden="true" tabindex="-1"></a><span class="in">```{r smoking_diagnostics, fig.width=12}</span></span>
-<span id="cb70-243"><a href="#cb70-243" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">4</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-244"><a href="#cb70-244" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-245"><a href="#cb70-245" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-236"><a href="#cb70-236" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
+<span id="cb70-237"><a href="#cb70-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-238"><a href="#cb70-238" aria-hidden="true" tabindex="-1"></a><span class="in">```{r fatigue_visualisation}</span></span>
+<span id="cb70-239"><a href="#cb70-239" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">3</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">3</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-240"><a href="#cb70-240" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-241"><a href="#cb70-241" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing fatigue by procrastination&quot;</span>)</span>
+<span id="cb70-242"><a href="#cb70-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-243"><a href="#cb70-243" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">3</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">3</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-244"><a href="#cb70-244" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-245"><a href="#cb70-245" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing fatigue by depression&quot;</span>)</span>
 <span id="cb70-246"><a href="#cb70-246" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-247"><a href="#cb70-247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-248"><a href="#cb70-248" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
-<span id="cb70-249"><a href="#cb70-249" aria-hidden="true" tabindex="-1"></a><span class="in">```{r smoking_visualisation}</span></span>
-<span id="cb70-250"><a href="#cb70-250" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">4</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">4</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-251"><a href="#cb70-251" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-252"><a href="#cb70-252" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of smoking by depression&quot;</span>)</span>
-<span id="cb70-253"><a href="#cb70-253" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-254"><a href="#cb70-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-255"><a href="#cb70-255" aria-hidden="true" tabindex="-1"></a><span class="fu">### Blood Pressure</span></span>
-<span id="cb70-256"><a href="#cb70-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-257"><a href="#cb70-257" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-258"><a href="#cb70-258" aria-hidden="true" tabindex="-1"></a><span class="in">```{r blood_fit}</span></span>
-<span id="cb70-259"><a href="#cb70-259" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">5</span>]])</span>
-<span id="cb70-260"><a href="#cb70-260" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-261"><a href="#cb70-261" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-262"><a href="#cb70-262" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-263"><a href="#cb70-263" aria-hidden="true" tabindex="-1"></a><span class="in">```{r blood_diagnostics, fig.width=12}</span></span>
-<span id="cb70-264"><a href="#cb70-264" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">5</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-248"><a href="#cb70-248" aria-hidden="true" tabindex="-1"></a><span class="fu">### Smoking</span></span>
+<span id="cb70-249"><a href="#cb70-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-250"><a href="#cb70-250" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-251"><a href="#cb70-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-252"><a href="#cb70-252" aria-hidden="true" tabindex="-1"></a><span class="in">```{r smoking_fit}</span></span>
+<span id="cb70-253"><a href="#cb70-253" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">4</span>]])</span>
+<span id="cb70-254"><a href="#cb70-254" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-255"><a href="#cb70-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-256"><a href="#cb70-256" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-257"><a href="#cb70-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-258"><a href="#cb70-258" aria-hidden="true" tabindex="-1"></a><span class="in">```{r smoking_diagnostics, fig.width=12}</span></span>
+<span id="cb70-259"><a href="#cb70-259" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">4</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-260"><a href="#cb70-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-261"><a href="#cb70-261" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-262"><a href="#cb70-262" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-263"><a href="#cb70-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-264"><a href="#cb70-264" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
 <span id="cb70-265"><a href="#cb70-265" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-266"><a href="#cb70-266" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-267"><a href="#cb70-267" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-268"><a href="#cb70-268" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-269"><a href="#cb70-269" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
-<span id="cb70-270"><a href="#cb70-270" aria-hidden="true" tabindex="-1"></a><span class="in">```{r blood-visualisation}</span></span>
-<span id="cb70-271"><a href="#cb70-271" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">5</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">5</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-272"><a href="#cb70-272" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-273"><a href="#cb70-273" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing blood pressure by procrastination&quot;</span>)</span>
-<span id="cb70-274"><a href="#cb70-274" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-275"><a href="#cb70-275" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">5</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">5</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-276"><a href="#cb70-276" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-277"><a href="#cb70-277" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing blood pressure by depression&quot;</span>)</span>
-<span id="cb70-278"><a href="#cb70-278" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-279"><a href="#cb70-279" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">5</span>]], <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">5</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-280"><a href="#cb70-280" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-281"><a href="#cb70-281" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Age&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing blood pressure by age&quot;</span>)</span>
-<span id="cb70-282"><a href="#cb70-282" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-283"><a href="#cb70-283" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-284"><a href="#cb70-284" aria-hidden="true" tabindex="-1"></a><span class="fu">### Diabetes</span></span>
-<span id="cb70-285"><a href="#cb70-285" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-286"><a href="#cb70-286" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-287"><a href="#cb70-287" aria-hidden="true" tabindex="-1"></a><span class="in">```{r diabetes-fit}</span></span>
-<span id="cb70-288"><a href="#cb70-288" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">6</span>]])</span>
-<span id="cb70-289"><a href="#cb70-289" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-290"><a href="#cb70-290" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-291"><a href="#cb70-291" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-292"><a href="#cb70-292" aria-hidden="true" tabindex="-1"></a><span class="in">```{r diabetes_diagnostics, fig.width=12}</span></span>
-<span id="cb70-293"><a href="#cb70-293" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">6</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-266"><a href="#cb70-266" aria-hidden="true" tabindex="-1"></a><span class="in">```{r smoking_visualisation}</span></span>
+<span id="cb70-267"><a href="#cb70-267" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">4</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">4</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-268"><a href="#cb70-268" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-269"><a href="#cb70-269" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of smoking by depression&quot;</span>)</span>
+<span id="cb70-270"><a href="#cb70-270" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-271"><a href="#cb70-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-272"><a href="#cb70-272" aria-hidden="true" tabindex="-1"></a><span class="fu">### Blood Pressure</span></span>
+<span id="cb70-273"><a href="#cb70-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-274"><a href="#cb70-274" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-275"><a href="#cb70-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-276"><a href="#cb70-276" aria-hidden="true" tabindex="-1"></a><span class="in">```{r blood_fit}</span></span>
+<span id="cb70-277"><a href="#cb70-277" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">5</span>]])</span>
+<span id="cb70-278"><a href="#cb70-278" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-279"><a href="#cb70-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-280"><a href="#cb70-280" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-281"><a href="#cb70-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-282"><a href="#cb70-282" aria-hidden="true" tabindex="-1"></a><span class="in">```{r blood_diagnostics, fig.width=12}</span></span>
+<span id="cb70-283"><a href="#cb70-283" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">5</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-284"><a href="#cb70-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-285"><a href="#cb70-285" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-286"><a href="#cb70-286" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-287"><a href="#cb70-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-288"><a href="#cb70-288" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
+<span id="cb70-289"><a href="#cb70-289" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-290"><a href="#cb70-290" aria-hidden="true" tabindex="-1"></a><span class="in">```{r blood-visualisation}</span></span>
+<span id="cb70-291"><a href="#cb70-291" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">5</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">5</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-292"><a href="#cb70-292" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-293"><a href="#cb70-293" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing blood pressure by procrastination&quot;</span>)</span>
 <span id="cb70-294"><a href="#cb70-294" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-295"><a href="#cb70-295" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-296"><a href="#cb70-296" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-297"><a href="#cb70-297" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-298"><a href="#cb70-298" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
-<span id="cb70-299"><a href="#cb70-299" aria-hidden="true" tabindex="-1"></a><span class="in">```{r diabetes-visualisation}</span></span>
-<span id="cb70-300"><a href="#cb70-300" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">6</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">6</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-301"><a href="#cb70-301" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-302"><a href="#cb70-302" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing diabetes by procrastination&quot;</span>)</span>
+<span id="cb70-295"><a href="#cb70-295" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">5</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">5</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-296"><a href="#cb70-296" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-297"><a href="#cb70-297" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing blood pressure by depression&quot;</span>)</span>
+<span id="cb70-298"><a href="#cb70-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-299"><a href="#cb70-299" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">5</span>]], <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">5</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-300"><a href="#cb70-300" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-301"><a href="#cb70-301" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Age&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing blood pressure by age&quot;</span>)</span>
+<span id="cb70-302"><a href="#cb70-302" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-303"><a href="#cb70-303" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-304"><a href="#cb70-304" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">6</span>]], <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">6</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-305"><a href="#cb70-305" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-306"><a href="#cb70-306" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Age&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing diabetes by age&quot;</span>)</span>
-<span id="cb70-307"><a href="#cb70-307" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-308"><a href="#cb70-308" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-309"><a href="#cb70-309" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-310"><a href="#cb70-310" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cholesterol</span></span>
+<span id="cb70-304"><a href="#cb70-304" aria-hidden="true" tabindex="-1"></a><span class="fu">### Diabetes</span></span>
+<span id="cb70-305"><a href="#cb70-305" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-306"><a href="#cb70-306" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-307"><a href="#cb70-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-308"><a href="#cb70-308" aria-hidden="true" tabindex="-1"></a><span class="in">```{r diabetes-fit}</span></span>
+<span id="cb70-309"><a href="#cb70-309" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">6</span>]])</span>
+<span id="cb70-310"><a href="#cb70-310" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-311"><a href="#cb70-311" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-312"><a href="#cb70-312" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-313"><a href="#cb70-313" aria-hidden="true" tabindex="-1"></a><span class="in">```{r cholesterol-fit}</span></span>
-<span id="cb70-314"><a href="#cb70-314" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">7</span>]])</span>
-<span id="cb70-315"><a href="#cb70-315" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-312"><a href="#cb70-312" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-313"><a href="#cb70-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-314"><a href="#cb70-314" aria-hidden="true" tabindex="-1"></a><span class="in">```{r diabetes_diagnostics, fig.width=12}</span></span>
+<span id="cb70-315"><a href="#cb70-315" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">6</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
 <span id="cb70-316"><a href="#cb70-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-317"><a href="#cb70-317" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-318"><a href="#cb70-318" aria-hidden="true" tabindex="-1"></a><span class="in">```{r cholesterol_diagnostics, fig.width=12}</span></span>
-<span id="cb70-319"><a href="#cb70-319" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">7</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-320"><a href="#cb70-320" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-321"><a href="#cb70-321" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-322"><a href="#cb70-322" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-323"><a href="#cb70-323" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-324"><a href="#cb70-324" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
-<span id="cb70-325"><a href="#cb70-325" aria-hidden="true" tabindex="-1"></a><span class="in">```{r cholesterol-visualisation}</span></span>
-<span id="cb70-326"><a href="#cb70-326" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">7</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">7</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb70-327"><a href="#cb70-327" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-328"><a href="#cb70-328" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing cholesterol by Depression&quot;</span>)</span>
-<span id="cb70-329"><a href="#cb70-329" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-330"><a href="#cb70-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-317"><a href="#cb70-317" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-318"><a href="#cb70-318" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-319"><a href="#cb70-319" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-320"><a href="#cb70-320" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
+<span id="cb70-321"><a href="#cb70-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-322"><a href="#cb70-322" aria-hidden="true" tabindex="-1"></a><span class="in">```{r diabetes-visualisation}</span></span>
+<span id="cb70-323"><a href="#cb70-323" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">6</span>]], <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">6</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-324"><a href="#cb70-324" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-325"><a href="#cb70-325" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Procrastination&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing diabetes by procrastination&quot;</span>)</span>
+<span id="cb70-326"><a href="#cb70-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-327"><a href="#cb70-327" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">6</span>]], <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">6</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-328"><a href="#cb70-328" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-329"><a href="#cb70-329" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Age&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing diabetes by age&quot;</span>)</span>
+<span id="cb70-330"><a href="#cb70-330" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-331"><a href="#cb70-331" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-332"><a href="#cb70-332" aria-hidden="true" tabindex="-1"></a><span class="fu">### Heart Condition</span></span>
+<span id="cb70-332"><a href="#cb70-332" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cholesterol</span></span>
 <span id="cb70-333"><a href="#cb70-333" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb70-334"><a href="#cb70-334" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-335"><a href="#cb70-335" aria-hidden="true" tabindex="-1"></a><span class="in">```{r heart-fit}</span></span>
-<span id="cb70-336"><a href="#cb70-336" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">8</span>]])</span>
-<span id="cb70-337"><a href="#cb70-337" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-338"><a href="#cb70-338" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-339"><a href="#cb70-339" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-340"><a href="#cb70-340" aria-hidden="true" tabindex="-1"></a><span class="in">```{r heart_diagnostics, fig.width=12}</span></span>
-<span id="cb70-341"><a href="#cb70-341" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">8</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-342"><a href="#cb70-342" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-343"><a href="#cb70-343" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-344"><a href="#cb70-344" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-345"><a href="#cb70-345" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-346"><a href="#cb70-346" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-347"><a href="#cb70-347" aria-hidden="true" tabindex="-1"></a><span class="fu">### Table Output (Education)</span></span>
-<span id="cb70-348"><a href="#cb70-348" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-349"><a href="#cb70-349" aria-hidden="true" tabindex="-1"></a><span class="in">```{r health-problem-education-table}</span></span>
-<span id="cb70-350"><a href="#cb70-350" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
-<span id="cb70-351"><a href="#cb70-351" aria-hidden="true" tabindex="-1"></a>  fit[[<span class="dv">1</span>]], fit[[<span class="dv">2</span>]], fit[[<span class="dv">3</span>]], fit[[<span class="dv">4</span>]],</span>
-<span id="cb70-352"><a href="#cb70-352" aria-hidden="true" tabindex="-1"></a>  fit[[<span class="dv">5</span>]], fit[[<span class="dv">6</span>]], fit[[<span class="dv">7</span>]], fit[[<span class="dv">8</span>]],</span>
-<span id="cb70-353"><a href="#cb70-353" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.intercept =</span> <span class="cn">FALSE</span>, <span class="at">show.r2 =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb70-354"><a href="#cb70-354" aria-hidden="true" tabindex="-1"></a>  <span class="at">terms =</span> <span class="fu">c</span>(<span class="st">&quot;Education&quot;</span>),</span>
-<span id="cb70-355"><a href="#cb70-355" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Generalised Additive Model Output for Education&quot;</span></span>
-<span id="cb70-356"><a href="#cb70-356" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb70-357"><a href="#cb70-357" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-358"><a href="#cb70-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-335"><a href="#cb70-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-336"><a href="#cb70-336" aria-hidden="true" tabindex="-1"></a><span class="in">```{r cholesterol-fit}</span></span>
+<span id="cb70-337"><a href="#cb70-337" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">7</span>]])</span>
+<span id="cb70-338"><a href="#cb70-338" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-339"><a href="#cb70-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-340"><a href="#cb70-340" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-341"><a href="#cb70-341" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-342"><a href="#cb70-342" aria-hidden="true" tabindex="-1"></a><span class="in">```{r cholesterol_diagnostics, fig.width=12}</span></span>
+<span id="cb70-343"><a href="#cb70-343" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">7</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-344"><a href="#cb70-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-345"><a href="#cb70-345" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-346"><a href="#cb70-346" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-347"><a href="#cb70-347" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-348"><a href="#cb70-348" aria-hidden="true" tabindex="-1"></a>**Visualization**</span>
+<span id="cb70-349"><a href="#cb70-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-350"><a href="#cb70-350" aria-hidden="true" tabindex="-1"></a><span class="in">```{r cholesterol-visualisation}</span></span>
+<span id="cb70-351"><a href="#cb70-351" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit[[<span class="dv">7</span>]], <span class="at">select =</span> <span class="dv">2</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(fit[[<span class="dv">7</span>]])[<span class="dv">1</span>], <span class="at">seWithMean =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb70-352"><a href="#cb70-352" aria-hidden="true" tabindex="-1"></a>     <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-353"><a href="#cb70-353" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;Depression&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of experiencing cholesterol by Depression&quot;</span>)</span>
+<span id="cb70-354"><a href="#cb70-354" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-355"><a href="#cb70-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-356"><a href="#cb70-356" aria-hidden="true" tabindex="-1"></a><span class="fu">### Heart Condition</span></span>
+<span id="cb70-357"><a href="#cb70-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-358"><a href="#cb70-358" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
 <span id="cb70-359"><a href="#cb70-359" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-360"><a href="#cb70-360" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Protection</span></span>
-<span id="cb70-361"><a href="#cb70-361" aria-hidden="true" tabindex="-1"></a>As previously mentioned, some of the health protection variables have interaction effects and as such will be appropriately defined with a **tensor product smooth** in the ``gam()`` function. For those variables without a interaction effects the same GAM formula as the health problems will be applied.</span>
-<span id="cb70-362"><a href="#cb70-362" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-363"><a href="#cb70-363" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prostate Exam (Interaction Present)</span></span>
-<span id="cb70-364"><a href="#cb70-364" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-365"><a href="#cb70-365" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-366"><a href="#cb70-366" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1(Age) + f_2(Procrastination, Depression)</span>
-<span id="cb70-367"><a href="#cb70-367" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-360"><a href="#cb70-360" aria-hidden="true" tabindex="-1"></a><span class="in">```{r heart-fit}</span></span>
+<span id="cb70-361"><a href="#cb70-361" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(fit[[<span class="dv">8</span>]])</span>
+<span id="cb70-362"><a href="#cb70-362" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-363"><a href="#cb70-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-364"><a href="#cb70-364" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-365"><a href="#cb70-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-366"><a href="#cb70-366" aria-hidden="true" tabindex="-1"></a><span class="in">```{r heart_diagnostics, fig.width=12}</span></span>
+<span id="cb70-367"><a href="#cb70-367" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(fit[[<span class="dv">8</span>]], <span class="at">n =</span> <span class="dv">1000</span>)</span>
 <span id="cb70-368"><a href="#cb70-368" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-369"><a href="#cb70-369" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-370"><a href="#cb70-370" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prosate-fit}</span></span>
-<span id="cb70-371"><a href="#cb70-371" aria-hidden="true" tabindex="-1"></a>prosate_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
-<span id="cb70-372"><a href="#cb70-372" aria-hidden="true" tabindex="-1"></a>  Prostate_exam <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Age) <span class="sc">+</span> <span class="fu">te</span>(Total_procrastination, Total_depression),</span>
-<span id="cb70-373"><a href="#cb70-373" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
-<span id="cb70-374"><a href="#cb70-374" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-375"><a href="#cb70-375" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(prosate_fit)</span>
-<span id="cb70-376"><a href="#cb70-376" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-377"><a href="#cb70-377" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-378"><a href="#cb70-378" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-379"><a href="#cb70-379" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prostate-diagnostics, fig.width = 12}</span></span>
-<span id="cb70-380"><a href="#cb70-380" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(prosate_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-381"><a href="#cb70-381" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-369"><a href="#cb70-369" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-370"><a href="#cb70-370" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-371"><a href="#cb70-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-372"><a href="#cb70-372" aria-hidden="true" tabindex="-1"></a><span class="fu">### Table Output (Education)</span></span>
+<span id="cb70-373"><a href="#cb70-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-374"><a href="#cb70-374" aria-hidden="true" tabindex="-1"></a><span class="in">```{r health-problem-education-table}</span></span>
+<span id="cb70-375"><a href="#cb70-375" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
+<span id="cb70-376"><a href="#cb70-376" aria-hidden="true" tabindex="-1"></a>  fit[[<span class="dv">1</span>]], fit[[<span class="dv">2</span>]], fit[[<span class="dv">3</span>]], fit[[<span class="dv">4</span>]],</span>
+<span id="cb70-377"><a href="#cb70-377" aria-hidden="true" tabindex="-1"></a>  fit[[<span class="dv">5</span>]], fit[[<span class="dv">6</span>]], fit[[<span class="dv">7</span>]], fit[[<span class="dv">8</span>]],</span>
+<span id="cb70-378"><a href="#cb70-378" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.intercept =</span> <span class="cn">FALSE</span>, <span class="at">show.r2 =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb70-379"><a href="#cb70-379" aria-hidden="true" tabindex="-1"></a>  <span class="at">terms =</span> <span class="fu">c</span>(<span class="st">&quot;Education&quot;</span>),</span>
+<span id="cb70-380"><a href="#cb70-380" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Generalised Additive Model Output for Education&quot;</span></span>
+<span id="cb70-381"><a href="#cb70-381" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb70-382"><a href="#cb70-382" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-383"><a href="#cb70-383" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-384"><a href="#cb70-384" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
-<span id="cb70-385"><a href="#cb70-385" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prostate-visualise}</span></span>
-<span id="cb70-386"><a href="#cb70-386" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prosate_fit, <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(prosate_fit)[<span class="dv">1</span>], </span>
-<span id="cb70-387"><a href="#cb70-387" aria-hidden="true" tabindex="-1"></a>     <span class="at">seWithMean =</span> <span class="cn">TRUE</span>, <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-388"><a href="#cb70-388" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of getting a prostate exam throughout age&quot;</span>)</span>
+<span id="cb70-384"><a href="#cb70-384" aria-hidden="true" tabindex="-1"></a><span class="fu">## Health Protection</span></span>
+<span id="cb70-385"><a href="#cb70-385" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-386"><a href="#cb70-386" aria-hidden="true" tabindex="-1"></a>As previously mentioned, some of the health protection variables have interaction effects and as such will be appropriately defined with a **tensor product smooth** in the <span class="in">`gam()`</span> function. For those variables without a interaction effects the same GAM formula as the health problems will be applied.</span>
+<span id="cb70-387"><a href="#cb70-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-388"><a href="#cb70-388" aria-hidden="true" tabindex="-1"></a><span class="fu">### Prostate Exam (Interaction Present)</span></span>
 <span id="cb70-389"><a href="#cb70-389" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-390"><a href="#cb70-390" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-391"><a href="#cb70-391" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-392"><a href="#cb70-392" aria-hidden="true" tabindex="-1"></a>The probability of getting a prostate exam varies with age, following a quadratic pattern. It increases until it reaches a peak at around 70-75 years old, and then it declines. This is most likely because most health professionals advise against prostate exams for men older than 70-75, as they are unlikely to benefit from curative treatment if they have prostate cancer <span class="co">[</span><span class="ot">(Lima et al., 2008)</span><span class="co">](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2692165/)</span>.</span>
+<span id="cb70-390"><a href="#cb70-390" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-391"><a href="#cb70-391" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1(Age) + f_2(Procrastination, Depression)</span>
+<span id="cb70-392"><a href="#cb70-392" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb70-393"><a href="#cb70-393" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-394"><a href="#cb70-394" aria-hidden="true" tabindex="-1"></a>Different countries and organizations have different guidelines for prostate screening. In the United States, both the American Cancer Society and American Urologic Association recommend that men over 50 should get regular prostate exams. Beyond the age of 70-75, practitioners tend to then perform exams based on &quot;patient preferences, life expectancy, health status, and prior screening history&quot; <span class="co">[</span><span class="ot">(Wolf et el., 2018)</span><span class="co">](https://acsjournals.onlinelibrary.wiley.com/doi/full/10.3322/caac.21457)</span>.</span>
+<span id="cb70-394"><a href="#cb70-394" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
 <span id="cb70-395"><a href="#cb70-395" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-396"><a href="#cb70-396" aria-hidden="true" tabindex="-1"></a><span class="in">```{r depression-procrastination-interaction}</span></span>
-<span id="cb70-397"><a href="#cb70-397" aria-hidden="true" tabindex="-1"></a><span class="co"># Depression and Procrastination</span></span>
-<span id="cb70-398"><a href="#cb70-398" aria-hidden="true" tabindex="-1"></a><span class="co"># knitr::include_graphics(here::here(path_graphics, &quot;01__Prostate_GAM.png&quot;))</span></span>
-<span id="cb70-399"><a href="#cb70-399" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-396"><a href="#cb70-396" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prosate-fit}</span></span>
+<span id="cb70-397"><a href="#cb70-397" aria-hidden="true" tabindex="-1"></a>prosate_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
+<span id="cb70-398"><a href="#cb70-398" aria-hidden="true" tabindex="-1"></a>  Prostate_exam <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Age) <span class="sc">+</span> <span class="fu">te</span>(Total_procrastination, Total_depression),</span>
+<span id="cb70-399"><a href="#cb70-399" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
 <span id="cb70-400"><a href="#cb70-400" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-401"><a href="#cb70-401" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mammogram (No Interaction)</span></span>
-<span id="cb70-402"><a href="#cb70-402" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-403"><a href="#cb70-403" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-404"><a href="#cb70-404" aria-hidden="true" tabindex="-1"></a><span class="in">```{r mammogram-fit}</span></span>
-<span id="cb70-405"><a href="#cb70-405" aria-hidden="true" tabindex="-1"></a>mammogram_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
-<span id="cb70-406"><a href="#cb70-406" aria-hidden="true" tabindex="-1"></a>  Mammogram <span class="sc">~</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">s</span>(Total_depression, <span class="at">k =</span> <span class="dv">9</span>) <span class="sc">+</span> <span class="fu">s</span>(Age) <span class="sc">+</span> Education,</span>
-<span id="cb70-407"><a href="#cb70-407" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
-<span id="cb70-408"><a href="#cb70-408" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-409"><a href="#cb70-409" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(mammogram_fit)</span>
-<span id="cb70-410"><a href="#cb70-410" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-411"><a href="#cb70-411" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-412"><a href="#cb70-412" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-413"><a href="#cb70-413" aria-hidden="true" tabindex="-1"></a><span class="in">```{r mammogram-diagnostics, fig.width = 12}</span></span>
-<span id="cb70-414"><a href="#cb70-414" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(mammogram_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-415"><a href="#cb70-415" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-416"><a href="#cb70-416" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-401"><a href="#cb70-401" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(prosate_fit)</span>
+<span id="cb70-402"><a href="#cb70-402" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-403"><a href="#cb70-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-404"><a href="#cb70-404" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-405"><a href="#cb70-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-406"><a href="#cb70-406" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prostate-diagnostics, fig.width = 12}</span></span>
+<span id="cb70-407"><a href="#cb70-407" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(prosate_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-408"><a href="#cb70-408" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-409"><a href="#cb70-409" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-410"><a href="#cb70-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-411"><a href="#cb70-411" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
+<span id="cb70-412"><a href="#cb70-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-413"><a href="#cb70-413" aria-hidden="true" tabindex="-1"></a><span class="in">```{r prostate-visualise}</span></span>
+<span id="cb70-414"><a href="#cb70-414" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(prosate_fit, <span class="at">select =</span> <span class="dv">1</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(prosate_fit)[<span class="dv">1</span>], </span>
+<span id="cb70-415"><a href="#cb70-415" aria-hidden="true" tabindex="-1"></a>     <span class="at">seWithMean =</span> <span class="cn">TRUE</span>, <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-416"><a href="#cb70-416" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of getting a prostate exam throughout age&quot;</span>)</span>
 <span id="cb70-417"><a href="#cb70-417" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-418"><a href="#cb70-418" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
-<span id="cb70-419"><a href="#cb70-419" aria-hidden="true" tabindex="-1"></a><span class="in">```{r mammogram-visualise}</span></span>
-<span id="cb70-420"><a href="#cb70-420" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mammogram_fit, <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(mammogram_fit)[<span class="dv">1</span>], </span>
-<span id="cb70-421"><a href="#cb70-421" aria-hidden="true" tabindex="-1"></a>     <span class="at">seWithMean =</span> <span class="cn">TRUE</span>, <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-422"><a href="#cb70-422" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of getting a mammogram throughout age&quot;</span>)</span>
-<span id="cb70-423"><a href="#cb70-423" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-424"><a href="#cb70-424" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-425"><a href="#cb70-425" aria-hidden="true" tabindex="-1"></a>Similar to prostate exams, the relationship between age and mammograms follow a quadratic relationship, increasing in probability up until the age of approximately 70 before declining. Reasons for this are also similar to that of prostate exams with clinicians recommending to stop screening for breast cancer in older age, as the benefits may not outweigh the harms <span class="co">[</span><span class="ot">(Walter and Schonberg, 2014)</span><span class="co">](https://jamanetwork.com/journals/jama/article-abstract/1853134)</span>.</span>
-<span id="cb70-426"><a href="#cb70-426" aria-hidden="true" tabindex="-1"></a> </span>
-<span id="cb70-427"><a href="#cb70-427" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-428"><a href="#cb70-428" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pap Smear (Interaction Present)</span></span>
-<span id="cb70-429"><a href="#cb70-429" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-430"><a href="#cb70-430" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-431"><a href="#cb70-431" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1Procrastination + f_2(Depression, Age)</span>
-<span id="cb70-432"><a href="#cb70-432" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-433"><a href="#cb70-433" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-434"><a href="#cb70-434" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-435"><a href="#cb70-435" aria-hidden="true" tabindex="-1"></a><span class="in">```{r gam-fit}</span></span>
-<span id="cb70-436"><a href="#cb70-436" aria-hidden="true" tabindex="-1"></a>pap_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
-<span id="cb70-437"><a href="#cb70-437" aria-hidden="true" tabindex="-1"></a>  Pap_smear <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">te</span>(Total_depression, Age),</span>
-<span id="cb70-438"><a href="#cb70-438" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
-<span id="cb70-439"><a href="#cb70-439" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-440"><a href="#cb70-440" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(pap_fit)</span>
-<span id="cb70-441"><a href="#cb70-441" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-418"><a href="#cb70-418" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-419"><a href="#cb70-419" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-420"><a href="#cb70-420" aria-hidden="true" tabindex="-1"></a>The probability of getting a prostate exam varies with age, following a quadratic pattern. It increases until it reaches a peak at around 70-75 years old, and then it declines. This is most likely because most health professionals advise against prostate exams for men older than 70-75, as they are unlikely to benefit from curative treatment if they have prostate cancer <span class="co">[</span><span class="ot">(Lima et al., 2008)</span><span class="co">](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2692165/)</span>.</span>
+<span id="cb70-421"><a href="#cb70-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-422"><a href="#cb70-422" aria-hidden="true" tabindex="-1"></a>Different countries and organizations have different guidelines for prostate screening. In the United States, both the American Cancer Society and American Urologic Association recommend that men over 50 should get regular prostate exams. Beyond the age of 70-75, practitioners tend to then perform exams based on &quot;patient preferences, life expectancy, health status, and prior screening history&quot; <span class="co">[</span><span class="ot">(Wolf et el., 2018)</span><span class="co">](https://acsjournals.onlinelibrary.wiley.com/doi/full/10.3322/caac.21457)</span>.</span>
+<span id="cb70-423"><a href="#cb70-423" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-424"><a href="#cb70-424" aria-hidden="true" tabindex="-1"></a><span class="in">```{r depression-procrastination-interaction}</span></span>
+<span id="cb70-425"><a href="#cb70-425" aria-hidden="true" tabindex="-1"></a><span class="co"># Depression and Procrastination</span></span>
+<span id="cb70-426"><a href="#cb70-426" aria-hidden="true" tabindex="-1"></a><span class="co"># knitr::include_graphics(here::here(path_graphics, &quot;01__Prostate_GAM.png&quot;))</span></span>
+<span id="cb70-427"><a href="#cb70-427" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-428"><a href="#cb70-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-429"><a href="#cb70-429" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mammogram (No Interaction)</span></span>
+<span id="cb70-430"><a href="#cb70-430" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-431"><a href="#cb70-431" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-432"><a href="#cb70-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-433"><a href="#cb70-433" aria-hidden="true" tabindex="-1"></a><span class="in">```{r mammogram-fit}</span></span>
+<span id="cb70-434"><a href="#cb70-434" aria-hidden="true" tabindex="-1"></a>mammogram_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
+<span id="cb70-435"><a href="#cb70-435" aria-hidden="true" tabindex="-1"></a>  Mammogram <span class="sc">~</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">s</span>(Total_depression, <span class="at">k =</span> <span class="dv">9</span>) <span class="sc">+</span> <span class="fu">s</span>(Age) <span class="sc">+</span> Education,</span>
+<span id="cb70-436"><a href="#cb70-436" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-437"><a href="#cb70-437" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-438"><a href="#cb70-438" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(mammogram_fit)</span>
+<span id="cb70-439"><a href="#cb70-439" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-440"><a href="#cb70-440" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-441"><a href="#cb70-441" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
 <span id="cb70-442"><a href="#cb70-442" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-443"><a href="#cb70-443" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-444"><a href="#cb70-444" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pap-diagnostics, fig.width = 12}</span></span>
-<span id="cb70-445"><a href="#cb70-445" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(pap_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-446"><a href="#cb70-446" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-447"><a href="#cb70-447" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-448"><a href="#cb70-448" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-449"><a href="#cb70-449" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
-<span id="cb70-450"><a href="#cb70-450" aria-hidden="true" tabindex="-1"></a><span class="in">```{r gam-pap-visualise}</span></span>
-<span id="cb70-451"><a href="#cb70-451" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(here<span class="sc">::</span><span class="fu">here</span>(path_graphics, <span class="st">&quot;02__Pap_Smear_GAM.png&quot;</span>))</span>
-<span id="cb70-452"><a href="#cb70-452" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-453"><a href="#cb70-453" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-454"><a href="#cb70-454" aria-hidden="true" tabindex="-1"></a>Following the directionality of the x, y, and z axes, the <span class="in">`vis.gam()`</span> contour plot shows that the probability of getting a pap smear depends on both age and depression. For younger individuals, lower levels of depression are associated with a higher probability of getting a pap smear, while higher levels of depression are associated with a lower probability. However, as age increases the probability of getting a pap smear also begins to decrease regardless of depression score.</span>
+<span id="cb70-443"><a href="#cb70-443" aria-hidden="true" tabindex="-1"></a><span class="in">```{r mammogram-diagnostics, fig.width = 12}</span></span>
+<span id="cb70-444"><a href="#cb70-444" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(mammogram_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-445"><a href="#cb70-445" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-446"><a href="#cb70-446" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-447"><a href="#cb70-447" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-448"><a href="#cb70-448" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
+<span id="cb70-449"><a href="#cb70-449" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-450"><a href="#cb70-450" aria-hidden="true" tabindex="-1"></a><span class="in">```{r mammogram-visualise}</span></span>
+<span id="cb70-451"><a href="#cb70-451" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(mammogram_fit, <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(mammogram_fit)[<span class="dv">1</span>], </span>
+<span id="cb70-452"><a href="#cb70-452" aria-hidden="true" tabindex="-1"></a>     <span class="at">seWithMean =</span> <span class="cn">TRUE</span>, <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-453"><a href="#cb70-453" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of getting a mammogram throughout age&quot;</span>)</span>
+<span id="cb70-454"><a href="#cb70-454" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb70-455"><a href="#cb70-455" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-456"><a href="#cb70-456" aria-hidden="true" tabindex="-1"></a><span class="fu">### Flu Shot (No Interaction)</span></span>
+<span id="cb70-456"><a href="#cb70-456" aria-hidden="true" tabindex="-1"></a>Similar to prostate exams, the relationship between age and mammograms follow a quadratic relationship, increasing in probability up until the age of approximately 70 before declining. Reasons for this are also similar to that of prostate exams with clinicians recommending to stop screening for breast cancer in older age, as the benefits may not outweigh the harms <span class="co">[</span><span class="ot">(Walter and Schonberg, 2014)</span><span class="co">](https://jamanetwork.com/journals/jama/article-abstract/1853134)</span>.</span>
 <span id="cb70-457"><a href="#cb70-457" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-458"><a href="#cb70-458" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-459"><a href="#cb70-459" aria-hidden="true" tabindex="-1"></a><span class="in">```{r flu-fit}</span></span>
-<span id="cb70-460"><a href="#cb70-460" aria-hidden="true" tabindex="-1"></a>flu_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
-<span id="cb70-461"><a href="#cb70-461" aria-hidden="true" tabindex="-1"></a>  Flu_shot <span class="sc">~</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">s</span>(Total_depression, <span class="at">k =</span> <span class="dv">9</span>) <span class="sc">+</span> <span class="fu">s</span>(Age) <span class="sc">+</span> Education, </span>
-<span id="cb70-462"><a href="#cb70-462" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-458"><a href="#cb70-458" aria-hidden="true" tabindex="-1"></a><span class="fu">### Pap Smear (Interaction Present)</span></span>
+<span id="cb70-459"><a href="#cb70-459" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-460"><a href="#cb70-460" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-461"><a href="#cb70-461" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1Procrastination + f_2(Depression, Age)</span>
+<span id="cb70-462"><a href="#cb70-462" aria-hidden="true" tabindex="-1"></a>$$</span>
 <span id="cb70-463"><a href="#cb70-463" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-464"><a href="#cb70-464" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(flu_fit)</span>
-<span id="cb70-465"><a href="#cb70-465" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-466"><a href="#cb70-466" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-467"><a href="#cb70-467" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-468"><a href="#cb70-468" aria-hidden="true" tabindex="-1"></a><span class="in">```{r flu-diagnostics, fig.width = 12}</span></span>
-<span id="cb70-469"><a href="#cb70-469" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(flu_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-470"><a href="#cb70-470" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-471"><a href="#cb70-471" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-472"><a href="#cb70-472" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-473"><a href="#cb70-473" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
-<span id="cb70-474"><a href="#cb70-474" aria-hidden="true" tabindex="-1"></a><span class="in">```{r flu-visualise}</span></span>
-<span id="cb70-475"><a href="#cb70-475" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(flu_fit, <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(flu_fit)[<span class="dv">1</span>], </span>
-<span id="cb70-476"><a href="#cb70-476" aria-hidden="true" tabindex="-1"></a>     <span class="at">seWithMean =</span> <span class="cn">TRUE</span>, <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
-<span id="cb70-477"><a href="#cb70-477" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of getting a flu shot throughout age&quot;</span>)</span>
-<span id="cb70-478"><a href="#cb70-478" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-479"><a href="#cb70-479" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-480"><a href="#cb70-480" aria-hidden="true" tabindex="-1"></a><span class="fu">### Dental Visit (Interaction)</span></span>
-<span id="cb70-481"><a href="#cb70-481" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-482"><a href="#cb70-482" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-483"><a href="#cb70-483" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1Depression + f_2(Procrastination, Age)</span>
-<span id="cb70-484"><a href="#cb70-484" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-485"><a href="#cb70-485" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-486"><a href="#cb70-486" aria-hidden="true" tabindex="-1"></a><span class="in">```{r dentist-fit}</span></span>
-<span id="cb70-487"><a href="#cb70-487" aria-hidden="true" tabindex="-1"></a>dentist_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
-<span id="cb70-488"><a href="#cb70-488" aria-hidden="true" tabindex="-1"></a>  Dental_visit_2_years <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Total_depression, <span class="at">k =</span> <span class="dv">9</span>) <span class="sc">+</span> <span class="fu">te</span>(Total_procrastination, Age),</span>
-<span id="cb70-489"><a href="#cb70-489" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-464"><a href="#cb70-464" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-465"><a href="#cb70-465" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-466"><a href="#cb70-466" aria-hidden="true" tabindex="-1"></a><span class="in">```{r gam-fit}</span></span>
+<span id="cb70-467"><a href="#cb70-467" aria-hidden="true" tabindex="-1"></a>pap_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
+<span id="cb70-468"><a href="#cb70-468" aria-hidden="true" tabindex="-1"></a>  Pap_smear <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">te</span>(Total_depression, Age),</span>
+<span id="cb70-469"><a href="#cb70-469" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-470"><a href="#cb70-470" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-471"><a href="#cb70-471" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(pap_fit)</span>
+<span id="cb70-472"><a href="#cb70-472" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-473"><a href="#cb70-473" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-474"><a href="#cb70-474" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-475"><a href="#cb70-475" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-476"><a href="#cb70-476" aria-hidden="true" tabindex="-1"></a><span class="in">```{r pap-diagnostics, fig.width = 12}</span></span>
+<span id="cb70-477"><a href="#cb70-477" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(pap_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-478"><a href="#cb70-478" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-479"><a href="#cb70-479" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-480"><a href="#cb70-480" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-481"><a href="#cb70-481" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
+<span id="cb70-482"><a href="#cb70-482" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-483"><a href="#cb70-483" aria-hidden="true" tabindex="-1"></a><span class="in">```{r gam-pap-visualise}</span></span>
+<span id="cb70-484"><a href="#cb70-484" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(here<span class="sc">::</span><span class="fu">here</span>(path_graphics, <span class="st">&quot;02__Pap_Smear_GAM.png&quot;</span>))</span>
+<span id="cb70-485"><a href="#cb70-485" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-486"><a href="#cb70-486" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-487"><a href="#cb70-487" aria-hidden="true" tabindex="-1"></a>Following the directionality of the x, y, and z axes, the <span class="in">`vis.gam()`</span> contour plot shows that the probability of getting a pap smear depends on both age and depression. For younger individuals, lower levels of depression are associated with a higher probability of getting a pap smear, while higher levels of depression are associated with a lower probability. However, as age increases the probability of getting a pap smear also begins to decrease regardless of depression score.</span>
+<span id="cb70-488"><a href="#cb70-488" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-489"><a href="#cb70-489" aria-hidden="true" tabindex="-1"></a><span class="fu">### Flu Shot (No Interaction)</span></span>
 <span id="cb70-490"><a href="#cb70-490" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-491"><a href="#cb70-491" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(dentist_fit)</span>
-<span id="cb70-492"><a href="#cb70-492" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-493"><a href="#cb70-493" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-494"><a href="#cb70-494" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-495"><a href="#cb70-495" aria-hidden="true" tabindex="-1"></a><span class="in">```{r dentist-diagnostics, fig.width = 12}</span></span>
-<span id="cb70-496"><a href="#cb70-496" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(dentist_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-497"><a href="#cb70-497" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-498"><a href="#cb70-498" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-499"><a href="#cb70-499" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-500"><a href="#cb70-500" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
-<span id="cb70-501"><a href="#cb70-501" aria-hidden="true" tabindex="-1"></a><span class="in">```{r dentist-visualise}</span></span>
-<span id="cb70-502"><a href="#cb70-502" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(here<span class="sc">::</span><span class="fu">here</span>(path_graphics, <span class="st">&quot;03__Dentist_GAM.png&quot;</span>))</span>
-<span id="cb70-503"><a href="#cb70-503" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-504"><a href="#cb70-504" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-505"><a href="#cb70-505" aria-hidden="true" tabindex="-1"></a>Again, following the directionality of the x, y, and z axes, the <span class="in">`vis.gam()`</span> contour plot shows that the probability of visiting the dentist depends on both age and procrastination. For younger individuals, higher levels of procrastination is associated with a higher probability of visiting the dentist, while lower levels of procrastination is associated with a lower probability. This increased probability for higher levels of procrastination may be seen as mandatory unavoidable visits due to the procrastination of at home dental care. As age then increases the probability of visiting the dentist increases for those with low levels of procrastination and decreases for those with high levels of procrastination.</span>
-<span id="cb70-506"><a href="#cb70-506" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-507"><a href="#cb70-507" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cholesterol Screening (Interaction Present)</span></span>
-<span id="cb70-508"><a href="#cb70-508" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-509"><a href="#cb70-509" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-510"><a href="#cb70-510" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1Procrastination + f_2(Depression, Age)</span>
-<span id="cb70-511"><a href="#cb70-511" aria-hidden="true" tabindex="-1"></a>$$</span>
-<span id="cb70-512"><a href="#cb70-512" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-513"><a href="#cb70-513" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
-<span id="cb70-514"><a href="#cb70-514" aria-hidden="true" tabindex="-1"></a><span class="in">```{r c_screening-fit}</span></span>
-<span id="cb70-515"><a href="#cb70-515" aria-hidden="true" tabindex="-1"></a>cholesterol_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
-<span id="cb70-516"><a href="#cb70-516" aria-hidden="true" tabindex="-1"></a>  Cholesterol_screening <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">te</span>(Total_depression, Age),</span>
-<span id="cb70-517"><a href="#cb70-517" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
-<span id="cb70-518"><a href="#cb70-518" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-519"><a href="#cb70-519" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(cholesterol_fit)</span>
-<span id="cb70-520"><a href="#cb70-520" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-491"><a href="#cb70-491" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-492"><a href="#cb70-492" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-493"><a href="#cb70-493" aria-hidden="true" tabindex="-1"></a><span class="in">```{r flu-fit}</span></span>
+<span id="cb70-494"><a href="#cb70-494" aria-hidden="true" tabindex="-1"></a>flu_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
+<span id="cb70-495"><a href="#cb70-495" aria-hidden="true" tabindex="-1"></a>  Flu_shot <span class="sc">~</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">s</span>(Total_depression, <span class="at">k =</span> <span class="dv">9</span>) <span class="sc">+</span> <span class="fu">s</span>(Age) <span class="sc">+</span> Education, </span>
+<span id="cb70-496"><a href="#cb70-496" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-497"><a href="#cb70-497" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-498"><a href="#cb70-498" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(flu_fit)</span>
+<span id="cb70-499"><a href="#cb70-499" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-500"><a href="#cb70-500" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-501"><a href="#cb70-501" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-502"><a href="#cb70-502" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-503"><a href="#cb70-503" aria-hidden="true" tabindex="-1"></a><span class="in">```{r flu-diagnostics, fig.width = 12}</span></span>
+<span id="cb70-504"><a href="#cb70-504" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(flu_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-505"><a href="#cb70-505" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-506"><a href="#cb70-506" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-507"><a href="#cb70-507" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-508"><a href="#cb70-508" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
+<span id="cb70-509"><a href="#cb70-509" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-510"><a href="#cb70-510" aria-hidden="true" tabindex="-1"></a><span class="in">```{r flu-visualise}</span></span>
+<span id="cb70-511"><a href="#cb70-511" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(flu_fit, <span class="at">select =</span> <span class="dv">3</span>, <span class="at">trans =</span> plogis, <span class="at">shift =</span> <span class="fu">coef</span>(flu_fit)[<span class="dv">1</span>], </span>
+<span id="cb70-512"><a href="#cb70-512" aria-hidden="true" tabindex="-1"></a>     <span class="at">seWithMean =</span> <span class="cn">TRUE</span>, <span class="at">rug =</span> <span class="cn">FALSE</span>, <span class="at">shade =</span> <span class="cn">TRUE</span>, <span class="at">shade.col =</span> <span class="st">&quot;skyblue&quot;</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb70-513"><a href="#cb70-513" aria-hidden="true" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Probability&quot;</span>, <span class="at">main =</span> <span class="st">&quot;Probability of getting a flu shot throughout age&quot;</span>)</span>
+<span id="cb70-514"><a href="#cb70-514" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-515"><a href="#cb70-515" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-516"><a href="#cb70-516" aria-hidden="true" tabindex="-1"></a><span class="fu">### Dental Visit (Interaction)</span></span>
+<span id="cb70-517"><a href="#cb70-517" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-518"><a href="#cb70-518" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-519"><a href="#cb70-519" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1Depression + f_2(Procrastination, Age)</span>
+<span id="cb70-520"><a href="#cb70-520" aria-hidden="true" tabindex="-1"></a>$$ **Summary**</span>
 <span id="cb70-521"><a href="#cb70-521" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-522"><a href="#cb70-522" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
-<span id="cb70-523"><a href="#cb70-523" aria-hidden="true" tabindex="-1"></a><span class="in">```{r c_screening-diagnostics, fig.width = 12}</span></span>
-<span id="cb70-524"><a href="#cb70-524" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(cholesterol_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
-<span id="cb70-525"><a href="#cb70-525" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
-<span id="cb70-526"><a href="#cb70-526" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-527"><a href="#cb70-527" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-528"><a href="#cb70-528" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
-<span id="cb70-529"><a href="#cb70-529" aria-hidden="true" tabindex="-1"></a><span class="in">```{r gam-cholesterol-visualise}</span></span>
-<span id="cb70-530"><a href="#cb70-530" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(here<span class="sc">::</span><span class="fu">here</span>(path_graphics, <span class="st">&quot;04__Cholesterol_GAM.png&quot;</span>))</span>
-<span id="cb70-531"><a href="#cb70-531" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb70-532"><a href="#cb70-532" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-533"><a href="#cb70-533" aria-hidden="true" tabindex="-1"></a>This time, following the directionality of the x, y, and z axes, the <span class="in">`vis.gam()`</span> contour plot shows that the probability of getting a cholesterol screening depends on both age and depression. For younger individuals, higher levels of procrastination is associated with a lower probability of getting a cholesterol screening, while lower levels of depression are associated with a higher probability of getting a cholesterol screening. Then as age increases the probability of getting a cholesterol screening rapidly increases for those with high levels of depression while slightly decreasing for those for low levels of depression. Beyond a certain age point though this probability begins dropping for both groups (faster for the group with levels of depression).</span>
-<span id="cb70-534"><a href="#cb70-534" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-535"><a href="#cb70-535" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-536"><a href="#cb70-536" aria-hidden="true" tabindex="-1"></a><span class="fu">### Table Output (Education)</span></span>
-<span id="cb70-537"><a href="#cb70-537" aria-hidden="true" tabindex="-1"></a><span class="in">```{r health-protection-education-table}</span></span>
-<span id="cb70-538"><a href="#cb70-538" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
-<span id="cb70-539"><a href="#cb70-539" aria-hidden="true" tabindex="-1"></a>  prosate_fit, mammogram_fit, pap_fit, </span>
-<span id="cb70-540"><a href="#cb70-540" aria-hidden="true" tabindex="-1"></a>  flu_fit, dentist_fit, cholesterol_fit,</span>
-<span id="cb70-541"><a href="#cb70-541" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.intercept =</span> <span class="cn">FALSE</span>, <span class="at">show.r2 =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb70-542"><a href="#cb70-542" aria-hidden="true" tabindex="-1"></a>  <span class="at">terms =</span> <span class="fu">c</span>(<span class="st">&quot;Education&quot;</span>),</span>
-<span id="cb70-543"><a href="#cb70-543" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Generalised Additive Model Output for Education&quot;</span></span>
-<span id="cb70-544"><a href="#cb70-544" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb70-545"><a href="#cb70-545" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb70-546"><a href="#cb70-546" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-522"><a href="#cb70-522" aria-hidden="true" tabindex="-1"></a><span class="in">```{r dentist-fit}</span></span>
+<span id="cb70-523"><a href="#cb70-523" aria-hidden="true" tabindex="-1"></a>dentist_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
+<span id="cb70-524"><a href="#cb70-524" aria-hidden="true" tabindex="-1"></a>  Dental_visit_2_years <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Total_depression, <span class="at">k =</span> <span class="dv">9</span>) <span class="sc">+</span> <span class="fu">te</span>(Total_procrastination, Age),</span>
+<span id="cb70-525"><a href="#cb70-525" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-526"><a href="#cb70-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-527"><a href="#cb70-527" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(dentist_fit)</span>
+<span id="cb70-528"><a href="#cb70-528" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-529"><a href="#cb70-529" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-530"><a href="#cb70-530" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-531"><a href="#cb70-531" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-532"><a href="#cb70-532" aria-hidden="true" tabindex="-1"></a><span class="in">```{r dentist-diagnostics, fig.width = 12}</span></span>
+<span id="cb70-533"><a href="#cb70-533" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(dentist_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-534"><a href="#cb70-534" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-535"><a href="#cb70-535" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-536"><a href="#cb70-536" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-537"><a href="#cb70-537" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
+<span id="cb70-538"><a href="#cb70-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-539"><a href="#cb70-539" aria-hidden="true" tabindex="-1"></a><span class="in">```{r dentist-visualise}</span></span>
+<span id="cb70-540"><a href="#cb70-540" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(here<span class="sc">::</span><span class="fu">here</span>(path_graphics, <span class="st">&quot;03__Dentist_GAM.png&quot;</span>))</span>
+<span id="cb70-541"><a href="#cb70-541" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-542"><a href="#cb70-542" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-543"><a href="#cb70-543" aria-hidden="true" tabindex="-1"></a>Again, following the directionality of the x, y, and z axes, the <span class="in">`vis.gam()`</span> contour plot shows that the probability of visiting the dentist depends on both age and procrastination. For younger individuals, higher levels of procrastination is associated with a higher probability of visiting the dentist, while lower levels of procrastination is associated with a lower probability. This increased probability for higher levels of procrastination may be seen as mandatory unavoidable visits due to the procrastination of at home dental care. As age then increases the probability of visiting the dentist increases for those with low levels of procrastination and decreases for those with high levels of procrastination.</span>
+<span id="cb70-544"><a href="#cb70-544" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-545"><a href="#cb70-545" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cholesterol Screening (Interaction Present)</span></span>
+<span id="cb70-546"><a href="#cb70-546" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-547"><a href="#cb70-547" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-548"><a href="#cb70-548" aria-hidden="true" tabindex="-1"></a>logit(p) = \beta_0 + \beta_1Education + f_1Procrastination + f_2(Depression, Age)</span>
+<span id="cb70-549"><a href="#cb70-549" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb70-550"><a href="#cb70-550" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-551"><a href="#cb70-551" aria-hidden="true" tabindex="-1"></a>**Summary**</span>
+<span id="cb70-552"><a href="#cb70-552" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-553"><a href="#cb70-553" aria-hidden="true" tabindex="-1"></a><span class="in">```{r c_screening-fit}</span></span>
+<span id="cb70-554"><a href="#cb70-554" aria-hidden="true" tabindex="-1"></a>cholesterol_fit <span class="ot">&lt;-</span> <span class="fu">gam</span>(</span>
+<span id="cb70-555"><a href="#cb70-555" aria-hidden="true" tabindex="-1"></a>  Cholesterol_screening <span class="sc">~</span> Education <span class="sc">+</span> <span class="fu">s</span>(Total_procrastination) <span class="sc">+</span> <span class="fu">te</span>(Total_depression, Age),</span>
+<span id="cb70-556"><a href="#cb70-556" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> health_data, <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, <span class="at">method =</span> <span class="st">&quot;REML&quot;</span>)</span>
+<span id="cb70-557"><a href="#cb70-557" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-558"><a href="#cb70-558" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(cholesterol_fit)</span>
+<span id="cb70-559"><a href="#cb70-559" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-560"><a href="#cb70-560" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-561"><a href="#cb70-561" aria-hidden="true" tabindex="-1"></a>**Diagnostics**</span>
+<span id="cb70-562"><a href="#cb70-562" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-563"><a href="#cb70-563" aria-hidden="true" tabindex="-1"></a><span class="in">```{r c_screening-diagnostics, fig.width = 12}</span></span>
+<span id="cb70-564"><a href="#cb70-564" aria-hidden="true" tabindex="-1"></a>residuals <span class="ot">&lt;-</span> DHARMa<span class="sc">::</span><span class="fu">simulateResiduals</span>(cholesterol_fit, <span class="at">n =</span> <span class="dv">1000</span>)</span>
+<span id="cb70-565"><a href="#cb70-565" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(residuals)</span>
+<span id="cb70-566"><a href="#cb70-566" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-567"><a href="#cb70-567" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-568"><a href="#cb70-568" aria-hidden="true" tabindex="-1"></a>**Visualizing**</span>
+<span id="cb70-569"><a href="#cb70-569" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-570"><a href="#cb70-570" aria-hidden="true" tabindex="-1"></a><span class="in">```{r gam-cholesterol-visualise}</span></span>
+<span id="cb70-571"><a href="#cb70-571" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(here<span class="sc">::</span><span class="fu">here</span>(path_graphics, <span class="st">&quot;04__Cholesterol_GAM.png&quot;</span>))</span>
+<span id="cb70-572"><a href="#cb70-572" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb70-573"><a href="#cb70-573" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-574"><a href="#cb70-574" aria-hidden="true" tabindex="-1"></a>This time, following the directionality of the x, y, and z axes, the <span class="in">`vis.gam()`</span> contour plot shows that the probability of getting a cholesterol screening depends on both age and depression. For younger individuals, higher levels of procrastination is associated with a lower probability of getting a cholesterol screening, while lower levels of depression are associated with a higher probability of getting a cholesterol screening. Then as age increases the probability of getting a cholesterol screening rapidly increases for those with high levels of depression while slightly decreasing for those for low levels of depression. Beyond a certain age point though this probability begins dropping for both groups (faster for the group with levels of depression).</span>
+<span id="cb70-575"><a href="#cb70-575" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-576"><a href="#cb70-576" aria-hidden="true" tabindex="-1"></a><span class="fu">### Table Output (Education)</span></span>
+<span id="cb70-577"><a href="#cb70-577" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-578"><a href="#cb70-578" aria-hidden="true" tabindex="-1"></a><span class="in">```{r health-protection-education-table}</span></span>
+<span id="cb70-579"><a href="#cb70-579" aria-hidden="true" tabindex="-1"></a>sjPlot<span class="sc">::</span><span class="fu">tab_model</span>(</span>
+<span id="cb70-580"><a href="#cb70-580" aria-hidden="true" tabindex="-1"></a>  prosate_fit, mammogram_fit, pap_fit, </span>
+<span id="cb70-581"><a href="#cb70-581" aria-hidden="true" tabindex="-1"></a>  flu_fit, dentist_fit, cholesterol_fit,</span>
+<span id="cb70-582"><a href="#cb70-582" aria-hidden="true" tabindex="-1"></a>  <span class="at">show.intercept =</span> <span class="cn">FALSE</span>, <span class="at">show.r2 =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb70-583"><a href="#cb70-583" aria-hidden="true" tabindex="-1"></a>  <span class="at">terms =</span> <span class="fu">c</span>(<span class="st">&quot;Education&quot;</span>),</span>
+<span id="cb70-584"><a href="#cb70-584" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">&quot;Generalised Additive Model Output for Education&quot;</span></span>
+<span id="cb70-585"><a href="#cb70-585" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb70-586"><a href="#cb70-586" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb70-587"><a href="#cb70-587" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 </code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
