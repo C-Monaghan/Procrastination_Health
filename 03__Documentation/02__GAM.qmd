@@ -1,0 +1,532 @@
+---
+title: "Generalised Additive Models"
+author: "Cormac Monaghan"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+toc: true
+format:
+  html:
+    page-layout: full
+    html-math-method: katex
+    code-tools: true
+    self-contained: true
+    code-fold: true
+    code-summary: "Show the code"
+execute:
+  warning: false
+---
+
+```{r setup}
+set.seed(2468) # Reproducibility
+
+library(dplyr)
+library(mgcv) # For working with GAMs
+
+path_data <- "./01__Data/02__Processed/"
+path_graphics <- "./02__Models/Results/Figures/03__GAM/"
+
+health_data <- readxl::read_xlsx(here::here(path_data, "Health_HRS.xlsx"))
+
+health_data <- health_data %>%
+  dplyr::mutate(Education_fac = factor(case_when(
+    Education == 0 ~ "No degree",
+    Education == 1 ~ "GED",
+    Education == 2 ~ "High School",
+    Education == 3 ~ "College (2yrs)",
+    Education == 4 ~ "College (4yrs)",
+    Education == 5 ~ "Masters",
+    Education == 6 ~ "Professional Degree"), 
+    levels = c(
+      "No degree", "GED", "High School", "College (2yrs)","College (4yrs)", "Masters", "Professional Degree")), 
+    .after = Education)
+```
+
+# Generalised Additive Models
+Generalized additive models (GAMs) are a type of statistical model that can capture complex and non-linear relationships between predictor variables and a response variable. The GAM is a flexible extension of the generalized linear model (GLM). GAMs extend the framework of generalized linear models (GLMs) by allowing the response variable to depend on smooth functions of the predictors, rather than on linear combinations of them. This gives GAMs more flexibility and accuracy than GLMs when modeling data that exhibits non-linearity, heteroscedasticity, or interactions. Similar to the GLM, a link function is used to establish the relationship between the response and explanatory variables in the GAM. However, the linear predictor of the GLM is now replaced by a more general additive predictor of the form $\sum f_1(x_i)$, where $f_i(x_i)$ are unspecified nonparametric functions  
+
+A GAM can be written in the form:
+
+$$
+g(\mu) = \alpha + f_1(x_1) + f_2(x_2) + ... + f_i(x_i)
+$$
+
+where $\mu = E(Y \thicksim X_1, X_2, \dots, X_i), Y_i$ is a response variable, $g(\mu)$ is a link function determined by the distribution form of the response variable, $\alpha$ is an intercept term, and $f_1, \dots, f_i$ are smooth functions of the predictor variables $x_i$. The smooth functions $f_i$ can be estimated by various methods, such as splines, kernels, or local regression. GAMs can also include parametric terms, such as linear or polynomial terms, or random effects, to account for additional sources of variation or correlation in the data.
+
+# HRS Dataset
+The HRS, administered by the Institute for Social Research at the University of Michigan, is a longitudinal panel study that predominantly focuses on adults over the age of 50. The study collects, biennially, detailed information pertaining to respondent’s physical, cognitive, financial, employment, family, and psychosocial conditions. Similarly, in each wave, experimental modules are administered at the end of the core interview. These modules consist of concise questionnaires designed to explore new topics or supplement existing core survey data. However, each respondent only receives one experimental module, and the sample sizes for each module constitute approximately 10\% of the core sample. 
+
+## Health Problems and Health Protection 
+Within the HRS dataset, we have a data on 9 different health problems and 6 different health protective behaviors. These have been coded as either $0$ (not present/not done) or $1$ (present/done). 
+
+```{r view-data-problem, echo = TRUE}
+health_data %>%
+  select(
+    ID, Age, Gender, Education, College, Back_pain:Alcohol, Smoker_current, 
+    Blood_pressure:Dental_visit_2_years, Total_depression) %>%
+  rename(Drinking = "Alcohol", Smoker = "Smoker_current") %>%
+  head(n = 4) %>%
+  kableExtra::kbl(align = 'c') %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+## Procrastination
+During the 2020 wave of data collection, one of these experimental modules included a module termed "long-term care insurance procrastination”. This module was split into two parts with the second half incorporating a procrastination measure with the aim of investigating how procrastination influences decision-making in later life.
+
+```{r view-data-procrastination, echo = TRUE}
+health_data %>%
+  select(ID, Procras_1:Procras_12, Total_procrastination) %>%
+  head(n = 4) %>%
+  kableExtra::kbl(align = 'c') %>%
+  kableExtra::kable_styling(
+    full_width = FALSE,
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+```
+
+# Checking for Interactions
+For each of the health variables a logistic regression is fitted to assess for interaction effects - the results of this preliminary analysis indicated that the following variables had an interaction effect
+
+- Prostate Exam $\rightarrow$ Procrastination:Depression
+- Pap Smear $\rightarrow$ Depression:Age
+- Dental Visits $\rightarrow$ Procrastination:Age
+- Cholesterol Screening $\rightarrow$ Depression:Age
+
+```{r glm-interactions}
+# Fitting Models
+prostate_fit <- glm(
+  Prostate_exam ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+pap_fit <- glm(
+  Pap_smear ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+dental_fit <- glm(
+  Dental_visit_2_years ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+cholesterol_fit <- glm(
+  Cholesterol_screening ~ (Total_procrastination + Total_depression + Age)^2 + Education,
+  data = health_data, family = "binomial")
+
+# Outputting Table
+sjPlot::tab_model(
+  prostate_fit, pap_fit, dental_fit, cholesterol_fit,
+  show.intercept = FALSE, show.ci = FALSE, show.r2 = FALSE,
+  pred.labels = c("Procrastination", "Depression", "Age", "Education", 
+                  "Procrastination x Depression", "Procrastination x Age", 
+                  "Depression x Age"),
+  title = "GLM Output"
+)
+
+```
+
+# Generalised Additive Models
+
+## Health Problems
+
+For each health problem we will apply a GAM in the form of:
+
+$$
+logit(p) = \beta_0 + f_1(Procrastination) + f_2(Depression) + f3(Age) + \beta_1Education
+$$
+
+```{r}
+# Creating a vector of health problems
+health_problems <- c("Back_pain", "Headache", "Fatigue", "Smoker_current",
+                     "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition")
+
+# Creating a empty list to be filled
+fit <- list()
+
+# Loop over the response variables and fit the GAM model for each one
+for(i in 1:length(health_problems)) {
+  
+  # Create a formula with the current response variable
+  formula <- as.formula(paste(health_problems[i], "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education"))
+  
+  # Fit the GAM model and store it in the list
+  fit[[i]] <- gam(formula, data = health_data, family = "binomial", method = "REML")
+}
+```
+
+### Back Pain
+
+**Summary**
+```{r back_pain_model}
+broom::tidy(fit[[1]], parametric = TRUE)
+broom::tidy(fit[[1]])
+```
+
+**Diagnostics**
+```{r back_pain_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[1]], n = 1000)
+
+plot(residuals)
+```
+
+**Visualization**
+```{r}
+plot(fit[[1]], select = 1, trans = plogis, shift = coef(fit[[1]])[1], seWithMean = TRUE,
+  rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+  ylab = "Probability", xlab = "Procrastination", main = "Probability of experiencing back pain by procrastination")
+
+plot(fit[[1]], select = 2, trans = plogis, shift = coef(fit[[1]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Depression", main = "Probability of experiencing back pain by depression")
+
+
+```
+
+### Headaches
+
+**Summary**
+```{r headache_fit}
+broom::tidy(fit[[2]], parametric = TRUE)
+broom::tidy(fit[[2]])
+```
+
+**Diagnostics**
+```{r headache_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[2]], n = 1000)
+
+plot(residuals)
+```
+
+**Visualization**
+```{r headache_visualisation}
+plot(fit[[2]], select = 2, trans = plogis, shift = coef(fit[[2]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Depression", main = "Probability of experiencing headaches by depression")
+
+plot(fit[[2]], select = 3, trans = plogis, shift = coef(fit[[2]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Age", main = "Probability of experiencing headaches throughout age")
+```
+
+### Fatigue
+
+**Summary**
+```{r fatigue_fit}
+broom::tidy(fit[[3]], parametric = TRUE)
+broom::tidy(fit[[3]])
+```
+
+**Diagnostics**
+```{r fatigue_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[3]], n = 1000)
+
+plot(residuals)
+```
+
+**Visualization**
+```{r fatigue_visualisation}
+plot(fit[[3]], select = 1, trans = plogis, shift = coef(fit[[3]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Procrastination", main = "Probability of experiencing fatigue by procrastination")
+
+plot(fit[[3]], select = 2, trans = plogis, shift = coef(fit[[3]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Depression", main = "Probability of experiencing fatigue by depression")
+```
+
+### Smoking
+
+**Summary**
+```{r smoking_fit}
+broom::tidy(fit[[4]], parametric = TRUE)
+broom::tidy(fit[[4]])
+```
+
+**Diagnostics**
+```{r smoking_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[4]], n = 1000)
+
+plot(residuals)
+```
+
+**Visualization**
+```{r smoking_visualisation}
+plot(fit[[4]], select = 2, trans = plogis, shift = coef(fit[[4]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Depression", main = "Probability of smoking by depression")
+```
+
+### Blood Pressure
+
+**Summary**
+```{r blood_fit}
+broom::tidy(fit[[5]], parametric = TRUE)
+broom::tidy(fit[[5]])
+```
+
+**Diagnostics**
+```{r blood_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[5]], n = 1000)
+
+plot(residuals)
+```
+
+**Visualization**
+```{r blood-visualisation}
+plot(fit[[5]], select = 1, trans = plogis, shift = coef(fit[[5]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Procrastination", main = "Probability of experiencing blood pressure by procrastination")
+
+plot(fit[[5]], select = 2, trans = plogis, shift = coef(fit[[5]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Depression", main = "Probability of experiencing blood pressure by depression")
+
+plot(fit[[5]], select = 3, trans = plogis, shift = coef(fit[[5]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Age", main = "Probability of experiencing blood pressure by age")
+```
+
+### Diabetes
+
+**Summary**
+```{r diabetes-fit}
+broom::tidy(fit[[6]], parametric = TRUE)
+broom::tidy(fit[[6]])
+```
+
+**Diagnostics**
+```{r diabetes_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[6]], n = 1000)
+
+plot(residuals)
+```
+
+**Visualization**
+```{r diabetes-visualisation}
+plot(fit[[6]], select = 1, trans = plogis, shift = coef(fit[[6]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Procrastination", main = "Probability of experiencing diabetes by procrastination")
+
+plot(fit[[6]], select = 3, trans = plogis, shift = coef(fit[[6]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Age", main = "Probability of experiencing diabetes by age")
+```
+
+
+### Cholesterol
+
+**Summary**
+```{r cholesterol-fit}
+broom::tidy(fit[[7]], parametric = TRUE)
+broom::tidy(fit[[7]])
+```
+
+**Diagnostics**
+```{r cholesterol_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[7]], n = 1000)
+
+plot(residuals)
+```
+
+**Visualization**
+```{r cholesterol-visualisation}
+plot(fit[[7]], select = 2, trans = plogis, shift = coef(fit[[7]])[1], seWithMean = TRUE,
+     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", xlab = "Depression", main = "Probability of experiencing cholesterol by Depression")
+```
+
+
+### Heart Condition
+
+**Summary**
+```{r heart-fit}
+broom::tidy(fit[[8]], parametric = TRUE)
+broom::tidy(fit[[8]])
+```
+
+**Diagnostics**
+```{r heart_diagnostics, fig.width=12}
+residuals <- DHARMa::simulateResiduals(fit[[8]], n = 1000)
+
+plot(residuals)
+```
+
+
+### Full Table Output
+
+```{r health-problem-table} 
+sjPlot::tab_model(
+  fit[[1]], fit[[2]], fit[[3]], fit[[4]],
+  fit[[5]], fit[[6]], fit[[7]], fit[[8]],
+  show.intercept = FALSE, 
+  pred.labels = c("Education", "s(Procrastination)", "s(Depression", "s(Age)"),
+  title = "Generalised Additive Models Predicting Liklihood of Health Problems",
+  p.style = "numeric_stars"
+)
+```
+
+
+## Health Protection
+As previously mentioned, some of the health protection variables have interaction effects and as such will be appropriately defined with a **tensor product smooth** in the ``gam()`` function.
+
+For those variables without a interaction effects the same GAM formula as the health problems will be applied.
+
+### Prostate Exam (Interaction Present)
+
+$$
+logit(p) = \beta_0 + \beta_1Education + f_1(Age) + f_2(Procrastination, Depression)
+$$
+
+**Summary**
+```{r prosate-fit}
+prosate_fit <- gam(
+  Prostate_exam ~ Education + s(Age) + te(Total_procrastination, Total_depression),
+  data = health_data, family = "binomial", method = "REML")
+
+broom::tidy(prosate_fit, parametric = TRUE)
+broom::tidy(prosate_fit)
+```
+
+**Diagnostics**
+```{r prostate-diagnostics, fig.width = 12}
+residuals <- DHARMa::simulateResiduals(prosate_fit, n = 1000)
+plot(residuals)
+```
+
+**Visualizing**
+```{r prostate-visualise}
+plot(prosate_fit, select = 1, trans = plogis, shift = coef(prosate_fit)[1], 
+     seWithMean = TRUE, rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", main = "Probability of getting a prostate exam throughout age")
+
+# Depression and Procrastination
+# knitr::include_graphics(here::here(path_graphics, "01__Prostate_GAM.png"))
+
+```
+
+### Mammogram (No Interaction)
+
+**Summary**
+```{r mammogram-fit}
+mammogram_fit <- gam(
+  Mammogram ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education,
+  data = health_data, family = "binomial", method = "REML")
+
+broom::tidy(mammogram_fit, parametric = TRUE)
+broom::tidy(mammogram_fit)
+```
+
+**Diagnostics**
+```{r mammogram-diagnostics, fig.width = 12}
+residuals <- DHARMa::simulateResiduals(mammogram_fit, n = 1000)
+plot(residuals)
+```
+
+**Visualizing**
+```{r mammogram-visualise}
+plot(mammogram_fit, select = 3, trans = plogis, shift = coef(mammogram_fit)[1], 
+     seWithMean = TRUE, rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", main = "Probability of getting a mammogram throughout age")
+```
+
+### Pap Smear (Interaction Present)
+
+$$
+logit(p) = \beta_0 + \beta_1Education + f_1Procrastination + f_2(Depression, Age)
+$$
+
+**Summary**
+```{r gam-fit}
+pap_fit <- gam(
+  Pap_smear ~ Education + s(Total_procrastination) + te(Total_depression, Age),
+  data = health_data, family = "binomial", method = "REML")
+
+broom::tidy(pap_fit, parametric = TRUE)
+broom::tidy(pap_fit)
+```
+
+**Diagnostics**
+```{r pap-diagnostics, fig.width = 12}
+residuals <- DHARMa::simulateResiduals(pap_fit, n = 1000)
+plot(residuals)
+```
+
+**Visualizing**
+```{r gam-pap-visualise}
+knitr::include_graphics(here::here(path_graphics, "02__Pap_Smear_GAM.png"))
+```
+
+### Flu Shot (No Interaction)
+
+**Summary**
+```{r flu-fit}
+flu_fit <- gam(
+  Flu_shot ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education, 
+  data = health_data, family = "binomial", method = "REML")
+
+broom::tidy(flu_fit, parametric = TRUE)
+broom::tidy(flu_fit)
+```
+
+**Diagnostics**
+```{r flu-diagnostics, fig.width = 12}
+residuals <- DHARMa::simulateResiduals(flu_fit, n = 1000)
+plot(residuals)
+```
+
+**Visualizing**
+```{r flu-visualise}
+plot(flu_fit, select = 3, trans = plogis, shift = coef(flu_fit)[1], 
+     seWithMean = TRUE, rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
+     ylab = "Probability", main = "Probability of getting a flu shot throughout age")
+```
+
+### Dental Visit (Interaction)
+
+$$
+logit(p) = \beta_0 + \beta_1Education + f_1Depression + f_2(Procrastination, Age)
+$$
+**Summary**
+```{r dentist-fit}
+dentist_fit <- gam(
+  Dental_visit_2_years ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age),
+  data = health_data, family = "binomial", method = "REML")
+
+broom::tidy(dentist_fit, parametric = TRUE)
+broom::tidy(dentist_fit)
+```
+
+**Diagnostics**
+```{r dentist-diagnostics, fig.width = 12}
+residuals <- DHARMa::simulateResiduals(dentist_fit, n = 1000)
+plot(residuals)
+```
+
+**Visualizing**
+```{r dentist-visualise}
+knitr::include_graphics(here::here(path_graphics, "03__Dentist_GAM.png"))
+```
+
+### Cholesterol Screening (Interaction Present)
+
+$$
+logit(p) = \beta_0 + \beta_1Education + f_1Procrastination + f_2(Depression, Age)
+$$
+
+**Summary**
+```{r c_screening-fit}
+cholesterol_fit <- gam(
+  Cholesterol_screening ~ Education + s(Total_procrastination) + te(Total_depression, Age),
+  data = health_data, family = "binomial", method = "REML")
+
+broom::tidy(cholesterol_fit, parametric = TRUE)
+broom::tidy(cholesterol_fit)
+```
+
+**Diagnostics**
+```{r c_screening-diagnostics, fig.width = 12}
+residuals <- DHARMa::simulateResiduals(cholesterol_fit, n = 1000)
+plot(residuals)
+```
+
+**Visualizing**
+```{r gam-cholesterol-visualise}
+knitr::include_graphics(here::here(path_graphics, "04__Cholesterol_GAM.png"))
+```
+

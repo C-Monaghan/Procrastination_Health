@@ -40,7 +40,7 @@ health_data <- cbind(
     # Disabling Pain - Back, Headache, and Fatigue
     "RC146","RC147", "RC148",
     # Lifestyle - Smoking and Alcohol
-    "RC128", "RC129", "RC117", "RC118",
+    "RC128", "RC129", "RC130", "RC117", "RC118",
     # Lifestyle - Physical Activity
     "RC225", "RC224", "RC223",
     # Health Markers - Biological
@@ -71,7 +71,8 @@ health_data <- health_data %>%
     Fatigue = "RC148",
     # Lifestyle - Smoking and Alcohol
     Alcohol = "RC128",
-    Amount_alcohol = "RC129",
+    Alcohol_week = "RC129",
+    Alcohol_amount = "RC130",
     Smoker_current = "RC117",
     Smoker_num = "RC118",
     # Lifestyle - Physical Activity
@@ -144,8 +145,10 @@ health_data <- health_data %>%
     Headache = replace(Headache, Headache %in% c(8, 9), NA),
     Fatigue = replace(Fatigue, Fatigue %in% c(-8, 8), NA),
     Alcohol = replace(Alcohol, Alcohol %in% c(-8, 3, 8, 9), NA),
-    Amount_alcohol = replace(Amount_alcohol, is.na(Amount_alcohol), 0), # Those who don't drink at all have NA for their number of drinks - this is changed to 0
-    Amount_alcohol = replace(Amount_alcohol, Amount_alcohol %in% c(-8, 8, 9), NA), # We can then change those who actually drink values to NA
+    Alcohol_week = replace(Alcohol_week, is.na(Alcohol_week), 0), # Those who don't drink at all have NA for their number of drinks - this is changed to 0
+    Alcohol_week = replace(Alcohol_week, Alcohol_week %in% c(-8, 8, 9), NA), # We can then change those who actually drink values to NA
+    Alcohol_amount = replace(Alcohol_amount, is.na(Alcohol_amount), 0),
+    Alcohol_amount = replace(Alcohol_amount, Alcohol_amount %in% c(98), NA),
     Smoker_num = ifelse(Smoker_current == 5, 0, Smoker_num), # Those who don't smoke at all have NA for their number of cigarettes - this is changed to 0
     Activity_mild = replace(Activity_mild, Activity_mild %in% c(-8, 8, 9), NA),
     Activity_moderate = replace(Activity_moderate, Activity_moderate %in% c(-8, 8, 9), NA),
