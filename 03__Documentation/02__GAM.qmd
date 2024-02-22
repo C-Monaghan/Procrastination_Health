@@ -154,7 +154,6 @@ for(i in 1:length(health_problems)) {
 
 **Summary**
 ```{r back_pain_model}
-broom::tidy(fit[[1]], parametric = TRUE)
 broom::tidy(fit[[1]])
 ```
 
@@ -182,7 +181,6 @@ plot(fit[[1]], select = 2, trans = plogis, shift = coef(fit[[1]])[1], seWithMean
 
 **Summary**
 ```{r headache_fit}
-broom::tidy(fit[[2]], parametric = TRUE)
 broom::tidy(fit[[2]])
 ```
 
@@ -208,7 +206,6 @@ plot(fit[[2]], select = 3, trans = plogis, shift = coef(fit[[2]])[1], seWithMean
 
 **Summary**
 ```{r fatigue_fit}
-broom::tidy(fit[[3]], parametric = TRUE)
 broom::tidy(fit[[3]])
 ```
 
@@ -234,7 +231,6 @@ plot(fit[[3]], select = 2, trans = plogis, shift = coef(fit[[3]])[1], seWithMean
 
 **Summary**
 ```{r smoking_fit}
-broom::tidy(fit[[4]], parametric = TRUE)
 broom::tidy(fit[[4]])
 ```
 
@@ -256,7 +252,6 @@ plot(fit[[4]], select = 2, trans = plogis, shift = coef(fit[[4]])[1], seWithMean
 
 **Summary**
 ```{r blood_fit}
-broom::tidy(fit[[5]], parametric = TRUE)
 broom::tidy(fit[[5]])
 ```
 
@@ -286,7 +281,6 @@ plot(fit[[5]], select = 3, trans = plogis, shift = coef(fit[[5]])[1], seWithMean
 
 **Summary**
 ```{r diabetes-fit}
-broom::tidy(fit[[6]], parametric = TRUE)
 broom::tidy(fit[[6]])
 ```
 
@@ -313,7 +307,6 @@ plot(fit[[6]], select = 3, trans = plogis, shift = coef(fit[[6]])[1], seWithMean
 
 **Summary**
 ```{r cholesterol-fit}
-broom::tidy(fit[[7]], parametric = TRUE)
 broom::tidy(fit[[7]])
 ```
 
@@ -336,7 +329,6 @@ plot(fit[[7]], select = 2, trans = plogis, shift = coef(fit[[7]])[1], seWithMean
 
 **Summary**
 ```{r heart-fit}
-broom::tidy(fit[[8]], parametric = TRUE)
 broom::tidy(fit[[8]])
 ```
 
@@ -348,24 +340,21 @@ plot(residuals)
 ```
 
 
-### Full Table Output
+### Table Output (Education)
 
-```{r health-problem-table} 
+```{r health-problem-education-table}
 sjPlot::tab_model(
   fit[[1]], fit[[2]], fit[[3]], fit[[4]],
   fit[[5]], fit[[6]], fit[[7]], fit[[8]],
-  show.intercept = FALSE, 
-  pred.labels = c("Education", "s(Procrastination)", "s(Depression", "s(Age)"),
-  title = "Generalised Additive Models Predicting Liklihood of Health Problems",
-  p.style = "numeric_stars"
+  show.intercept = FALSE, show.r2 = FALSE,
+  terms = c("Education"),
+  title = "Generalised Additive Model Output for Education"
 )
 ```
 
 
 ## Health Protection
-As previously mentioned, some of the health protection variables have interaction effects and as such will be appropriately defined with a **tensor product smooth** in the ``gam()`` function.
-
-For those variables without a interaction effects the same GAM formula as the health problems will be applied.
+As previously mentioned, some of the health protection variables have interaction effects and as such will be appropriately defined with a **tensor product smooth** in the ``gam()`` function. For those variables without a interaction effects the same GAM formula as the health problems will be applied.
 
 ### Prostate Exam (Interaction Present)
 
@@ -379,7 +368,6 @@ prosate_fit <- gam(
   Prostate_exam ~ Education + s(Age) + te(Total_procrastination, Total_depression),
   data = health_data, family = "binomial", method = "REML")
 
-broom::tidy(prosate_fit, parametric = TRUE)
 broom::tidy(prosate_fit)
 ```
 
@@ -395,9 +383,15 @@ plot(prosate_fit, select = 1, trans = plogis, shift = coef(prosate_fit)[1],
      seWithMean = TRUE, rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1),
      ylab = "Probability", main = "Probability of getting a prostate exam throughout age")
 
+```
+
+The probability of getting a prostate exam varies with age, following a quadratic pattern. It increases until it reaches a peak at around 70-75 years old, and then it declines. This is most likely because most health professionals advise against prostate exams for men older than 70-75, as they are unlikely to benefit from curative treatment if they have prostate cancer [(Lima et al., 2008)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2692165/).
+
+Different countries and organizations have different guidelines for prostate screening. In the United States, both the American Cancer Society and American Urologic Association recommend that men over 50 should get regular prostate exams. Beyond the age of 70-75, practitioners tend to then perform exams based on "patient preferences, life expectancy, health status, and prior screening history" [(Wolf et el., 2018)](https://acsjournals.onlinelibrary.wiley.com/doi/full/10.3322/caac.21457).
+
+```{r depression-procrastination-interaction}
 # Depression and Procrastination
 # knitr::include_graphics(here::here(path_graphics, "01__Prostate_GAM.png"))
-
 ```
 
 ### Mammogram (No Interaction)
@@ -408,7 +402,6 @@ mammogram_fit <- gam(
   Mammogram ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education,
   data = health_data, family = "binomial", method = "REML")
 
-broom::tidy(mammogram_fit, parametric = TRUE)
 broom::tidy(mammogram_fit)
 ```
 
@@ -425,6 +418,9 @@ plot(mammogram_fit, select = 3, trans = plogis, shift = coef(mammogram_fit)[1],
      ylab = "Probability", main = "Probability of getting a mammogram throughout age")
 ```
 
+Similar to prostate exams, the relationship between age and mammograms follow a quadratic relationship, increasing in probability up until the age of approximately 70 before declining. Reasons for this are also similar to that of prostate exams with clinicians recommending to stop screening for breast cancer in older age, as the benefits may not outweigh the harms [(Walter and Schonberg, 2014)](https://jamanetwork.com/journals/jama/article-abstract/1853134).
+ 
+
 ### Pap Smear (Interaction Present)
 
 $$
@@ -437,7 +433,6 @@ pap_fit <- gam(
   Pap_smear ~ Education + s(Total_procrastination) + te(Total_depression, Age),
   data = health_data, family = "binomial", method = "REML")
 
-broom::tidy(pap_fit, parametric = TRUE)
 broom::tidy(pap_fit)
 ```
 
@@ -452,6 +447,8 @@ plot(residuals)
 knitr::include_graphics(here::here(path_graphics, "02__Pap_Smear_GAM.png"))
 ```
 
+Following the directionality of the x, y, and z axes, the `vis.gam()` contour plot shows that the probability of getting a pap smear depends on both age and depression. For younger individuals, lower levels of depression are associated with a higher probability of getting a pap smear, while higher levels of depression are associated with a lower probability. However, as age increases the probability of getting a pap smear also begins to decrease regardless of depression score.
+
 ### Flu Shot (No Interaction)
 
 **Summary**
@@ -460,7 +457,6 @@ flu_fit <- gam(
   Flu_shot ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education, 
   data = health_data, family = "binomial", method = "REML")
 
-broom::tidy(flu_fit, parametric = TRUE)
 broom::tidy(flu_fit)
 ```
 
@@ -488,7 +484,6 @@ dentist_fit <- gam(
   Dental_visit_2_years ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age),
   data = health_data, family = "binomial", method = "REML")
 
-broom::tidy(dentist_fit, parametric = TRUE)
 broom::tidy(dentist_fit)
 ```
 
@@ -503,6 +498,8 @@ plot(residuals)
 knitr::include_graphics(here::here(path_graphics, "03__Dentist_GAM.png"))
 ```
 
+Again, following the directionality of the x, y, and z axes, the `vis.gam()` contour plot shows that the probability of visiting the dentist depends on both age and procrastination. For younger individuals, higher levels of procrastination is associated with a higher probability of visiting the dentist, while lower levels of procrastination is associated with a lower probability. This increased probability for higher levels of procrastination may be seen as mandatory unavoidable visits due to the procrastination of at home dental care. As age then increases the probability of visiting the dentist increases for those with low levels of procrastination and decreases for those with high levels of procrastination.
+
 ### Cholesterol Screening (Interaction Present)
 
 $$
@@ -515,7 +512,6 @@ cholesterol_fit <- gam(
   Cholesterol_screening ~ Education + s(Total_procrastination) + te(Total_depression, Age),
   data = health_data, family = "binomial", method = "REML")
 
-broom::tidy(cholesterol_fit, parametric = TRUE)
 broom::tidy(cholesterol_fit)
 ```
 
@@ -528,5 +524,20 @@ plot(residuals)
 **Visualizing**
 ```{r gam-cholesterol-visualise}
 knitr::include_graphics(here::here(path_graphics, "04__Cholesterol_GAM.png"))
+```
+
+This time, following the directionality of the x, y, and z axes, the `vis.gam()` contour plot shows that the probability of getting a cholesterol screening depends on both age and depression. For younger individuals, higher levels of procrastination is associated with a lower probability of getting a cholesterol screening, while lower levels of depression are associated with a higher probability of getting a cholesterol screening. Then as age increases the probability of getting a cholesterol screening rapidly increases for those with high levels of depression while slightly decreasing for those for low levels of depression. Beyond a certain age point though this probability begins dropping for both groups (faster for the group with levels of depression).
+
+
+### Table Output (Education)
+```{r health-protection-education-table}
+sjPlot::tab_model(
+  prosate_fit, mammogram_fit, pap_fit, 
+  flu_fit, dentist_fit, cholesterol_fit,
+  show.intercept = FALSE, show.r2 = FALSE,
+  terms = c("Education"),
+  title = "Generalised Additive Model Output for Education"
+)
+
 ```
 
