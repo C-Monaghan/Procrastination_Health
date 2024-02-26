@@ -57,23 +57,24 @@ health_data %>%
 
 # Alcohol per week and procrastination
 health_data %>%
-  ggplot(aes(x = Days_drink / (Days_drink + Days_no_drink), y = Total_procrastination)) +
-  geom_jitter(width = 0.05) +
+  filter(Alcohol == 1) %>%
+  ggplot(aes(x = Total_procrastination, y = Days_drink / 7 )) +
+  geom_jitter(width = 0.05, height = 0.05) +
   geom_smooth(se = FALSE, method = "glm") +
   labs(title = "Days Drank vs. Procrastination",
-       x = "Proportion of Days Drank", y = "Total Procrastination") +
+       x = "Total Procrastination", y = "Proportion of Days Drank") +
   theme_bw() +
   ggeasy::easy_center_title()
 
 # Modelling --------------------------------------------------------------------
 # Binomial GLM with different link functions (one predictor) -------------------
-fit_1a <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + I(Total_procrastination^2),
+fit_1a <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination,
            data = health_data, family = binomial(link = "logit"))
 
-fit_1b <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination +  I(Total_procrastination^2),
+fit_1b <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination,
               data = health_data, family = binomial(link = "probit"))
 
-fit_1c <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + I(Total_procrastination^2),
+fit_1c <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination,
               data = health_data, family = binomial(link = "cloglog"))
 
 # Summarizing
@@ -123,11 +124,11 @@ glm_data %>%
   ggeasy::easy_add_legend_title("Link Function")
 
 # Binomial GLM with multiple predictors ----------------------------------------
-fit_2a <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age,
+fit_2a <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "logit"))
-fit_2b <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age,
+fit_2b <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "probit"))
-fit_2c <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age,
+fit_2c <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "cloglog"))
 
 # Summarizing
@@ -221,3 +222,5 @@ test <- glm(Days_drink ~ Total_procrastination,
             data = health_data)
 
 summary(zero_fit)
+
+drop1(fit_1a, test = "Chisq")
