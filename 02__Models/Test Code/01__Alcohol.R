@@ -135,11 +135,11 @@ glm_data %>%
   ggeasy::easy_add_legend_title("Link Function")
 
 # Binomial GLM with different link functions (multiple predictors) ------------- 
-fit_2a <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination)^2 + Total_depression + Education + Age,
+fit_2a <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "logit"))
-fit_2b <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination)^2 + Total_depression + Education + Age,
+fit_2b <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "probit"))
-fit_2c <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination)^2 + Total_depression + Education + Age,
+fit_2c <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2) + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "cloglog"))
 
 # Summarizing
@@ -152,7 +152,8 @@ hnp(fit_2a, main = "HNP for logit model")                  # BAD
 hnp(fit_2b, main = "HNP for probit model")                 # BAD
 hnp(fit_2c, main = "HNP for complementary log log model")  # BAD
 
-# Plotting (using visreg)
+# Plotting
+# Procrastination
 visreg(fit = fit_2a, xvar = "Total_procrastination", gg = TRUE, 
        scale = "response", rug = FALSE) +
   geom_jitter(data = health_data, aes(x = Total_procrastination, y = Days_drink / 7), 
@@ -163,55 +164,22 @@ visreg(fit = fit_2a, xvar = "Total_procrastination", gg = TRUE,
        x = "Total Procrasination", y = "prob(Days Drinking)") +
   theme_bw()
 
-# Binomial GAM with multiple predictors ----------------------------------------
-fit_3 <- gam(cbind(Days_no_drink, Days_drink) ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education,
-             data = health_data, family = "binomial", method = "REML")
-
-# Summarizing
-summary(fit_3)
-
-# Diagnostics
-fit_3_residuals <- DHARMa::simulateResiduals(fit_3)
-plot(fit_3_residuals)                                   # BAD
-
-# Plotting GAM
-plot(fit_3, pages = 1, 
-     shift = fit_3$coefficients[1], 
-     trans = plogis, rug = FALSE, 
-     shade = TRUE, shade.col = "skyblue",
-     ylim = c(0.75, 1))
-
-# Plotting using visreg
-visreg(fit = fit_3, xvar = "Total_procrastination", gg = TRUE, scale = "response", rug = FALSE) + 
-  geom_jitter(data = health_data, aes(x = Total_procrastination, y = Days_drink / 7)) +
-  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-  labs(title = "Relationship between days drinking and procrastination (GAM)",
-       subtitle = "Controlling for depression, age, and education",
-       x = "Total Procrasination", y = "prob(Days Drinking)") +
-  theme_bw()
-
-
-visreg(fit = fit_2a, 
-       xvar = "Education", 
-       gg = TRUE, 
-       scale = "response", 
-       rug = FALSE) +
-  geom_jitter(data = filter(health_data, complete.cases(health_data$Education_fac) == TRUE), aes(x = Education_fac, y = Days_drink / 7), 
+# Depression
+visreg(fit = fit_2a, xvar = "Total_depression", gg = TRUE, 
+       scale = "response", rug = FALSE) +
+  geom_jitter(data = health_data, aes(x = Total_depression, y = Days_drink / 7), 
               alpha = 0.5, size = 0.9) +
-  scale_x_discrete(labels = as.character(levels(health_data$Education_fac))) +
-  labs(title = "Relationship between days drinking and education (GLM)",
-       subtitle = "Controlling for procrastination, depression, and age",
-       x = "Education", y = "prob(Days Drinking)") +
+  scale_x_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Relationship between days drinking and depression (GLM)",
+       subtitle = "Controlling for procrastination, age, and education",
+       x = "Total Depression", y = "prob(Days Drinking)") +
   theme_bw() +
   theme(plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5)) +
-  ggeasy::easy_x_axis_labels_size(size = 7)
+        plot.subtitle = element_text(hjust = 0.5))
 
-visreg(fit = fit_2a, 
-       xvar = "Education", 
-       gg = TRUE, 
-       scale = "response", 
-       rug = FALSE) +
+# Education
+visreg(fit = fit_2a, xvar = "Education", gg = TRUE, 
+       scale = "response", rug = FALSE) + 
   geom_jitter(data = health_data, aes(x = Education, y = Days_drink / 7), 
               alpha = 0.5, size = 0.9) +
   scale_x_continuous(breaks = seq(0, 6, by = 1), labels = c(
@@ -226,7 +194,57 @@ visreg(fit = fit_2a,
         plot.subtitle = element_text(hjust = 0.5)) +
   ggeasy::easy_x_axis_labels_size(size = 7)
 
+# Binomial GAM with multiple predictors ----------------------------------------
+fit_3 <- gam(cbind(Days_drink, Days_no_drink) ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education,
+             data = health_data, family = "binomial", method = "REML")
 
+# Summarizing
+summary(fit_3)
+
+# Diagnostics
+fit_3_residuals <- DHARMa::simulateResiduals(fit_3)
+plot(fit_3_residuals)                                   # BAD
+
+# Plotting
+# Procrastination
+visreg(fit = fit_3, xvar = "Total_procrastination", gg = TRUE, 
+       scale = "response", rug = FALSE) + 
+  geom_jitter(data = health_data, aes(x = Total_procrastination, y = Days_drink / 7)) +
+  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+  labs(title = "Relationship between days drinking and procrastination (GAM)",
+       subtitle = "Controlling for depression, age, and education",
+       x = "Total Procrasination", y = "prob(Days Drinking)") +
+  theme_bw()
+
+# Depression
+visreg(fit = fit_3, xvar = "Total_depression", gg = TRUE, 
+       scale = "response", rug = FALSE) + 
+  geom_jitter(data = health_data, aes(x = Total_depression, y = Days_drink / 7), 
+              alpha = 0.5) +
+  scale_x_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Relationship between days drinking and depression (GAM)",
+       subtitle = "Controlling for procrastination, age, and education",
+       x = "Total Depression", y = "prob(Days Drinking)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+# Education
+visreg(fit = fit_3, xvar = "Education", gg = TRUE, 
+       scale = "response", rug = FALSE) +
+  geom_jitter(data = health_data, aes(x = Education, y = Days_drink / 7), 
+              width = 0.3, alpha = 0.5, size = 0.9) +
+  scale_x_continuous(breaks = seq(0, 6, by = 1), labels = c(
+    "No Degree", "GED", "High School", 
+    "College (2yrs)", "College (4yrs)", 
+    "Masters", "Professional Degree")) +
+  labs(title = "Relationship between days drinking and education (GAM)",
+       subtitle = "Controlling for procrastination, depression, and age",
+       x = "Education", y = "prob(Days Drinking)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  ggeasy::easy_x_axis_labels_size(size = 7)
 
 # Binomial GAM with interaction for Procrastination and Age --------------------
 fit_4 <- gam(cbind(Days_drink, Days_no_drink) ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age),
@@ -236,6 +254,37 @@ fit_4 <- gam(cbind(Days_drink, Days_no_drink) ~ Education + s(Total_depression, 
 fit_4_residuals <- DHARMa::simulateResiduals(fit_4)
 plot(fit_4_residuals)                                   # BAD
 
+# Plotting
+# Depression
+visreg(fit = fit_3, xvar = "Total_depression", gg = TRUE, 
+       scale = "response", rug = FALSE) + 
+  geom_jitter(data = health_data, aes(x = Total_depression, y = Days_drink / 7), 
+              alpha = 0.5) +
+  scale_x_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Relationship between days drinking and depression (GAM)",
+       subtitle = "Controlling for procrastination, age, and education",
+       x = "Total Depression", y = "prob(Days Drinking)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5))
+
+# Education
+visreg(fit = fit_4, xvar = "Education", gg = TRUE, 
+       scale = "response", rug = FALSE) +
+  geom_jitter(data = health_data, aes(x = Education, y = Days_drink / 7), 
+              width = 0.3, alpha = 0.5, size = 0.9) +
+  scale_x_continuous(breaks = seq(0, 6, by = 1), labels = c(
+    "No Degree", "GED", "High School", 
+    "College (2yrs)", "College (4yrs)", 
+    "Masters", "Professional Degree")) +
+  labs(title = "Relationship between days drinking and education (GAM)",
+       subtitle = "Controlling for procrastination, depression, and age",
+       x = "Education", y = "prob(Days Drinking)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  ggeasy::easy_x_axis_labels_size(size = 7)
+
 # Visualization of Interaction
 vis.gam(fit_4, view = c("Total_procrastination", "Age"),
         type = "response", plot.type = 'persp', phi = 30,
@@ -244,32 +293,24 @@ vis.gam(fit_4, view = c("Total_procrastination", "Age"),
         xlab = "Total Procrastination (0 - 60)", ylab = "Age",
         zlab = "Predicted Probability (0 - 1)")
 
-# Visualizing depression
-plot(fit_4, select = 1, trans = plogis, 
-     xlab = "Total Depression", ylim = c(0, 1), 
-     shade = TRUE, shade.col = "skyblue")
-
-
-
-
 
 
 
 
 # Zero Inflated Model ----------------------------------------------------------
-mean(health_data$Days_drink == 0, na.rm = TRUE)
-
-zero_fit <- pscl::zeroinfl(Days_drink ~ Total_procrastination,
-                           dist = "negbin",
-                           data = health_data)
-summary(zero_fit)
-
-hnp::hnp(zero_fit)
-
-test <- glm(Days_drink ~ Total_procrastination,
-            family = binomial(link = "logit"),
-            data = health_data)
-
-summary(zero_fit)
-
-drop1(fit_1a, test = "Chisq")
+# mean(health_data$Days_drink == 0, na.rm = TRUE)
+# 
+# zero_fit <- pscl::zeroinfl(Days_drink ~ Total_procrastination,
+#                            dist = "negbin",
+#                            data = health_data)
+# summary(zero_fit)
+# 
+# hnp::hnp(zero_fit)
+# 
+# test <- glm(Days_drink ~ Total_procrastination,
+#             family = binomial(link = "logit"),
+#             data = health_data)
+# 
+# summary(zero_fit)
+# 
+# drop1(fit_1a, test = "Chisq")
