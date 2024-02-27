@@ -18,7 +18,18 @@ health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
 health_data <- health_data %>%
   rename(Days_drink = "Alcohol_week") %>%
-  mutate(Days_no_drink = 7 - Days_drink, .after = Days_drink)
+  mutate(Days_no_drink = 7 - Days_drink, .after = Days_drink) %>%
+  mutate(Education_fac = factor(case_when(
+    Education == 0 ~ "No degree",
+    Education == 1 ~ "GED",
+    Education == 2 ~ "High School",
+    Education == 3 ~ "College (2yrs)",
+    Education == 4 ~ "College (4yrs)",
+    Education == 5 ~ "Masters",
+    Education == 6 ~ "Professional Degree"), 
+    levels = c("No degree", "GED", "High School", 
+               "College (2yrs)","College (4yrs)", 
+               "Masters", "Professional Degree")), .after = Education)
 
 # Exploring alcohol data -------------------------------------------------------
 # Do you consume alcohol
@@ -124,7 +135,7 @@ glm_data %>%
   ggeasy::easy_add_legend_title("Link Function")
 
 # Binomial GLM with multiple predictors ----------------------------------------
-fit_2a <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + Total_depression + Education + Age,
+fit_2a <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "logit"))
 fit_2b <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "probit"))
@@ -178,6 +189,44 @@ visreg(fit = fit_3, xvar = "Total_procrastination", gg = TRUE, scale = "response
        subtitle = "Controlling for depression, age, and education",
        x = "Total Procrasination", y = "prob(Days Drinking)") +
   theme_bw()
+
+
+visreg(fit = fit_2a, 
+       xvar = "Education", 
+       gg = TRUE, 
+       scale = "response", 
+       rug = FALSE) +
+  geom_jitter(data = filter(health_data, complete.cases(health_data$Education_fac) == TRUE), aes(x = Education_fac, y = Days_drink / 7), 
+              alpha = 0.5, size = 0.9) +
+  scale_x_discrete(labels = as.character(levels(health_data$Education_fac))) +
+  labs(title = "Relationship between days drinking and education (GLM)",
+       subtitle = "Controlling for procrastination, depression, and age",
+       x = "Education", y = "prob(Days Drinking)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  ggeasy::easy_x_axis_labels_size(size = 7)
+
+visreg(fit = fit_2a, 
+       xvar = "Education", 
+       gg = TRUE, 
+       scale = "response", 
+       rug = FALSE) +
+  geom_jitter(data = health_data, aes(x = Education, y = Days_drink / 7), 
+              alpha = 0.5, size = 0.9) +
+  scale_x_continuous(breaks = seq(0, 6, by = 1), labels = c(
+    "No Degree", "GED", "High School", 
+    "College (2yrs)", "College (4yrs)", 
+    "Masters", "Professional Degree")) +
+  labs(title = "Relationship between days drinking and education (GLM)",
+       subtitle = "Controlling for procrastination, depression, and age",
+       x = "Education", y = "prob(Days Drinking)") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  ggeasy::easy_x_axis_labels_size(size = 7)
+
+
 
 # Binomial GAM with interaction for Procrastination and Age --------------------
 fit_4 <- gam(cbind(Days_no_drink, Days_drink) ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age),
