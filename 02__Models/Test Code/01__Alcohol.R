@@ -79,13 +79,13 @@ health_data %>%
 
 # Modelling --------------------------------------------------------------------
 # Binomial GLM with different link functions (one predictor) -------------------
-fit_1a <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination,
+fit_1a <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2),
            data = health_data, family = binomial(link = "logit"))
 
-fit_1b <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination,
+fit_1b <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2),
               data = health_data, family = binomial(link = "probit"))
 
-fit_1c <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination,
+fit_1c <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2),
               data = health_data, family = binomial(link = "cloglog"))
 
 # Summarizing
@@ -129,17 +129,17 @@ glm_data %>%
                       values_to = "pred") %>%
   ggplot(aes(x = Total_procrastination, y = pred, colour = link)) +
   geom_line(linewidth = 1) +
+  geom_jitter(data = health_data, aes(x = Total_procrastination, y = Days_drink / 7, colour = NA)) +
   labs(x = "Total Procrastination", y = "Prob(Day Drinking)") +
-  ylim(0.75, 1) +
   theme_bw() +
   ggeasy::easy_add_legend_title("Link Function")
 
-# Binomial GLM with multiple predictors ----------------------------------------
-fit_2a <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + Total_depression + Education + Age,
+# Binomial GLM with different link functions (multiple predictors) ------------- 
+fit_2a <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination)^2 + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "logit"))
-fit_2b <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + Total_depression + Education + Age,
+fit_2b <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination)^2 + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "probit"))
-fit_2c <- glm(cbind(Days_no_drink, Days_drink) ~ Total_procrastination + Total_depression + Education + Age,
+fit_2c <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination)^2 + Total_depression + Education + Age,
               data = health_data, family = binomial(link = "cloglog"))
 
 # Summarizing
@@ -229,7 +229,7 @@ visreg(fit = fit_2a,
 
 
 # Binomial GAM with interaction for Procrastination and Age --------------------
-fit_4 <- gam(cbind(Days_no_drink, Days_drink) ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age),
+fit_4 <- gam(cbind(Days_drink, Days_no_drink) ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age),
              data = health_data, family = "binomial", method = "REML")
 
 # Diagnostics
