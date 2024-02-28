@@ -42,7 +42,7 @@ health_data <- health_data %>%
 # Fitting a GAM ----------------------------------------------------------------
 # Prostate Exam
 fit_1 <- gam(
-  Prostate_exam ~ te(Total_procrastination, Total_depression) + Education_fac + s(Age),
+  Prostate_exam ~ te(Total_procrastination, Total_depression) + s(Age),
   data = health_data, family = "binomial", method = "REML")
 
 summary(fit_1)
@@ -52,7 +52,7 @@ plot(fit_1_residuals)
 
 # Pap Smear
 fit_2 <- gam(
-  Pap_smear ~ s(Total_procrastination) + Education + te(Total_depression, Age),
+  Pap_smear ~ s(Total_procrastination) + te(Total_depression, Age),
   data = health_data, family = "binomial", method = "REML")
 
 summary(fit_2)
@@ -62,7 +62,7 @@ plot(fit_2_residuals)
 
 # Dentist
 fit_3 <- gam(
-  Dental_visit_2_years ~ te(Total_procrastination, Age) + s(Total_depression, k = 9) + Education,
+  Dental_visit_2_years ~ te(Total_procrastination, Age) + s(Total_depression, k = 9),
   data = health_data, family = "binomial", method = "REML")
 
 summary(fit_3)
@@ -72,7 +72,7 @@ plot(fit_3_residuals)
 
 # Cholesterol Screening
 fit_4 <- gam(
-  Cholesterol_screening ~ s(Total_procrastination) + Education + te(Total_depression, Age),
+  Cholesterol_screening ~ s(Total_procrastination) + te(Total_depression, Age),
   data = health_data, family = "binomial", method = "REML")
 
 summary(fit_4)
@@ -136,74 +136,93 @@ cowplot::save_plot(filename = file.path(export_path, "03__Dentist_GAM.png"),
                    plot = p3, base_height = 10)
 cowplot::save_plot(filename = file.path(export_path, "04__Cholesterol_GAM.png"), 
                    plot = p4, base_height = 10)
-
-
-library(dplyr)
-library(gratia)
-library(ggplot2)
-
-smooths(fit_1)
-
-x <- smooth_estimates(fit_1, smooth = "s(Age)")
-
-x %>%
-  add_confint() %>%
-  ggplot(aes(y = plogis(est), x = Age)) +
-  geom_ribbon(aes(ymin = plogis(lower_ci), ymax = plogis(upper_ci)), alpha = 0.2, fill = "skyblue") +
-  geom_line(colour = "black", linewidth = 0.74) +
-  labs(title = expression("Partial effect of" ~ f(Age)), 
-       y = "Partial effect", x = expression(Age)) +
-  ylim(0, 1) +
-  theme_bw() +
-  ggeasy::easy_center_title()
-
-
-test_fit <- gam(Heart_condition ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education,
-                data = health_data, family = "binomial", method = "REML")
-
-summary(test_fit) 
-
-sim_res <- DHARMa::simulateResiduals(test_fit, n = 1000, seed = 150)
-plot(sim_res)
-
-
-
-
-
-
-test <- gam(Cholesterol ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age), 
-            data = health_data, family = "binomial", method = "REML")
-
-summary(test)
-
-
-plot(effects::effect("Education_fac", y))
-
-
-
-y <- glm(Prostate_exam ~ Education_fac, 
-         data = health_data, family = binomial(link = "logit"))
-
-summary(y)
-
-pred <- data.frame(
-  Education_fac = health_data$Education_fac,
-  fit = predict(y, type = "response", newdata = health_data),
-  se = predict(y, type = "response", se.fit = TRUE, newdata = health_data)$se.fit)
-
-pred <- pred %>%
-  filter(complete.cases(fit))
-
-pred_lower <- pred$fit - 1.96 * pred$se
-pred_upper <- pred$fit + 1.96 * pred$se
-
-ggplot(data = pred, aes(Education_fac, y= fit, colour = Education_fac)) +
-  geom_point() +
-  geom_errorbar(aes(ymin = pred_lower, ymax = pred_upper)) +
-  labs(title = "Predicted probability of getting a prostate exam by education level", 
-       x = "", y = "Predicted probability") +
-  ylim(0, 1.1) +
-  theme_classic() +
-  ggeasy::easy_remove_legend() +
-  ggeasy::easy_remove_gridlines() +
-  ggeasy::easy_center_title()
+# 
+# 
+# library(dplyr)
+# library(gratia)
+# library(ggplot2)
+# 
+# smooths(fit_1)
+# 
+# x <- smooth_estimates(fit_1, smooth = "s(Age)")
+# 
+# x %>%
+#   add_confint() %>%
+#   ggplot(aes(y = plogis(est), x = Age)) +
+#   geom_ribbon(aes(ymin = plogis(lower_ci), ymax = plogis(upper_ci)), alpha = 0.2, fill = "skyblue") +
+#   geom_line(colour = "black", linewidth = 0.74) +
+#   labs(title = expression("Partial effect of" ~ f(Age)), 
+#        y = "Partial effect", x = expression(Age)) +
+#   ylim(0, 1) +
+#   theme_bw() +
+#   ggeasy::easy_center_title()
+# 
+# 
+# test_fit <- gam(Heart_condition ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education,
+#                 data = health_data, family = "binomial", method = "REML")
+# 
+# summary(test_fit) 
+# 
+# sim_res <- DHARMa::simulateResiduals(test_fit, n = 1000, seed = 150)
+# plot(sim_res)
+# 
+# 
+# 
+# 
+# 
+# 
+# test <- gam(Cholesterol ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age), 
+#             data = health_data, family = "binomial", method = "REML")
+# 
+# summary(test)
+# 
+# 
+# plot(effects::effect("Education_fac", y))
+# 
+# 
+# 
+# y <- glm(Prostate_exam ~ Education_fac, 
+#          data = health_data, family = binomial(link = "logit"))
+# 
+# summary(y)
+# 
+# pred <- data.frame(
+#   Education_fac = health_data$Education_fac,
+#   fit = predict(y, type = "response", newdata = health_data),
+#   se = predict(y, type = "response", se.fit = TRUE, newdata = health_data)$se.fit)
+# 
+# pred <- pred %>%
+#   filter(complete.cases(fit))
+# 
+# pred_lower <- pred$fit - 1.96 * pred$se
+# pred_upper <- pred$fit + 1.96 * pred$se
+# 
+# ggplot(data = pred, aes(Education_fac, y= fit, colour = Education_fac)) +
+#   geom_point() +
+#   geom_errorbar(aes(ymin = pred_lower, ymax = pred_upper)) +
+#   labs(title = "Predicted probability of getting a prostate exam by education level", 
+#        x = "", y = "Predicted probability") +
+#   ylim(0, 1.1) +
+#   theme_classic() +
+#   ggeasy::easy_remove_legend() +
+#   ggeasy::easy_remove_gridlines() +
+#   ggeasy::easy_center_title()
+# 
+# 
+# # Education
+# visreg(fit = fit[[2]], xvar = "Education", 
+#        gg = TRUE, scale = "response", rug = FALSE) +
+#   geom_jitter(data = health_data, aes(x = Education, y = Headache),
+#               height = 0.05, alpha = 0.5, size = 0.8) +
+#   scale_x_continuous(breaks = seq(0, 6, by = 1), labels = c(
+#     "No Degree", "GED", "High School", 
+#     "College (2yrs)", "College (4yrs)", 
+#     "Masters", "Professional Degree")) +
+#   labs(title = "Relationship between headaches and education (GAM)",
+#        subtitle = "Controlling for procrastination, depression, and age",
+#        x = "Education Status", 
+#        y = "Prob(Headahces)") +
+#   theme_bw() +
+#   theme(plot.title = element_text(hjust = 0.5),
+#         plot.subtitle = element_text(hjust = 0.5)) +
+#   ggeasy::easy_x_axis_labels_size(size = 7)

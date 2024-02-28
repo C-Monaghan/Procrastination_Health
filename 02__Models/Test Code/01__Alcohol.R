@@ -80,7 +80,7 @@ health_data %>%
 # Modelling --------------------------------------------------------------------
 # Binomial GLM with different link functions (one predictor) -------------------
 fit_1a <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2),
-           data = health_data, family = binomial(link = "logit"))
+           data = health_data, family = quasibinomial())
 
 fit_1b <- glm(cbind(Days_drink, Days_no_drink) ~ Total_procrastination + I(Total_procrastination^2),
               data = health_data, family = binomial(link = "probit"))
