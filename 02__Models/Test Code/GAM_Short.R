@@ -179,54 +179,94 @@ for(i in 1:length(protection_fit)){
     break
   }
 }
-gam_results_protection[5, ]
 
 # Plotting ---------------------------------------------------------------------
-# Health Problems
-p_plots <- list()
-d_plots <- list()
-a_plots <- list()
+# Health Problems --------------------------------------------------------------
+problem_p_plots <- list()
+problem_d_plots <- list()
+problem_a_plots <- list()
 
 for(i in 1:length(problem_fit)){
-  p_plots[[i]] <- create_health_plot(
+  problem_p_plots[[i]] <- create_health_plot(
     model = problem_fit[[i]], data = health_data, 
     x_var = "Total_procrastination", y_var = health_problems[i], 
     x_label = "Procrastination", y_label = health_problems_tidy[i])
   
-  d_plots[[i]] <- create_health_plot(
+  problem_d_plots[[i]] <- create_health_plot(
     model = problem_fit[[i]], data = health_data, 
     x_var = "Total_depression", y_var = health_problems[i], 
     x_label = "Depression", y_label = health_problems_tidy[i])
   
-  a_plots[[i]] <- create_health_plot(
+  problem_a_plots[[i]] <- create_health_plot(
     model = problem_fit[[i]], data = health_data, 
     x_var = "Age", y_var = health_problems[i], 
     x_label = "Age", y_label = health_problems_tidy[i])
 }
 
-p_grid <- plot_grid(plotlist = p_plots, nrow = 2, ncol = 4)
-d_grid <- plot_grid(plotlist = d_plots, nrow = 2, ncol = 4)
-a_grid <- plot_grid(plotlist = a_plots, nrow = 2, ncol = 4)
+problem_p_grid <- plot_grid(plotlist = problem_p_plots, nrow = 2, ncol = 4)
+problem_d_grid <- plot_grid(plotlist = problem_d_plots, nrow = 2, ncol = 4)
+problem_a_grid <- plot_grid(plotlist = problem_a_plots, nrow = 2, ncol = 4)
 
 # Titles
-p_title <- ggdraw() + draw_label("Procrastination and Health Problems", 
-                                 fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
-d_title <- ggdraw() + draw_label("Depression and Health Problems", 
-                                 fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
-a_title <- ggdraw() + draw_label("Age and Health Problems", 
-                                 fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
+problem_p_title <- ggdraw() + draw_label("Procrastination and Health Problems",
+                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
+problem_d_title <- ggdraw() + draw_label("Depression and Health Problems", 
+                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
+problem_a_title <- ggdraw() + draw_label("Age and Health Problems",
+                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
 
-p_grid <- plot_grid(p_title, p_grid, ncol = 1, rel_heights = c(0.1, 1))
-d_grid <- plot_grid(d_title, d_grid, ncol = 1, rel_heights = c(0.1, 1))
-a_grid <- plot_grid(a_title, a_grid, ncol = 1, rel_heights = c(0.1, 1))
+problem_p_grid <- plot_grid(problem_p_title, problem_p_grid, ncol = 1, rel_heights = c(0.1, 1))
+problem_d_grid <- plot_grid(problem_d_title, problem_d_grid, ncol = 1, rel_heights = c(0.1, 1))
+problem_a_grid <- plot_grid(problem_a_title, problem_a_grid, ncol = 1, rel_heights = c(0.1, 1))
+
+# Health Protection ------------------------------------------------------------
+# Individual Plots
+protection_p_plot <- list()
+protection_a_plot <- list()
+
+# Procrastination Plots
+protection_p_plot[[1]] <- create_health_plot(
+  model = protection_fit[[2]], data = health_data, 
+  x_var = "Total_procrastination", y_var = "Mammogram",
+  x_label = "Procrastination", y_label = "Mammograms")
+
+# Age Plots
+protection_a_plot[[1]] <- create_health_plot(
+  model = protection_fit[[1]], data = health_data,
+  x_var = "Age", y_var = "Prostate_exam",
+  x_label = "Age", y_label = "Prostate Exams")
+
+protection_a_plot[[2]] <- create_health_plot(
+  model = protection_fit[[2]], data = health_data,
+  x_var = "Age", y_var = "Mammogram",
+  x_label = "Age", y_label = "Mammograms")
+
+protection_a_plot[[3]] <- create_health_plot(
+  model = protection_fit[[5]], data = health_data,
+  x_var = "Age", y_var = "Flu_shot",
+  x_label = "Age", y_label = "Flu Shots")
+
+protection_a_grid <- plot_grid(plotlist = protection_a_plot, ncol = 3)
+
+protection_a_title <- ggdraw() + draw_label("Age and Health Protection",
+                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
+
+protection_a_grid <- plot_grid(protection_a_title, protection_a_grid, ncol = 1, rel_heights = c(0.1, 1))
 
 # Exporting --------------------------------------------------------------------
 export_path <- "./02__Models/Results/Figures/03__GAM/Test"
 
-save_plot(filename = file.path(export_path, "01__p_grid.png"), plot = p_grid,
-          base_height = 10)
-save_plot(filename = file.path(export_path, "02__d_grid.png"), plot = d_grid,
-          base_height = 10)
-save_plot(filename = file.path(export_path, "03__a_grid.png"), plot = a_grid,
-          base_height = 10)
+# Problems
+save_plot(filename = file.path(export_path, "01__Problem/01__p_grid.png"), 
+          plot = problem_p_grid, base_height = 10)
+save_plot(filename = file.path(export_path, "01__Problem/02__d_grid.png"), 
+          plot = problem_d_grid, base_height = 10)
+save_plot(filename = file.path(export_path, "01__Problem/03__a_grid.png"), 
+          plot = problem_a_grid, base_height = 10)
+
+# Protection
+save_plot(filename = file.path(export_path, "02__Protection/01__a_grid.png"),
+          plot = protection_a_grid, base_height = 10)
+save_plot(filename = file.path(export_path, "02__Protection/02__p_plot.png"),
+          plot = protection_p_plot[[1]], base_height = 10)
 
