@@ -45,7 +45,7 @@ path_data <- "./01__Data/02__Processed/"
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
 # Fitting a GAM ----------------------------------------------------------------
-# Health Problems
+# Health Problems --------------------------------------------------------------
 # Creating a vector of health problems (and tidy names)
 health_problems <- c(
   "Back_pain", "Headache", "Fatigue", "Smoker_current",
@@ -64,7 +64,7 @@ problem_fit <- lapply(health_problems, function(x){
 })
 
 # Creating a dataset of results
-gam_results <- data.frame(
+gam_results_problems <- data.frame(
   Health_problem = rep(health_problems_tidy, each = 3),
   Predictor = rep(c("Procrastination", "Depression", "Age"), times = 8),
   edf = numeric(24),
@@ -82,16 +82,16 @@ for(i in 1:length(problem_fit)){
   
   fit_sum <- summary(problem_fit[[i]])
   
-  gam_results$edf[min_row:max_row] <- fit_sum$edf
-  gam_results$ref_df[min_row:max_row] <- fit_sum$s.table[, 2]
-  gam_results$chi_sq[min_row:max_row] <- fit_sum$chi.sq
-  gam_results$p_val[min_row:max_row] <- fit_sum$s.pv
+  gam_results_problems$edf[min_row:max_row] <- fit_sum$edf
+  gam_results_problems$ref_df[min_row:max_row] <- fit_sum$s.table[, 2]
+  gam_results_problems$chi_sq[min_row:max_row] <- fit_sum$chi.sq
+  gam_results_problems$p_val[min_row:max_row] <- fit_sum$s.pv
   
   min_row <- min_row + 3
   max_row <- max_row + 3
 }
 
-# Health Protection
+# Health Protection ------------------------------------------------------------
 # Creating a vector of health protection (and tidy names)
 health_protection <- c(
   "Prostate_exam", "Mammogram", "Cholesterol_screening",
@@ -138,9 +138,51 @@ protection_fit <- lapply(health_protection, function(x){
   }
 })
 
+# Creating a dataset
+gam_results_protection <- data.frame(
+  health_protection = c("Prostate Exams", "Prostate Exams", "Mammograms", "Mammograms", "Mammograms",
+                        "Cholesterol Screening", "Cholesterol Screening", "Pap Smears", "Pap Smears",
+                        "Flu Shots", "Flu Shots", "Flu Shots", "Dental Visit", "Dental Visit"),
+  predictor = c("Age", "Procrastination x Depression", "Procrastination", "Depression", "Age",
+                "Procrastination", "Depression x Age", "Procrastination", "Depression x Age",
+                "Procrastination", "Depression", "Age", "Depression", "Procrastination x Age"),
+  edf = numeric(14),
+  ref_df = numeric(14),
+  chi_sq = numeric(14),
+  p_val = numeric(14)
+)
 
+min_row <- 1
+max_row <- 2
+
+for(i in 1:length(protection_fit)){
+  
+  fit_sum <- summary(protection_fit[[i]])
+  
+  gam_results_protection$edf[min_row:max_row] <- fit_sum$edf
+  gam_results_protection$ref_df[min_row:max_row] <- fit_sum$s.table[, 2]
+  gam_results_protection$chi_sq[min_row:max_row] <- fit_sum$chi.sq
+  gam_results_protection$p_val[min_row:max_row] <- fit_sum$s.pv
+  
+  # Probably a better way to do this
+  if(i == 1){
+    min_row <- 3; max_row <- 5
+  } else if(i == 2){
+    min_row <- 6; max_row <- 7 
+  } else if(i == 3){
+    min_row <- 8; max_row <- 9 
+  } else if(i == 4){
+    min_row <- 10; max_row <- 12 
+  } else if(i == 5){
+    min_row <- 13; max_row <- 14 
+  } else {
+    break
+  }
+}
+gam_results_protection[5, ]
 
 # Plotting ---------------------------------------------------------------------
+# Health Problems
 p_plots <- list()
 d_plots <- list()
 a_plots <- list()
@@ -187,5 +229,4 @@ save_plot(filename = file.path(export_path, "02__d_grid.png"), plot = d_grid,
           base_height = 10)
 save_plot(filename = file.path(export_path, "03__a_grid.png"), plot = a_grid,
           base_height = 10)
-
 
