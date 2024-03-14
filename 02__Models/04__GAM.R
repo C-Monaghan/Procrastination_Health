@@ -63,7 +63,8 @@ path_data <- "./01__Data/02__Processed/"
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
 health_data <- health_data %>%
-  filter(Age >= 50)
+  filter(Age >= 50) %>%
+  filter(!is.na(Total_procrastination))
 
 # Fitting a GAM ----------------------------------------------------------------
 # Health Problems --------------------------------------------------------------
@@ -316,31 +317,33 @@ writexl::write_xlsx(path = file.path(export_path_data, "02__GAM_Protection.xlsx"
                     x = gam_results_protection, col_names = TRUE)
 # Main Effects
 # Problems
-save_plot(filename = file.path(export_path_graphics, "01__Problem/01__p_grid.pdf"), 
+save_plot(filename = file.path(export_path_graphics, "01__Problem/01__p_grid.png"), 
           plot = problem_p_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "01__Problem/02__d_grid.pdf"), 
+save_plot(filename = file.path(export_path_graphics, "01__Problem/02__d_grid.png"), 
           plot = problem_d_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "01__Problem/03__a_grid.pdf"), 
+save_plot(filename = file.path(export_path_graphics, "01__Problem/03__a_grid.png"), 
           plot = problem_a_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "01__Problem/04__full_grid.pdf"), 
+save_plot(filename = file.path(export_path_graphics, "01__Problem/04__full_grid.png"), 
           plot = problem_full_grid, base_height = 12, base_aspect_ratio = 1.5)
 
 # Protection
-save_plot(filename = file.path(export_path_graphics, "02__Protection/01__p_grid.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/01__p_grid.png"),
           plot = protection_p_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/02__d_grid.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/02__d_grid.png"),
           plot = protection_d_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/03__a_grid.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/03__a_grid.png"),
           plot = protection_a_grid, base_height = 10)
 
 # 3D Plots ---------------------------------------------------------------------
-save_plot(filename = file.path(export_path_graphics, "02__Protection/04__Prostate_GAM.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/04__Prostate_GAM.png"),
           plot = prostate_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/05__Pap_Smear_GAM.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/05__Pap_Smear_GAM.png"),
           plot = pap_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/06__Dentist_GAM.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/06__Dentist_GAM.png"),
           plot = dental_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/07__Cholesterol_GAM.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/07__Cholesterol_GAM.png"),
           plot = cholesterol_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/08__Interaction_grid.pdf"),
+save_plot(filename = file.path(export_path_graphics, "02__Protection/08__Interaction_grid.png"),
           plot = interaction_grid, base_height = 10)
+
+
