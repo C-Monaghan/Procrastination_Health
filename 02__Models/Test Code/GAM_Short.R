@@ -3,6 +3,7 @@ rm(list = ls())
 set.seed(2468) # Reproducibility
 
 library(dplyr)
+library(purrr) # For using the %||% operator
 library(mgcv) # For working with GAMs
 library(visreg)
 library(ggplot2)
@@ -11,31 +12,47 @@ library(cowplot)
 # Predictions Plot Function ----------------------------------------------------
 create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   
-  if(x_var == "Total_procrastination"){
-    subtitle <- "Controlling for depression and age"
-    min <- 0; max <- 60; step <- 10
-  } else if(x_var == "Total_depression"){
-    subtitle <- "Controlling for procrastination and age"
-    min <- 0; max <- 8; step <- 1
-  } else if(x_var == "Age"){
-    subtitle <- "Controlling for procrastination and depression"
-    min <- 30; max <- 100; step <- 10
-  } else{
-    subtitle <- NULL
-  }
+  # Setting up -----------------------------------------------------------------
+  # Defining x-axis details and sub caption for different x variables
+  axis_details <- list(
+    Total_procrastination = list(subtitle = "Controlling for depression and age", min = 0, max = 60, step = 10),
+    Total_depression = list(subtitle = "Controlling for procrastination and age", min = 0, max = 8, step = 1),
+    Age = list(subtitle = "Controlling for procrastination and depression", min = 30, max = 100, step = 10)
+  )
   
-  visreg(fit = model, xvar = x_var,
-         gg = TRUE, scale = "response", rug = FALSE) +
+  # Define non-significant result combinations for highlighting in red
+  non_significant_combinations <- list(
+    Total_procrastination = c("Cholesterol", "Heart condition", "Pap smears", "Flu shots"),
+    Total_depression = c("Diabetes", "Mammograms", "Flu shots", "Dental visits"),
+    Age = c("Back pain", "Fatigue", "Cholesterol")
+  )
+  
+  # Retrieve axis details for the current x variable
+  details <- axis_details[[x_var]] %||% list(subtitle = NULL)
+  
+  # Plotting GAM results -------------------------------------------------------
+  gam_plot <- visreg(fit = model, xvar = x_var,
+                     gg = TRUE, scale = "response", rug = FALSE) +
     geom_jitter(data = data, aes_string(x = x_var, y = y_var),
                 height = 0.05, alpha = 0.5, size = 0.8) +
-    scale_x_continuous(breaks = seq(min, max, by = step)) +
+    scale_x_continuous(breaks = seq(details$min, details$max, by = details$step)) +
     labs(title = paste(y_label, "and", x_label),
-         subtitle = subtitle,
+         subtitle = details$subtitle,
          x = x_label, 
          y = paste("Prob(", y_label, ")")) +
     theme_bw() +
     theme(plot.title = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
+  
+  # Highlight the title and subtitle in red if the combination of X and Y is non-significant
+  if (y_label %in% non_significant_combinations[[x_var]]) {
+    gam_plot <- gam_plot +
+      theme(plot.title = element_text(colour = "red"),
+            plot.subtitle = element_text(colour = "red"))
+  }
+  
+  # Returning plot
+  gam_plot
 }
 
 # Data Importing ---------------------------------------------------------------
@@ -66,29 +83,29 @@ problem_fit <- lapply(health_problems, function(x){
 # Creating a dataset of results
 gam_results_problems <- data.frame(
   Health_problem = rep(health_problems_tidy, each = 3),
-  Predictor = rep(c("Procrastination", "Depression", "Age"), times = 8),
-  edf = numeric(24),
-  ref_df = numeric(24),
-  chi_sq = numeric(24),
-  p_val = numeric(24)
+  Predictor = rep(c("Procrastination", "Depression", "Age"), times = length(health_problems)), # times = 8
+  edf = numeric(length(health_problems) *3),
+  ref_df = numeric(length(health_problems) *3),
+  chi_sq = numeric(length(health_problems) *3),
+  p_val = numeric(length(health_problems) *3)
 )
 
-# Initialising values
-min_row <- 1
-max_row <- 3
+# Initial index value
+index <- 1
 
 # Filling in dataset
-for(i in 1:length(problem_fit)){
+for(fit in problem_fit) {
   
-  fit_sum <- summary(problem_fit[[i]])
+  fit_sum <- summary(fit)
+  num_rows <- length(fit_sum$edf)
   
-  gam_results_problems$edf[min_row:max_row] <- fit_sum$edf
-  gam_results_problems$ref_df[min_row:max_row] <- fit_sum$s.table[, 2]
-  gam_results_problems$chi_sq[min_row:max_row] <- fit_sum$chi.sq
-  gam_results_problems$p_val[min_row:max_row] <- fit_sum$s.pv
+  # Extract the effective degrees of freedom, reference degrees of freedom,
+  # chi-squared value, and p-values from the model summary
+  gam_results_problems[index:(index + num_rows - 1), c("edf", "ref_df", "chi_sq", "p_val")] <- 
+    cbind(fit_sum$edf, fit_sum$s.table[, 2], fit_sum$chi.sq, fit_sum$s.pv)
   
-  min_row <- min_row + 3
-  max_row <- max_row + 3
+  # Increment the index to move to the next set of rows
+  index <- index + num_rows
 }
 
 # Health Protection ------------------------------------------------------------
@@ -100,45 +117,30 @@ health_protection <- c(
 
 health_protection_tidy <- c(
   "Prostate exams", "Mammograms", "Cholesterol screenings",
-  "Pap smears", "Flue shots", "Dental visits"
+  "Pap smears", "Flu shots", "Dental visits"
 )
 
-protection_fit <- lapply(health_protection, function(x){
+# Different formulas for different protective behaviors
+formulas <- list(
+  Mammogram = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
+  Flu_shot = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
+  Pap_smear = "~ s(Total_procrastination) + te(Total_depression, Age)",
+  Cholesterol_screening = "~ s(Total_procrastination) + te(Total_depression, Age)",
+  Prostate_exam = "~ s(Age) + te(Total_procrastination, Total_depression)",
+  Dental_visit_2_years = "~ s(Total_depression, k = 9) + te(Total_procrastination, Age)"
+)
+
+# Apply the GAM model to each protection variable and store it in the list
+protection_fit <- lapply(health_protection, function(x) {
+  # Getting relevant formula for each protective behavior
+  formula <- as.formula(paste(x, formulas[[x]]))
   
-  if(x == "Mammogram" || x == "Flu_shot"){
-    # Base Formula
-    formula <- as.formula(paste(x, "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)"))
-    
-    gam(formula = formula, data = health_data,
-        family = "binomial", method = "REML")
-    
-  } else if(x == "Pap_smear" || x == "Cholesterol_screening"){
-    # Tensor Product Smooth (Depression and Age)
-    formula <- as.formula(paste(x, "~ s(Total_procrastination) + te(Total_depression, Age)"))
-    
-    gam(formula = formula, data = health_data,
-        family = "binomial", method = "REML")
-    
-  } else if(x == "Prostate_exam"){
-    # Tensor Product Smooth (Procrastination and Depression)
-    formula <- as.formula(paste(x, "~ s(Age) + te(Total_procrastination, Total_depression)"))
-    
-    gam(formula = formula, data = health_data,
-        family = "binomial", method = "REML")
-    
-  } else if(x == "Dental_visit_2_years"){
-    # Tensor Product Smooth (Procrastination and Age)
-    formula <- as.formula(paste(x, "~ s(Total_depression, k = 9) + te(Total_procrastination, Age)"))
-    
-    gam(formula = formula, data = health_data,
-        family = "binomial", method = "REML")
-  } else{
-    
-    break
-  }
+  # Fitting GAM
+  gam(formula = formula, data = health_data, 
+      family = "binomial", method = "REML")
 })
 
-# Creating a dataset
+# Creating a dataset (I can't think of a non-hard code way)
 gam_results_protection <- data.frame(
   health_protection = c("Prostate Exams", "Prostate Exams", "Mammograms", "Mammograms", "Mammograms",
                         "Cholesterol Screening", "Cholesterol Screening", "Pap Smears", "Pap Smears",
@@ -152,62 +154,58 @@ gam_results_protection <- data.frame(
   p_val = numeric(14)
 )
 
-min_row <- 1
-max_row <- 2
+# Initial index value
+index <- 1
 
-for(i in 1:length(protection_fit)){
+# Filling in dataset
+for(fit in protection_fit) {
   
-  fit_sum <- summary(protection_fit[[i]])
+  fit_sum <- summary(fit)
+  num_rows <- length(fit_sum$edf)
   
-  gam_results_protection$edf[min_row:max_row] <- fit_sum$edf
-  gam_results_protection$ref_df[min_row:max_row] <- fit_sum$s.table[, 2]
-  gam_results_protection$chi_sq[min_row:max_row] <- fit_sum$chi.sq
-  gam_results_protection$p_val[min_row:max_row] <- fit_sum$s.pv
+  # Extract the effective degrees of freedom, reference degrees of freedom,
+  # chi-squared value, and p-values from the model summary
+  gam_results_protection[index:(index + num_rows - 1), c("edf", "ref_df", "chi_sq", "p_val")] <- 
+    cbind(fit_sum$edf, fit_sum$s.table[, 2], fit_sum$chi.sq, fit_sum$s.pv)
   
-  # Probably a better way to do this
-  if(i == 1){
-    min_row <- 3; max_row <- 5
-  } else if(i == 2){
-    min_row <- 6; max_row <- 7 
-  } else if(i == 3){
-    min_row <- 8; max_row <- 9 
-  } else if(i == 4){
-    min_row <- 10; max_row <- 12 
-  } else if(i == 5){
-    min_row <- 13; max_row <- 14 
-  } else {
-    break
-  }
+  # Increment the index to move to the next set of rows
+  index <- index + num_rows
 }
 
 # Plotting ---------------------------------------------------------------------
 # Health Problems --------------------------------------------------------------
+# Initial empty lists to store plots for each factor
 problem_p_plots <- list()
 problem_d_plots <- list()
 problem_a_plots <- list()
 
-for(i in 1:length(problem_fit)){
+# Loop through each fitted GAM model to create plots for each health problem
+for(i in seq_along(problem_fit)){
+  # Procrastination
   problem_p_plots[[i]] <- create_health_plot(
     model = problem_fit[[i]], data = health_data, 
     x_var = "Total_procrastination", y_var = health_problems[i], 
     x_label = "Procrastination", y_label = health_problems_tidy[i])
   
+  # Depression
   problem_d_plots[[i]] <- create_health_plot(
     model = problem_fit[[i]], data = health_data, 
     x_var = "Total_depression", y_var = health_problems[i], 
     x_label = "Depression", y_label = health_problems_tidy[i])
   
+  # Age
   problem_a_plots[[i]] <- create_health_plot(
     model = problem_fit[[i]], data = health_data, 
     x_var = "Age", y_var = health_problems[i], 
     x_label = "Age", y_label = health_problems_tidy[i])
 }
 
+# Combine each individual plot into a grid
 problem_p_grid <- plot_grid(plotlist = problem_p_plots, nrow = 2, ncol = 4)
 problem_d_grid <- plot_grid(plotlist = problem_d_plots, nrow = 2, ncol = 4)
 problem_a_grid <- plot_grid(plotlist = problem_a_plots, nrow = 2, ncol = 4)
 
-# Titles
+# Making titles
 problem_p_title <- ggdraw() + draw_label("Procrastination and Health Problems",
                                          fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
 problem_d_title <- ggdraw() + draw_label("Depression and Health Problems", 
@@ -215,58 +213,64 @@ problem_d_title <- ggdraw() + draw_label("Depression and Health Problems",
 problem_a_title <- ggdraw() + draw_label("Age and Health Problems",
                                          fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
 
+# Adding titles to each grid
 problem_p_grid <- plot_grid(problem_p_title, problem_p_grid, ncol = 1, rel_heights = c(0.1, 1))
 problem_d_grid <- plot_grid(problem_d_title, problem_d_grid, ncol = 1, rel_heights = c(0.1, 1))
 problem_a_grid <- plot_grid(problem_a_title, problem_a_grid, ncol = 1, rel_heights = c(0.1, 1))
 
+# Making a big grid (probably a bad idea)
+problem_full_grid <- plot_grid(problem_p_grid, problem_d_grid, problem_a_grid, nrow = 3)
+
 # Health Protection ------------------------------------------------------------
-# Individual Plots
-protection_p_plot <- list()
-protection_a_plot <- list()
+# Initial empty lists to store plots for each factor
+protection_p_plots <- list()
+protection_d_plots <- list()
+protection_a_plots <- list()
 
-# Procrastination Plots
-protection_p_plot[[1]] <- create_health_plot(
-  model = protection_fit[[2]], data = health_data, 
-  x_var = "Total_procrastination", y_var = "Mammogram",
-  x_label = "Procrastination", y_label = "Mammograms")
+# Loop through each fitted GAM model to create plots for each health protective behavior
+for(i in seq_along(protection_fit)){
+  # Procrastination
+  protection_p_plots[[i]] <- create_health_plot(
+    model = protection_fit[[i]], data = health_data, 
+    x_var = "Total_procrastination", y_var = health_protection[i], 
+    x_label = "Procrastination", y_label = health_protection_tidy[i])
+  
+  # Depression
+  protection_d_plots[[i]] <- create_health_plot(
+    model = protection_fit[[i]], data = health_data, 
+    x_var = "Total_depression", y_var = health_protection[i], 
+    x_label = "Depression", y_label = health_protection_tidy[i])
+  
+  # Age
+  protection_a_plots[[i]] <- create_health_plot(
+    model = protection_fit[[i]], data = health_data, 
+    x_var = "Age", y_var = health_protection[i], 
+    x_label = "Age", y_label = health_protection_tidy[i])
+}
 
-# Age Plots
-protection_a_plot[[1]] <- create_health_plot(
-  model = protection_fit[[1]], data = health_data,
-  x_var = "Age", y_var = "Prostate_exam",
-  x_label = "Age", y_label = "Prostate Exams")
-
-protection_a_plot[[2]] <- create_health_plot(
-  model = protection_fit[[2]], data = health_data,
-  x_var = "Age", y_var = "Mammogram",
-  x_label = "Age", y_label = "Mammograms")
-
-protection_a_plot[[3]] <- create_health_plot(
-  model = protection_fit[[5]], data = health_data,
-  x_var = "Age", y_var = "Flu_shot",
-  x_label = "Age", y_label = "Flu Shots")
-
-protection_a_grid <- plot_grid(plotlist = protection_a_plot, ncol = 3)
-
-protection_a_title <- ggdraw() + draw_label("Age and Health Protection",
-                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
-
-protection_a_grid <- plot_grid(protection_a_title, protection_a_grid, ncol = 1, rel_heights = c(0.1, 1))
+# Combine each individual plot into a grid
+# Indexing because I want the plots without the interaction effects
+protection_p_grid <- plot_grid(plotlist = protection_p_plots[2:5], nrow = 2, ncol = 2)
+protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 5, 6)], ncol = 3)
+protection_a_grid <- plot_grid(plotlist = protection_a_plots[c(1, 2, 5)], ncol = 3)
 
 # Exporting --------------------------------------------------------------------
 export_path <- "./02__Models/Results/Figures/03__GAM/Test"
 
 # Problems
-save_plot(filename = file.path(export_path, "01__Problem/01__p_grid.png"), 
+save_plot(filename = file.path(export_path, "01__Problem/01__p_grid.pdf"), 
           plot = problem_p_grid, base_height = 10)
-save_plot(filename = file.path(export_path, "01__Problem/02__d_grid.png"), 
+save_plot(filename = file.path(export_path, "01__Problem/02__d_grid.pdf"), 
           plot = problem_d_grid, base_height = 10)
-save_plot(filename = file.path(export_path, "01__Problem/03__a_grid.png"), 
+save_plot(filename = file.path(export_path, "01__Problem/03__a_grid.pdf"), 
           plot = problem_a_grid, base_height = 10)
+save_plot(filename = file.path(export_path, "01__Problem/04__full_grid.pdf"), 
+          plot = problem_full_grid, base_height = 12, base_aspect_ratio = 1.5)
 
 # Protection
-save_plot(filename = file.path(export_path, "02__Protection/01__a_grid.png"),
+save_plot(filename = file.path(export_path, "02__Protection/01__p_grid.pdf"),
+          plot = protection_p_grid, base_height = 10)
+save_plot(filename = file.path(export_path, "02__Protection/02__d_grid.pdf"),
+          plot = protection_d_grid, base_height = 10)
+save_plot(filename = file.path(export_path, "02__Protection/03__a_grid.pdf"),
           plot = protection_a_grid, base_height = 10)
-save_plot(filename = file.path(export_path, "02__Protection/02__p_plot.png"),
-          plot = protection_p_plot[[1]], base_height = 10)
-
