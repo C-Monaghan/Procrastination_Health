@@ -278,7 +278,7 @@ cholesterol_results <- wrap_elements(panel = ~ vis.gam(
   protection_fit[[3]], view = c("Total_depression", "Age"),
   type = "response", plot.type = 'persp', phi = 30, 
   theta = 120, n.grid = 50, r = 50,
-  main = "Predicted probability of getting a pap smear by depression and age",
+  main = "Predicted probability of getting a cholesterol screening by depression and age",
   xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
   zlab = "Predicted Probability (0 - 1)"
 ))
@@ -293,23 +293,27 @@ pap_results <- wrap_elements(panel = ~ vis.gam(
 ))
 
 dental_results <- wrap_elements(panel = ~ vis.gam(
-  protection_fit[[6]], view = c("Total_depression", "Age"),
+  protection_fit[[6]], view = c("Total_procrastination", "Age"),
   type = "response", plot.type = 'persp', phi = 30, 
   theta = 120, n.grid = 50, r = 50,
-  main = "Predicted probability of getting a pap smear by depression and age",
-  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
+  main = "Predicted probability of visiting the dentist by depression and age",
+  xlab = "Total Procrastination (0 - 60)", ylab = "Age (Years)", 
   zlab = "Predicted Probability (0 - 1)"
 ))
 
+# Using patchwork to plot as a grid
+interaction_grid <- prostate_results + pap_results + cholesterol_results + dental_results +
+  plot_layout(nrow = 2, ncol = 2)
+
 # Exporting --------------------------------------------------------------------
 export_path_data <- "./02__Models/Results/"
-export_path_graphics <- "./02__Models/Results/Figures/03__GAM/Test"
+export_path_graphics <- "./02__Models/Results/Figures/03__GAM/"
 
 # GAM Results
 writexl::write_xlsx(path = file.path(export_path_data, "01__GAM_Problems.xlsx"), 
                     x = gam_results_problems, col_names = TRUE)
 writexl::write_xlsx(path = file.path(export_path_data, "02__GAM_Protection.xlsx"), 
-                    x = gam_results_problems, col_names = TRUE)
+                    x = gam_results_protection, col_names = TRUE)
 # Main Effects
 # Problems
 save_plot(filename = file.path(export_path_graphics, "01__Problem/01__p_grid.pdf"), 
@@ -330,3 +334,13 @@ save_plot(filename = file.path(export_path_graphics, "02__Protection/03__a_grid.
           plot = protection_a_grid, base_height = 10)
 
 # 3D Plots ---------------------------------------------------------------------
+save_plot(filename = file.path(export_path_graphics, "02__Protection/04__Prostate_GAM.pdf"),
+          plot = prostate_results, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "02__Protection/05__Pap_Smear_GAM.pdf"),
+          plot = pap_results, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "02__Protection/06__Dentist_GAM.pdf"),
+          plot = dental_results, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "02__Protection/07__Cholesterol_GAM.pdf"),
+          plot = cholesterol_results, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "02__Protection/08__Interaction_grid.pdf"),
+          plot = interaction_grid, base_height = 10)
