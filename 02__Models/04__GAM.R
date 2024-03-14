@@ -1,228 +1,332 @@
 rm(list = ls())
 
+set.seed(2468) # Reproducibility
+
 library(dplyr)
-library(mgcv)
-library(sjPlot)
+library(purrr) # For using the %||% operator
+library(mgcv) # For working with GAMs
+library(visreg)
+library(ggplot2)
+library(cowplot)
 library(patchwork)
 
+# Predictions Plot Function ----------------------------------------------------
+create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
+  
+  # Setting up -----------------------------------------------------------------
+  # Defining x-axis details and sub caption for different x variables
+  axis_details <- list(
+    Total_procrastination = list(subtitle = "Controlling for depression and age", min = 0, max = 60, step = 10),
+    Total_depression = list(subtitle = "Controlling for procrastination and age", min = 0, max = 8, step = 1),
+    Age = list(subtitle = "Controlling for procrastination and depression", min = 50, max = 100, step = 10)
+  )
+  
+  # Define non-significant result combinations for highlighting in red
+  non_significant_combinations <- list(
+    Total_procrastination = c("Cholesterol", "Heart condition", "Pap smears", "Flu shots"),
+    Total_depression = c("Diabetes", "Mammograms", "Flu shots", "Dental visits"),
+    Age = c("Back pain", "Fatigue", "Cholesterol")
+  )
+  
+  # Retrieve axis details for the current x variable
+  details <- axis_details[[x_var]] %||% list(subtitle = NULL)
+  
+  # Plotting GAM results -------------------------------------------------------
+  gam_plot <- visreg(fit = model, xvar = x_var,
+                     gg = TRUE, scale = "response", rug = FALSE) +
+    geom_jitter(data = data, aes_string(x = x_var, y = y_var),
+                height = 0.05, alpha = 0.5, size = 0.8) +
+    scale_x_continuous(breaks = seq(details$min, details$max, by = details$step)) +
+    labs(title = paste(y_label, "and", x_label),
+         subtitle = details$subtitle,
+         x = x_label, 
+         y = paste("Prob(", y_label, ")")) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5))
+  
+  # Highlight the title and subtitle in red if the combination of X and Y is non-significant
+  if (y_label %in% non_significant_combinations[[x_var]]) {
+    gam_plot <- gam_plot +
+      theme(plot.title = element_text(colour = "red"),
+            plot.subtitle = element_text(colour = "red"))
+  }
+  
+  # Returning plot
+  gam_plot
+}
+
+# Data Importing ---------------------------------------------------------------
 path_data <- "./01__Data/02__Processed/"
 
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
-# Changing education to a factor
 health_data <- health_data %>%
-  mutate(Education_fac = factor(case_when(
-    Education == 0 ~ "No degree",
-    Education == 1 ~ "GED",
-    Education == 2 ~ "High School",
-    Education == 3 ~ "College (2yrs)",
-    Education == 4 ~ "College (4yrs)",
-    Education == 5 ~ "Masters",
-    Education == 6 ~ "Professional Degree"), 
-    levels = c("No degree", "GED", "High School", "College (2yrs)",
-               "College (4yrs)", "Masters", "Professional Degree")),
-    .after = Education)
-
-# Interaction Test -------------------------------------------------------------
-# fit <- glm(
-#   Dental_visit_2_years ~ (Total_procrastination + Total_depression + Age)^2 + Education_fac,
-#   data = health_data, family = "binomial")
-
-# summary(fit)
-# anova(fit, test = "Chisq")
-# drop1(fit, test = "Chisq")
-
-# After fitting and analysis, the variables with an interaction effect include
-# 1. Prostate Exam --> Procrastination:Depression
-# 2. Pap Smear --> Depression:Age
-# 3. Dentist --> Procrastination:Age
-# 4. Cholesterol --> Depression:Age
+  filter(Age >= 50)
 
 # Fitting a GAM ----------------------------------------------------------------
-# Prostate Exam
-fit_1 <- gam(
-  Prostate_exam ~ te(Total_procrastination, Total_depression) + s(Age),
-  data = health_data, family = "binomial", method = "REML")
+# Health Problems --------------------------------------------------------------
+# Creating a vector of health problems (and tidy names)
+health_problems <- c(
+  "Back_pain", "Headache", "Fatigue", "Smoker_current",
+  "Blood_pressure", "Diabetes", "Cholesterol", "Heart_condition")
 
-summary(fit_1)
+health_problems_tidy <- c(
+  "Back pain", "Headaches", "Fatigue", "Smoking",
+  "Blood pressure", "Diabetes", "Cholesterol", "Heart condition")
 
-fit_1_residuals <- DHARMa::simulateResiduals(fittedModel = fit_1)
-plot(fit_1_residuals)
+# Apply the GAM model to each problem variable and store it in the list
+problem_fit <- lapply(health_problems, function(x){
+  formula <- as.formula(paste(x, "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)"))
+  
+  gam(formula = formula, data = health_data,
+      family = "binomial", method = "REML")
+})
 
-# Pap Smear
-fit_2 <- gam(
-  Pap_smear ~ s(Total_procrastination) + te(Total_depression, Age),
-  data = health_data, family = "binomial", method = "REML")
+# Creating a dataset of results
+gam_results_problems <- data.frame(
+  Health_problem = rep(health_problems_tidy, each = 3),
+  Predictor = rep(c("Procrastination", "Depression", "Age"), times = length(health_problems)), # times = 8
+  edf = numeric(length(health_problems) *3),
+  ref_df = numeric(length(health_problems) *3),
+  chi_sq = numeric(length(health_problems) *3),
+  p_val = numeric(length(health_problems) *3)
+)
 
-summary(fit_2)
+# Initial index value
+index <- 1
 
-fit_2_residuals <- DHARMa::simulateResiduals(fittedModel = fit_2)
-plot(fit_2_residuals)
+# Filling in dataset
+for(fit in problem_fit) {
+  
+  fit_sum <- summary(fit)
+  num_rows <- length(fit_sum$edf)
+  
+  # Extract the effective degrees of freedom, reference degrees of freedom,
+  # chi-squared value, and p-values from the model summary
+  gam_results_problems[index:(index + num_rows - 1), c("edf", "ref_df", "chi_sq", "p_val")] <- 
+    cbind(fit_sum$edf, fit_sum$s.table[, 2], fit_sum$chi.sq, fit_sum$s.pv)
+  
+  # Increment the index to move to the next set of rows
+  index <- index + num_rows
+}
 
-# Dentist
-fit_3 <- gam(
-  Dental_visit_2_years ~ te(Total_procrastination, Age) + s(Total_depression, k = 9),
-  data = health_data, family = "binomial", method = "REML")
+# Rounding to 5 decimal places
+gam_results_problems <- gam_results_problems %>%
+  mutate(across(!c(Health_problem, Predictor), round, digits = 5))
 
-summary(fit_3)
+# Health Protection ------------------------------------------------------------
+# Creating a vector of health protection (and tidy names)
+health_protection <- c(
+  "Prostate_exam", "Mammogram", "Cholesterol_screening",
+  "Pap_smear", "Flu_shot", "Dental_visit_2_years")
 
-fit_3_residuals <- DHARMa::simulateResiduals(fittedModel = fit_3)
-plot(fit_3_residuals)
+health_protection_tidy <- c(
+  "Prostate exams", "Mammograms", "Cholesterol screenings",
+  "Pap smears", "Flu shots", "Dental visits")
 
-# Cholesterol Screening
-fit_4 <- gam(
-  Cholesterol_screening ~ s(Total_procrastination) + te(Total_depression, Age),
-  data = health_data, family = "binomial", method = "REML")
+# Different formulas for different protective behaviors
+formulas <- list(
+  Mammogram = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
+  Flu_shot = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
+  Pap_smear = "~ s(Total_procrastination) + te(Total_depression, Age)",
+  Cholesterol_screening = "~ s(Total_procrastination) + te(Total_depression, Age)",
+  Prostate_exam = "~ s(Age) + te(Total_procrastination, Total_depression)",
+  Dental_visit_2_years = "~ s(Total_depression, k = 9) + te(Total_procrastination, Age)"
+)
 
-summary(fit_4)
+# Apply the GAM model to each protection variable and store it in the list
+protection_fit <- lapply(health_protection, function(x) {
+  # Getting relevant formula for each protective behavior
+  formula <- as.formula(paste(x, formulas[[x]]))
+  
+  # Fitting GAM
+  gam(formula = formula, data = health_data, 
+      family = "binomial", method = "REML")
+})
 
-fit_4_residuals <- DHARMa::simulateResiduals(fittedModel = fit_4)
-plot(fit_4_residuals)
+# Creating a dataset (I can't think of a non-hard code way)
+gam_results_protection <- data.frame(
+  health_protection = c("Prostate Exams", "Prostate Exams", "Mammograms", "Mammograms", "Mammograms",
+                        "Cholesterol Screening", "Cholesterol Screening", "Pap Smears", "Pap Smears",
+                        "Flu Shots", "Flu Shots", "Flu Shots", "Dental Visit", "Dental Visit"),
+  predictor = c("Age", "Procrastination x Depression", "Procrastination", "Depression", "Age",
+                "Procrastination", "Depression x Age", "Procrastination", "Depression x Age",
+                "Procrastination", "Depression", "Age", "Depression", "Procrastination x Age"),
+  edf = numeric(14),
+  ref_df = numeric(14),
+  chi_sq = numeric(14),
+  p_val = numeric(14)
+)
 
-# Visualization ----------------------------------------------------------------
-# Prostate Exam
-p1 <- wrap_elements(panel = ~ vis.gam(
-  fit_1, view = c("Total_procrastination", "Total_depression"),
+# Initial index value
+index <- 1
+
+# Filling in dataset
+for(fit in protection_fit) {
+  
+  fit_sum <- summary(fit)
+  num_rows <- length(fit_sum$edf)
+  
+  # Extract the effective degrees of freedom, reference degrees of freedom,
+  # chi-squared value, and p-values from the model summary
+  gam_results_protection[index:(index + num_rows - 1), c("edf", "ref_df", "chi_sq", "p_val")] <- 
+    cbind(fit_sum$edf, fit_sum$s.table[, 2], fit_sum$chi.sq, fit_sum$s.pv)
+  
+  # Increment the index to move to the next set of rows
+  index <- index + num_rows
+}
+
+# Rounding to 5 decimal places
+gam_results_protection <- gam_results_protection %>%
+  mutate(across(!c(health_protection, predictor), round, digits = 5))
+
+# Plotting ---------------------------------------------------------------------
+# Health Problems --------------------------------------------------------------
+# Initial empty lists to store plots for each factor
+problem_p_plots <- list()
+problem_d_plots <- list()
+problem_a_plots <- list()
+
+# Loop through each fitted GAM model to create plots for each health problem
+for(i in seq_along(problem_fit)){
+  # Procrastination
+  problem_p_plots[[i]] <- create_health_plot(
+    model = problem_fit[[i]], data = health_data, 
+    x_var = "Total_procrastination", y_var = health_problems[i], 
+    x_label = "Procrastination", y_label = health_problems_tidy[i])
+  
+  # Depression
+  problem_d_plots[[i]] <- create_health_plot(
+    model = problem_fit[[i]], data = health_data, 
+    x_var = "Total_depression", y_var = health_problems[i], 
+    x_label = "Depression", y_label = health_problems_tidy[i])
+  
+  # Age
+  problem_a_plots[[i]] <- create_health_plot(
+    model = problem_fit[[i]], data = health_data, 
+    x_var = "Age", y_var = health_problems[i], 
+    x_label = "Age", y_label = health_problems_tidy[i])
+}
+
+# Combine each individual plot into a grid
+problem_p_grid <- plot_grid(plotlist = problem_p_plots, nrow = 2, ncol = 4)
+problem_d_grid <- plot_grid(plotlist = problem_d_plots, nrow = 2, ncol = 4)
+problem_a_grid <- plot_grid(plotlist = problem_a_plots, nrow = 2, ncol = 4)
+
+# Making titles
+problem_p_title <- ggdraw() + draw_label("Procrastination and Health Problems",
+                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
+problem_d_title <- ggdraw() + draw_label("Depression and Health Problems", 
+                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
+problem_a_title <- ggdraw() + draw_label("Age and Health Problems",
+                                         fontface = 'bold', x = 0.5, hjust = 0.5, size = 14)
+
+# Adding titles to each grid
+problem_p_grid <- plot_grid(problem_p_title, problem_p_grid, ncol = 1, rel_heights = c(0.1, 1))
+problem_d_grid <- plot_grid(problem_d_title, problem_d_grid, ncol = 1, rel_heights = c(0.1, 1))
+problem_a_grid <- plot_grid(problem_a_title, problem_a_grid, ncol = 1, rel_heights = c(0.1, 1))
+
+# Making a big grid (probably a bad idea)
+problem_full_grid <- plot_grid(problem_p_grid, problem_d_grid, problem_a_grid, nrow = 3)
+
+# Health Protection ------------------------------------------------------------
+# Initial empty lists to store plots for each factor
+protection_p_plots <- list()
+protection_d_plots <- list()
+protection_a_plots <- list()
+
+# Loop through each fitted GAM model to create plots for each health protective behavior
+for(i in seq_along(protection_fit)){
+  # Procrastination
+  protection_p_plots[[i]] <- create_health_plot(
+    model = protection_fit[[i]], data = health_data, 
+    x_var = "Total_procrastination", y_var = health_protection[i], 
+    x_label = "Procrastination", y_label = health_protection_tidy[i])
+  
+  # Depression
+  protection_d_plots[[i]] <- create_health_plot(
+    model = protection_fit[[i]], data = health_data, 
+    x_var = "Total_depression", y_var = health_protection[i], 
+    x_label = "Depression", y_label = health_protection_tidy[i])
+  
+  # Age
+  protection_a_plots[[i]] <- create_health_plot(
+    model = protection_fit[[i]], data = health_data, 
+    x_var = "Age", y_var = health_protection[i], 
+    x_label = "Age", y_label = health_protection_tidy[i])
+}
+
+# Combine each individual plot into a grid
+# Indexing because I want the plots without the interaction effects
+protection_p_grid <- plot_grid(plotlist = protection_p_plots[2:5], nrow = 2, ncol = 2)
+protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 5, 6)], ncol = 3)
+protection_a_grid <- plot_grid(plotlist = protection_a_plots[c(1, 2, 5)], ncol = 3)
+
+# 3D Contour Plots -------------------------------------------------------------
+prostate_results <- wrap_elements(panel = ~ vis.gam(
+  protection_fit[[1]], view = c("Total_procrastination", "Total_depression"),
   type = "response", plot.type = 'persp', phi = 30,
   theta = 120, n.grid = 50,
   main = "Predicted probability of getting a prostate exam by procrastination and depression",
   xlab = "Total Depression (0 - 8)", ylab = "Total Procrastination (0 - 60)", 
   zlab = "Predicted Probability (0 - 1)"
-  ))
-  
-plot(fit_1, select = 2, trans = plogis, shift = coef(fit_1)[1], seWithMean = TRUE,
-     rug = FALSE, shade = TRUE, shade.col = "skyblue", ylim = c(0, 1), 
-     ylab = "Probability", main = "Probability of getting a prostate exam throughout age")
+))
 
-# Pap Smear
-p2 <- wrap_elements(panel = ~ vis.gam(
-  fit_2, view = c("Total_depression", "Age"),
+cholesterol_results <- wrap_elements(panel = ~ vis.gam(
+  protection_fit[[3]], view = c("Total_depression", "Age"),
   type = "response", plot.type = 'persp', phi = 30, 
   theta = 120, n.grid = 50, r = 50,
   main = "Predicted probability of getting a pap smear by depression and age",
   xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
   zlab = "Predicted Probability (0 - 1)"
-  ))
+))
 
-# Dental Visit
-p3 <- wrap_elements(panel = ~vis.gam(
-  fit_3, view = c("Total_procrastination", "Age"),
-  type = "response", plot.type = 'persp',
-  phi = 20, theta = 120, n.grid = 50,
-  main = "Predicted probability of visiting the dentist by procrastination and age",
-  xlab = "Total Procrastination (0 - 60)", ylab = "Age (Years)",
+pap_results <- wrap_elements(panel = ~ vis.gam(
+  protection_fit[[4]], view = c("Total_depression", "Age"),
+  type = "response", plot.type = 'persp', phi = 30, 
+  theta = 120, n.grid = 50, r = 50,
+  main = "Predicted probability of getting a pap smear by depression and age",
+  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
   zlab = "Predicted Probability (0 - 1)"
-  ))
+))
 
-# Cholesterol Screening
-p4 <- wrap_elements(panel = ~vis.gam(
-  fit_4, view = c("Total_depression", "Age"),
-  type = "response", plot.type = 'persp',
-  phi = 30, theta = 110, n.grid = 50,
-  main = "Predicted probability of getting a cholesterol screening by depression and age",
-  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)",
+dental_results <- wrap_elements(panel = ~ vis.gam(
+  protection_fit[[6]], view = c("Total_depression", "Age"),
+  type = "response", plot.type = 'persp', phi = 30, 
+  theta = 120, n.grid = 50, r = 50,
+  main = "Predicted probability of getting a pap smear by depression and age",
+  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
   zlab = "Predicted Probability (0 - 1)"
-  ))
+))
 
 # Exporting --------------------------------------------------------------------
-export_path <- "./02__Models/Results/Figures/03__GAM/"
+export_path_data <- "./02__Models/Results/"
+export_path_graphics <- "./02__Models/Results/Figures/03__GAM/Test"
 
-cowplot::save_plot(filename = file.path(export_path, "01__Prostate_GAM.png"), 
-                   plot = p1, base_height = 10)
-cowplot::save_plot(filename = file.path(export_path, "02__Pap_Smear_GAM.png"), 
-                   plot = p2, base_height = 10)
-cowplot::save_plot(filename = file.path(export_path, "03__Dentist_GAM.png"), 
-                   plot = p3, base_height = 10)
-cowplot::save_plot(filename = file.path(export_path, "04__Cholesterol_GAM.png"), 
-                   plot = p4, base_height = 10)
-# 
-# 
-# library(dplyr)
-# library(gratia)
-# library(ggplot2)
-# 
-# smooths(fit_1)
-# 
-# x <- smooth_estimates(fit_1, smooth = "s(Age)")
-# 
-# x %>%
-#   add_confint() %>%
-#   ggplot(aes(y = plogis(est), x = Age)) +
-#   geom_ribbon(aes(ymin = plogis(lower_ci), ymax = plogis(upper_ci)), alpha = 0.2, fill = "skyblue") +
-#   geom_line(colour = "black", linewidth = 0.74) +
-#   labs(title = expression("Partial effect of" ~ f(Age)), 
-#        y = "Partial effect", x = expression(Age)) +
-#   ylim(0, 1) +
-#   theme_bw() +
-#   ggeasy::easy_center_title()
-# 
-# 
-# test_fit <- gam(Heart_condition ~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + Education,
-#                 data = health_data, family = "binomial", method = "REML")
-# 
-# summary(test_fit) 
-# 
-# sim_res <- DHARMa::simulateResiduals(test_fit, n = 1000, seed = 150)
-# plot(sim_res)
-# 
-# 
-# 
-# 
-# 
-# 
-# test <- gam(Cholesterol ~ Education + s(Total_depression, k = 9) + te(Total_procrastination, Age), 
-#             data = health_data, family = "binomial", method = "REML")
-# 
-# summary(test)
-# 
-# 
-# plot(effects::effect("Education_fac", y))
-# 
-# 
-# 
-# y <- glm(Prostate_exam ~ Education_fac, 
-#          data = health_data, family = binomial(link = "logit"))
-# 
-# summary(y)
-# 
-# pred <- data.frame(
-#   Education_fac = health_data$Education_fac,
-#   fit = predict(y, type = "response", newdata = health_data),
-#   se = predict(y, type = "response", se.fit = TRUE, newdata = health_data)$se.fit)
-# 
-# pred <- pred %>%
-#   filter(complete.cases(fit))
-# 
-# pred_lower <- pred$fit - 1.96 * pred$se
-# pred_upper <- pred$fit + 1.96 * pred$se
-# 
-# ggplot(data = pred, aes(Education_fac, y= fit, colour = Education_fac)) +
-#   geom_point() +
-#   geom_errorbar(aes(ymin = pred_lower, ymax = pred_upper)) +
-#   labs(title = "Predicted probability of getting a prostate exam by education level", 
-#        x = "", y = "Predicted probability") +
-#   ylim(0, 1.1) +
-#   theme_classic() +
-#   ggeasy::easy_remove_legend() +
-#   ggeasy::easy_remove_gridlines() +
-#   ggeasy::easy_center_title()
-# 
-# 
-# # Education
-# visreg(fit = fit[[2]], xvar = "Education", 
-#        gg = TRUE, scale = "response", rug = FALSE) +
-#   geom_jitter(data = health_data, aes(x = Education, y = Headache),
-#               height = 0.05, alpha = 0.5, size = 0.8) +
-#   scale_x_continuous(breaks = seq(0, 6, by = 1), labels = c(
-#     "No Degree", "GED", "High School", 
-#     "College (2yrs)", "College (4yrs)", 
-#     "Masters", "Professional Degree")) +
-#   labs(title = "Relationship between headaches and education (GAM)",
-#        subtitle = "Controlling for procrastination, depression, and age",
-#        x = "Education Status", 
-#        y = "Prob(Headahces)") +
-#   theme_bw() +
-#   theme(plot.title = element_text(hjust = 0.5),
-#         plot.subtitle = element_text(hjust = 0.5)) +
-#   ggeasy::easy_x_axis_labels_size(size = 7)
+# GAM Results
+writexl::write_xlsx(path = file.path(export_path_data, "01__GAM_Problems.xlsx"), 
+                    x = gam_results_problems, col_names = TRUE)
+writexl::write_xlsx(path = file.path(export_path_data, "02__GAM_Protection.xlsx"), 
+                    x = gam_results_problems, col_names = TRUE)
+# Main Effects
+# Problems
+save_plot(filename = file.path(export_path_graphics, "01__Problem/01__p_grid.pdf"), 
+          plot = problem_p_grid, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "01__Problem/02__d_grid.pdf"), 
+          plot = problem_d_grid, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "01__Problem/03__a_grid.pdf"), 
+          plot = problem_a_grid, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "01__Problem/04__full_grid.pdf"), 
+          plot = problem_full_grid, base_height = 12, base_aspect_ratio = 1.5)
+
+# Protection
+save_plot(filename = file.path(export_path_graphics, "02__Protection/01__p_grid.pdf"),
+          plot = protection_p_grid, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "02__Protection/02__d_grid.pdf"),
+          plot = protection_d_grid, base_height = 10)
+save_plot(filename = file.path(export_path_graphics, "02__Protection/03__a_grid.pdf"),
+          plot = protection_a_grid, base_height = 10)
+
+# 3D Plots ---------------------------------------------------------------------
