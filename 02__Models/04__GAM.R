@@ -56,6 +56,19 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   gam_plot
 }
 
+# Exporting Plot Function ------------------------------------------------------
+save_gam_plot <- function(subfolder, filename, plot, height = 10, aspect_ratio = NULL){
+  # Getting file path
+  file_path <- file.path(export_path_graphics, subfolder, filename)
+  
+  # Seperate saving if the aspect ratio value is present
+  if(!is.null(aspect_ratio)){
+    save_plot(filename = file_path, plot = plot, base_height = height, base_aspect_ratio = aspect_ratio)
+  } else{
+    save_plot(filename = file_path, plot = plot, base_height = height)
+  }
+}
+
 # Data Importing ---------------------------------------------------------------
 path_data <- "./01__Data/02__Processed/"
 
@@ -182,6 +195,15 @@ for(fit in protection_fit) {
 # Rounding to 5 decimal places
 gam_results_protection <- gam_results_protection %>%
   mutate(across(!c(health_protection, predictor), round, digits = 5))
+
+
+
+plot(health_data$Total_procrastination, health_data$Total_depression, asp = 1)
+
+
+health_data %>%
+  ggplot(aes(x = Total_procrastination, y = Total_depression)) +
+  geom_point(alpha = 0.2)
 
 # Plotting ---------------------------------------------------------------------
 # Health Problems --------------------------------------------------------------
@@ -315,35 +337,21 @@ writexl::write_xlsx(path = file.path(export_path_data, "01__GAM_Problems.xlsx"),
                     x = gam_results_problems, col_names = TRUE)
 writexl::write_xlsx(path = file.path(export_path_data, "02__GAM_Protection.xlsx"), 
                     x = gam_results_protection, col_names = TRUE)
-# Main Effects
+# Saving Main Effects Plots
 # Problems
-save_plot(filename = file.path(export_path_graphics, "01__Problem/01__p_grid.png"), 
-          plot = problem_p_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "01__Problem/02__d_grid.png"), 
-          plot = problem_d_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "01__Problem/03__a_grid.png"), 
-          plot = problem_a_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "01__Problem/04__full_grid.png"), 
-          plot = problem_full_grid, base_height = 12, base_aspect_ratio = 1.5)
+save_gam_plot("01__Problem", "01__p_grid.png", problem_p_grid)
+save_gam_plot("01__Problem", "02__d_grid.png", problem_d_grid)
+save_gam_plot("01__Problem", "03__a_grid.png", problem_a_grid)
+save_gam_plot("01__Problem", "04__full_grid.png", problem_full_grid, height = 12, aspect_ratio = 1.5)
 
 # Protection
-save_plot(filename = file.path(export_path_graphics, "02__Protection/01__p_grid.png"),
-          plot = protection_p_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/02__d_grid.png"),
-          plot = protection_d_grid, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/03__a_grid.png"),
-          plot = protection_a_grid, base_height = 10)
+save_gam_plot("02__Protection", "01__p_grid.png", protection_p_grid)
+save_gam_plot("02__Protection", "02__d_grid.png", protection_d_grid)
+save_gam_plot("02__Protection", "03__a_grid.png", protection_a_grid)
 
-# 3D Plots ---------------------------------------------------------------------
-save_plot(filename = file.path(export_path_graphics, "02__Protection/04__Prostate_GAM.png"),
-          plot = prostate_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/05__Pap_Smear_GAM.png"),
-          plot = pap_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/06__Dentist_GAM.png"),
-          plot = dental_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/07__Cholesterol_GAM.png"),
-          plot = cholesterol_results, base_height = 10)
-save_plot(filename = file.path(export_path_graphics, "02__Protection/08__Interaction_grid.png"),
-          plot = interaction_grid, base_height = 10)
-
-
+# Saving 3D Plots
+save_gam_plot("02__Protection", "04__Prostate_GAM.png", prostate_results)
+save_gam_plot("02__Protection", "05__Pap_Smear_GAM.png", pap_results)
+save_gam_plot("02__Protection", "06__Dentist_GAM.png", dental_results)
+save_gam_plot("02__Protection", "07__Cholesterol_GAM.png", cholesterol_results)
+save_gam_plot("02__Protection", "08__Interaction_grid.png", interaction_grid)
