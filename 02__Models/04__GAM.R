@@ -196,15 +196,6 @@ for(fit in protection_fit) {
 gam_results_protection <- gam_results_protection %>%
   mutate(across(!c(health_protection, predictor), round, digits = 5))
 
-
-
-plot(health_data$Total_procrastination, health_data$Total_depression, asp = 1)
-
-
-health_data %>%
-  ggplot(aes(x = Total_procrastination, y = Total_depression)) +
-  geom_point(alpha = 0.2)
-
 # Plotting ---------------------------------------------------------------------
 # Health Problems --------------------------------------------------------------
 # Initial empty lists to store plots for each factor
@@ -319,7 +310,7 @@ dental_results <- wrap_elements(panel = ~ vis.gam(
   protection_fit[[6]], view = c("Total_procrastination", "Age"),
   type = "response", plot.type = 'persp', phi = 30, 
   theta = 120, n.grid = 50, r = 50,
-  main = "Predicted probability of visiting the dentist by depression and age",
+  main = "Predicted probability of visiting the dentist by procrastination and age",
   xlab = "Total Procrastination (0 - 60)", ylab = "Age (Years)", 
   zlab = "Predicted Probability (0 - 1)"
 ))
@@ -355,3 +346,110 @@ save_gam_plot("02__Protection", "05__Pap_Smear_GAM.png", pap_results)
 save_gam_plot("02__Protection", "06__Dentist_GAM.png", dental_results)
 save_gam_plot("02__Protection", "07__Cholesterol_GAM.png", cholesterol_results)
 save_gam_plot("02__Protection", "08__Interaction_grid.png", interaction_grid)
+
+
+# Testing ----------------------------------------------------------------------
+library(gratia)
+
+# Plotting 2d heat map
+# Prostate Exams ---------------------------------------------------------------
+smooth_estimates(protection_fit[[1]], 
+                 smooth = "te(Total_procrastination,Total_depression)", 
+                 dist = 0.1) %>%
+  ggplot(aes(x = Total_procrastination, y = Total_depression)) +
+  geom_raster(aes(fill = plogis(est))) +
+  geom_jitter(data = health_data, height = 0.05, alpha = 0.5) +
+  scale_fill_viridis_c(option = "plasma") +
+  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
+    x = "Total Procrastination", y = "Total Depression") +
+  theme_classic() +
+  ggeasy::easy_center_title() +
+  ggeasy::easy_add_legend_title("Probability")
+
+# Verifying with 3D contour plot
+vis.gam(
+  protection_fit[[1]], view = c("Total_procrastination", "Total_depression"),
+  type = "response", plot.type = 'persp', phi = 30,
+  theta = 120, n.grid = 50,
+  main = "Predicted probability of getting a prostate exam by procrastination and depression",
+  xlab = "Total Depression (0 - 8)", ylab = "Total Procrastination (0 - 60)", 
+  zlab = "Predicted Probability (0 - 1)"
+)
+
+# Cholesterol Screening --------------------------------------------------------
+smooth_estimates(protection_fit[[3]],
+                 smooth = "te(Total_depression,Age)",
+                 dist = 0.1) %>%
+  ggplot(aes(x = Age, y = Total_depression)) +
+  geom_raster(aes(fill = plogis(est))) +
+  geom_jitter(data = health_data, height = 0.05, alpha = 0.5) +
+  scale_fill_viridis_c(option = "plasma") +
+  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
+     x = "Age", y = "Total Depression") +
+  theme_classic() +
+  ggeasy::easy_center_title() +
+  ggeasy::easy_add_legend_title("Probability")
+
+# Verifying with 3D contour plot
+vis.gam(
+  protection_fit[[3]], view = c("Total_depression", "Age"),
+  type = "response", plot.type = 'persp', phi = 30, 
+  theta = 120, n.grid = 50, r = 50,
+  main = "Predicted probability of getting a cholesterol screening by depression and age",
+  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
+  zlab = "Predicted Probability (0 - 1)"
+)
+
+# Pap Smear --------------------------------------------------------------------
+smooth_estimates(protection_fit[[4]], 
+                 smooth = "te(Total_depression,Age)",
+                 dist = 0.1) %>%
+  ggplot(aes(x = Age, y = Total_depression)) +
+  geom_raster(aes(fill = plogis(est))) +
+  geom_jitter(data = health_data, height = 0.05, alpha = 0.5) +
+  scale_fill_viridis_c(option = "plasma") +
+  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Predicted probability of getting a pap smear by depression and age",
+       x = "Age", y = "Total Depression") +
+  theme_classic() +
+  ggeasy::easy_center_title() +
+  ggeasy::easy_add_legend_title("Probability")
+
+# Verifying using 3D contour plot
+vis.gam(
+  protection_fit[[4]], view = c("Total_depression", "Age"),
+  type = "response", plot.type = 'persp', phi = 30, 
+  theta = 120, n.grid = 50, r = 50,
+  main = "Predicted probability of getting a pap smear by depression and age",
+  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
+  zlab = "Predicted Probability (0 - 1)"
+)
+
+# Dental Visit -----------------------------------------------------------------
+smooth_estimates(protection_fit[[6]],
+                 smooth = "te(Total_procrastination,Age)",
+                 dist = 0.1) %>%
+  ggplot(aes(x = Age, y = Total_procrastination)) +
+  geom_raster(aes(fill = plogis(est))) +
+  geom_point(data = health_data, alpha = 0.5) +
+  scale_fill_viridis_c(option = "plasma") +
+  scale_y_continuous(breaks = seq(0, 60, by = 10)) +
+  labs(title = "Predicted probability of visiting the dentist by procrastination and age",
+       x = "Age", y = "Total Procrastination") +
+  theme_classic() +
+  ggeasy::easy_center_title() +
+  ggeasy::easy_add_legend_title("Probability")
+
+# Verifying using 3D contour plot
+vis.gam(
+  protection_fit[[6]], view = c("Total_procrastination", "Age"),
+  type = "response", plot.type = 'persp', phi = 30, 
+  theta = 120, n.grid = 50, r = 50,
+  main = "Predicted probability of visiting the dentist by procrastination and age",
+  xlab = "Total Procrastination (0 - 60)", ylab = "Age (Years)", 
+  zlab = "Predicted Probability (0 - 1)"
+)
+
