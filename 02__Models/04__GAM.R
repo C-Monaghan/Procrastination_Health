@@ -326,6 +326,9 @@ dental_data$se <- preds$se.fit
 
 # Plotting ---------------------------------------------------------------------
 # Using a Value-Suppressing Uncertainty Palette
+# Red-blue colour scheme
+pal <- rev(colorspace::diverge_hcl(palette = "Blue-Red 3", n = 8))
+
 # Prostate Exams
 prostate_VSUP <- prostate_data %>%
   ggplot(aes(x = Total_procrastination, y = Total_depression, z = preds)) +
@@ -506,9 +509,9 @@ save_gam_plot("02__Protection", "07__dental_VSUP.png", dental_VSUP)
 
 # Cholesterol Screening
 # c_and_p_data %>%
-#   ggplot(aes(x = Age, y = Total_depression, z = c_preds)) +
+#   ggplot(aes(x = Age, y = Total_depression, z = c_preds, alpha = 1/c_se)) +
 #   geom_raster(aes(fill = c_preds)) +
-#   geom_point(data = health_data, 
+#   geom_point(data = health_data,
 #              aes(x = Age, y = Total_depression, z = NULL),
 #              alpha = 0.5) +
 #   scale_fill_viridis_c(option = "plasma") +
@@ -521,9 +524,9 @@ save_gam_plot("02__Protection", "07__dental_VSUP.png", dental_VSUP)
 
 # Pap Smears
 # c_and_p_data %>%
-#   ggplot(aes(x = Age, y = Total_depression, z = p_preds)) +
+#   ggplot(aes(x = Age, y = Total_depression, z = p_preds, alpha = 1/p_se)) +
 #   geom_raster(aes(fill = p_preds)) +
-#   geom_point(data = health_data, 
+#   geom_point(data = health_data,
 #              aes(x = Age, y = Total_depression, z = NULL),
 #              alpha = 0.5) +
 #   scale_fill_viridis_c(option = "plasma") +
@@ -536,9 +539,9 @@ save_gam_plot("02__Protection", "07__dental_VSUP.png", dental_VSUP)
 
 # Dental Visits
 # dental_data %>%
-#   ggplot(aes(x = Age, y = Total_procrastination, z = preds)) +
+#   ggplot(aes(x = Age, y = Total_procrastination, z = preds, alpha = 1/se)) +
 #   geom_raster(aes(fill = preds)) +
-#   geom_point(data = health_data, 
+#   geom_point(data = health_data,
 #              aes(x = Age, y = Total_procrastination, z = NULL),
 #              alpha = 0.5) +
 #   scale_fill_viridis_c(option = "plasma") +
