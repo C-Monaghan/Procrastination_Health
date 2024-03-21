@@ -422,6 +422,10 @@ dental_VSUP <- dental_data %>%
   theme(aspect.ratio = 1) +
   ggeasy::easy_center_title()
 
+cowplot::plot_grid(prostate_VSUP, cholesterol_VSUP, 
+                   pap_VSUP, dental_VSUP,
+                   ncol = 2)
+
 
 # Exporting --------------------------------------------------------------------
 export_path_data <- "./02__Models/Results/"
