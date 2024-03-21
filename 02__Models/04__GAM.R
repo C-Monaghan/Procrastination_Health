@@ -278,46 +278,147 @@ protection_p_grid <- plot_grid(plotlist = protection_p_plots[2:5], nrow = 2, nco
 protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 5, 6)], ncol = 3)
 protection_a_grid <- plot_grid(plotlist = protection_a_plots[c(1, 2, 5)], ncol = 3)
 
-# 3D Contour Plots -------------------------------------------------------------
-prostate_results <- wrap_elements(panel = ~ vis.gam(
-  protection_fit[[1]], view = c("Total_procrastination", "Total_depression"),
-  type = "response", plot.type = 'persp', phi = 30,
-  theta = 120, n.grid = 50,
-  main = "Predicted probability of getting a prostate exam by procrastination and depression",
-  xlab = "Total Depression (0 - 8)", ylab = "Total Procrastination (0 - 60)", 
-  zlab = "Predicted Probability (0 - 1)"
-))
+# Interaction Effects ----------------------------------------------------------
+# Making predictions datasets
+# Prostate Exams
+prostate_data <- expand.grid(
+  Total_procrastination = seq(0, 60, length = 200),
+  Total_depression = seq(0, 8, length = 200),
+  Age = median(health_data$Age))
 
-cholesterol_results <- wrap_elements(panel = ~ vis.gam(
-  protection_fit[[3]], view = c("Total_depression", "Age"),
-  type = "response", plot.type = 'persp', phi = 30, 
-  theta = 120, n.grid = 50, r = 50,
-  main = "Predicted probability of getting a cholesterol screening by depression and age",
-  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
-  zlab = "Predicted Probability (0 - 1)"
-))
+# Making predictions for prostate exams
+preds <- predict(protection_fit[[1]], newdata = prostate_data, type = "response", se.fit = TRUE)
 
-pap_results <- wrap_elements(panel = ~ vis.gam(
-  protection_fit[[4]], view = c("Total_depression", "Age"),
-  type = "response", plot.type = 'persp', phi = 30, 
-  theta = 120, n.grid = 50, r = 50,
-  main = "Predicted probability of getting a pap smear by depression and age",
-  xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
-  zlab = "Predicted Probability (0 - 1)"
-))
+# Adding prostate predictions
+prostate_data$preds <- preds$fit
+prostate_data$se <- preds$se.fit
 
-dental_results <- wrap_elements(panel = ~ vis.gam(
-  protection_fit[[6]], view = c("Total_procrastination", "Age"),
-  type = "response", plot.type = 'persp', phi = 30, 
-  theta = 120, n.grid = 50, r = 50,
-  main = "Predicted probability of visiting the dentist by depression and age",
-  xlab = "Total Procrastination (0 - 60)", ylab = "Age (Years)", 
-  zlab = "Predicted Probability (0 - 1)"
-))
+# Cholesterol and Pap Smear ----------------------------------------------------
+c_and_p_data <- expand.grid(
+  Age = seq(50, 95, length = 200),
+  Total_depression = seq(0, 8, length = 200),
+  Total_procrastination = median(health_data$Total_procrastination))
 
-# Using patchwork to plot as a grid
-interaction_grid <- prostate_results + pap_results + cholesterol_results + dental_results +
-  plot_layout(nrow = 2, ncol = 2)
+# Making predictions for cholesterol and pap smears
+c_preds <- predict(protection_fit[[3]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
+p_preds <- predict(protection_fit[[4]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
+
+# Adding cholesterol predictions
+c_and_p_data$c_preds <- c_preds$fit
+c_and_p_data$c_se <- c_preds$se.fit
+
+# Adding pap predictions
+c_and_p_data$p_preds <- p_preds$fit
+c_and_p_data$p_se <- p_preds$se.fit
+
+# Dental Visits ----------------------------------------------------------------
+dental_data <- expand.grid(
+  Total_procrastination = seq(0, 60, length = 200),
+  Age = seq(50, 95, length = 200),
+  Total_depression = median(health_data$Total_depression))
+
+# Making predictions for dental visits
+preds <- predict(protection_fit[[6]], newdata = dental_data, type = "response", se.fit = TRUE)
+
+# Adding dental predictions
+dental_data$preds <- preds$fit
+dental_data$se <- preds$se.fit
+
+# Plotting ---------------------------------------------------------------------
+# Using a Value-Suppressing Uncertainty Palette
+# Prostate Exams
+prostate_VSUP <- prostate_data %>%
+  ggplot(aes(x = Total_procrastination, y = Total_depression, z = preds)) +
+  geom_raster(aes(fill = zip(preds, se))) +
+  geom_jitter(data = health_data, 
+              aes(x = Total_procrastination, y = Total_depression, z = NULL),
+              height = 0.05, alpha = 0.5, size = 0.8) +
+  bivariate_scale(
+    name = c("Probability", "Uncertainty"),
+    aesthetics = "fill",
+    limits = list(c(0, 1), c(0, 1)),
+    palette = pal_vsup(
+      values = rev(pal),
+    ),
+    guide = "colorfan"
+  ) +
+  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
+       x = "Total Procrastination", y = "Total Depression") +
+  theme_classic() +
+  theme(aspect.ratio = 1) +
+  ggeasy::easy_center_title()
+
+# Cholesterol Screening
+cholesterol_VSUP <- c_and_p_data %>%
+  ggplot(aes(x = Age, y = Total_depression, z = c_preds)) +
+  geom_raster(aes(fill = zip(c_preds, c_se))) +
+  geom_jitter(data = health_data, 
+              aes(x = Age, y = Total_depression, z = NULL),
+              height = 0.05, size = 0.8, alpha = 0.5) +
+  bivariate_scale(
+    name = c("Probability", "Uncertainty"),
+    aesthetics = "fill",
+    limits = list(c(0, 1), c(0, 1)),
+    palette = pal_vsup(
+      values = rev(pal),
+    ),
+    guide = "colorfan"
+  ) +
+  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
+       x = "Age", y = "Total Depression") +
+  theme_classic() +
+  theme(aspect.ratio = 1) +
+  ggeasy::easy_center_title()
+
+# Pap Smears
+pap_VSUP <- c_and_p_data %>%
+  ggplot(aes(x = Age, y = Total_depression, z = p_preds)) +
+  geom_raster(aes(fill = zip(p_preds, p_se))) +
+  geom_jitter(data = health_data, 
+              aes(x = Age, y = Total_depression, z = NULL),
+              height = 0.05, size = 0.8, alpha = 0.5) +
+  bivariate_scale(
+    name = c("Probability", "Uncertainty"),
+    aesthetics = "fill",
+    limits = list(c(0, 1), c(0, 1)),
+    palette = pal_vsup(
+      values = rev(pal),
+    ),
+    guide = "colorfan"
+  ) +
+  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+  labs(title = "Predicted probability of getting a pap smear by depression and age",
+       x = "Age", y = "Total Depression") +
+  theme_classic() +
+  theme(aspect.ratio = 1) +
+  ggeasy::easy_center_title()
+
+# Dental Visits
+dental_VSUP <- dental_data %>%
+  ggplot(aes(x = Age, y = Total_procrastination, z = preds)) +
+  geom_raster(aes(fill = zip(preds, se))) +
+  geom_point(data = health_data,
+             aes(x = Age, y = Total_procrastination, z = NULL),
+             alpha = 0.5, size = 0.8) +
+  bivariate_scale(
+    name = c("Probability", "Uncertainty"),
+    aesthetics = "fill",
+    limits = list(c(0, 1), c(0, 1)),
+    palette = pal_vsup(
+      values = rev(pal),
+    ),
+    guide = "colorfan"
+  ) +
+  scale_y_continuous(breaks = seq(0, 60, by = 10)) +
+  labs(title = "Predicted probability of visiting the dentist by procrastination and age",
+       x = "Age", y = "Total Procrastination") +
+  theme_classic() +
+  theme(aspect.ratio = 1) +
+  ggeasy::easy_center_title()
+
 
 # Exporting --------------------------------------------------------------------
 export_path_data <- "./02__Models/Results/"
@@ -340,213 +441,117 @@ save_gam_plot("02__Protection", "01__p_grid.png", protection_p_grid)
 save_gam_plot("02__Protection", "02__d_grid.png", protection_d_grid)
 save_gam_plot("02__Protection", "03__a_grid.png", protection_a_grid)
 
-# Saving 3D Plots
-save_gam_plot("02__Protection", "04__Prostate_GAM.png", prostate_results)
-save_gam_plot("02__Protection", "05__Pap_Smear_GAM.png", pap_results)
-save_gam_plot("02__Protection", "06__Dentist_GAM.png", dental_results)
-save_gam_plot("02__Protection", "07__Cholesterol_GAM.png", cholesterol_results)
-save_gam_plot("02__Protection", "08__Interaction_grid.png", interaction_grid)
+# VSUP Plots
+save_gam_plot("02__Protection", "04__prostate_VSUP.png", prostate_VSUP)
+save_gam_plot("02__Protection", "05__cholesterol_VSUP.png", cholesterol_VSUP)
+save_gam_plot("02__Protection", "06__pap_VSUP.png", pap_VSUP)
+save_gam_plot("02__Protection", "07__dental_VSUP.png", dental_VSUP)
 
-# Testing ----------------------------------------------------------------------
-# Making predictions datasets
-# Prostate Exams
-prostate_data <- expand.grid(
-  Total_procrastination = seq(0, 60, length = 200),
-  Total_depression = seq(0, 8, length = 200),
-  Age = median(health_data$Age)
-)
+# OLD CODE --------------------------------------------------------------------
+# prostate_results <- wrap_elements(panel = ~ vis.gam(
+#   protection_fit[[1]], view = c("Total_procrastination", "Total_depression"),
+#   type = "response", plot.type = 'persp', phi = 30,
+#   theta = 120, n.grid = 50,
+#   main = "Predicted probability of getting a prostate exam by procrastination and depression",
+#   xlab = "Total Depression (0 - 8)", ylab = "Total Procrastination (0 - 60)", 
+#   zlab = "Predicted Probability (0 - 1)"
+# ))
 
-# Making predictions for prostate exams
-preds <- predict(protection_fit[[1]], newdata = prostate_data, type = "response", se.fit = TRUE)
+# cholesterol_results <- wrap_elements(panel = ~ vis.gam(
+#   protection_fit[[3]], view = c("Total_depression", "Age"),
+#   type = "response", plot.type = 'persp', phi = 30, 
+#   theta = 120, n.grid = 50, r = 50,
+#   main = "Predicted probability of getting a cholesterol screening by depression and age",
+#   xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
+#   zlab = "Predicted Probability (0 - 1)"
+# ))
 
-# Adding prosate predictions
-prostate_data$preds <- preds$fit
-prostate_data$se <- preds$se.fit
+# pap_results <- wrap_elements(panel = ~ vis.gam(
+#   protection_fit[[4]], view = c("Total_depression", "Age"),
+#   type = "response", plot.type = 'persp', phi = 30, 
+#   theta = 120, n.grid = 50, r = 50,
+#   main = "Predicted probability of getting a pap smear by depression and age",
+#   xlab = "Total Depression (0 - 8)", ylab = "Age (Years)", 
+#   zlab = "Predicted Probability (0 - 1)"
+# ))
 
-# Cholesterol and Pap Smear ----------------------------------------------------
-c_and_p_data <- expand.grid(
-  Age = seq(50, 95, length = 200),
-  Total_depression = seq(0, 8, length = 200),
-  Total_procrastination = median(health_data$Total_procrastination)
-)
+# dental_results <- wrap_elements(panel = ~ vis.gam(
+#   protection_fit[[6]], view = c("Total_procrastination", "Age"),
+#   type = "response", plot.type = 'persp', phi = 30, 
+#   theta = 120, n.grid = 50, r = 50,
+#   main = "Predicted probability of visiting the dentist by depression and age",
+#   xlab = "Total Procrastination (0 - 60)", ylab = "Age (Years)", 
+#   zlab = "Predicted Probability (0 - 1)"
+# ))
 
-# Making predictions for cholesterol and pap smears
-c_preds <- predict(protection_fit[[3]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
-p_preds <- predict(protection_fit[[4]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
+# Using patchwork to plot as a grid
+# interaction_grid <- prostate_results + pap_results + cholesterol_results + dental_results +
+#   plot_layout(nrow = 2, ncol = 2)
 
-# Adding cholesterol predictions
-c_and_p_data$c_preds <- c_preds$fit
-c_and_p_data$c_se <- c_preds$se.fit
-
-# Adding pap predictions
-c_and_p_data$p_preds <- p_preds$fit
-c_and_p_data$p_se <- p_preds$se.fit
-
-# Dental Visits ----------------------------------------------------------------
-dental_data <- expand.grid(
-  Total_procrastination = seq(0, 60, length = 200),
-  Age = seq(50, 95, length = 200),
-  Total_depression = median(health_data$Total_depression)
-  )
-
-# Making predictions for dental visits
-preds <- predict(protection_fit[[6]], newdata = dental_data, type = "response", se.fit = TRUE)
-
-# Adding dental predictions
-dental_data$preds <- preds$fit
-dental_data$se <- preds$se.fit
-
-# Plotting ---------------------------------------------------------------------
-# Using a Value-Suppressing Uncertainty Palette
-# Prostate Exams
-prostate_data %>%
-  ggplot(aes(x = Total_procrastination, y = Total_depression, z = preds)) +
-  geom_raster(aes(fill = zip(preds, se))) +
-  geom_jitter(data = health_data, 
-             aes(x = Total_procrastination, y = Total_depression, z = NULL),
-             height = 0.05, alpha = 0.5, size = 0.8) +
-  bivariate_scale(
-    name = c("Probability", "Uncertainty"),
-    aesthetics = "fill",
-    limits = list(c(0, 1), c(0, 1)),
-    palette = pal_vsup(
-      values = rev(pal),
-    ),
-    guide = "colorfan"
-  ) +
-  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
-       x = "Total Procrastination", y = "Total Depression") +
-  theme_classic() +
-  theme(aspect.ratio = 1) +
-  ggeasy::easy_center_title()
-
-# Cholesterol Screening
-c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression, z = c_preds)) +
-  geom_raster(aes(fill = zip(c_preds, c_se))) +
-  geom_jitter(data = health_data, 
-             aes(x = Age, y = Total_depression, z = NULL),
-             height = 0.05, size = 0.8, alpha = 0.5) +
-  bivariate_scale(
-    name = c("Probability", "Uncertainty"),
-    aesthetics = "fill",
-    limits = list(c(0, 1), c(0, 1)),
-    palette = pal_vsup(
-      values = rev(pal),
-    ),
-    guide = "colorfan"
-  ) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
-       x = "Age", y = "Total Depression") +
-  theme_classic() +
-  ggeasy::easy_center_title()
-
-# Pap Smears
-c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression, z = p_preds)) +
-  geom_raster(aes(fill = zip(p_preds, p_se))) +
-  geom_jitter(data = health_data, 
-              aes(x = Age, y = Total_depression, z = NULL),
-              height = 0.05, size = 0.8, alpha = 0.5) +
-  bivariate_scale(
-    name = c("Probability", "Uncertainty"),
-    aesthetics = "fill",
-    limits = list(c(0, 1), c(0, 1)),
-    palette = pal_vsup(
-      values = rev(pal),
-    ),
-    guide = "colorfan"
-  ) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a pap smear by depression and age",
-       x = "Age", y = "Total Depression") +
-  theme_classic() +
-  ggeasy::easy_center_title()
-
-# Dental Visits
-dental_data %>%
-  ggplot(aes(x = Age, y = Total_procrastination, z = preds)) +
-  geom_raster(aes(fill = zip(preds, se))) +
-  geom_point(data = health_data,
-             aes(x = Age, y = Total_procrastination, z = NULL),
-             alpha = 0.5, size = 0.8) +
-  bivariate_scale(
-    name = c("Probability", "Uncertainty"),
-    aesthetics = "fill",
-    limits = list(c(0, 1), c(0, 1)),
-    palette = pal_vsup(
-      values = rev(pal),
-    ),
-    guide = "colorfan"
-  ) +
-  scale_y_continuous(breaks = seq(0, 60, by = 10)) +
-  labs(title = "Predicted probability of visiting the dentist by procrastination and age",
-       x = "Age", y = "Total Procrastination") +
-  theme_classic() +
-  ggeasy::easy_center_title()
-
-
-# OLD METHOD -------------------------------------------------------------------
 # Making heat maps
 # Prostate Exams
-prosate_data %>%
-  ggplot(aes(x = Total_procrastination, y = Total_depression, z = preds, alpha = 1/se)) +
-  geom_raster(aes(fill = preds)) +
-  geom_jitter(data = health_data, 
-             aes(x = Total_procrastination, y = Total_depression, z = NULL),
-             height = 0.05, size = 0.8, alpha = 0.5) +
-  scale_fill_viridis_c(option = "plasma") +
-  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
-       x = "Total Procrastination", y = "Total Depression", fill = "Probability", alpha = "Uncertainity") +
-  theme_classic() +
-  ggeasy::easy_center_title()
+# prosate_data %>%
+#   ggplot(aes(x = Total_procrastination, y = Total_depression, z = preds, alpha = 1/se)) +
+#   geom_raster(aes(fill = preds)) +
+#   geom_jitter(data = health_data, 
+#               aes(x = Total_procrastination, y = Total_depression, z = NULL),
+#               height = 0.05, size = 0.8, alpha = 0.5) +
+#   scale_fill_viridis_c(option = "plasma") +
+#   scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
+#        x = "Total Procrastination", y = "Total Depression", fill = "Probability", alpha = "Uncertainity") +
+#   theme_classic() +
+#   ggeasy::easy_center_title()
 
 # Cholesterol Screening
-c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression, z = c_preds)) +
-  geom_raster(aes(fill = c_preds)) +
-  geom_point(data = health_data, 
-             aes(x = Age, y = Total_depression, z = NULL),
-             alpha = 0.5) +
-  scale_fill_viridis_c(option = "plasma") +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
-       x = "Age", y = "Total Depression") +
-  theme_classic() +
-  ggeasy::easy_center_title() +
-  ggeasy::easy_add_legend_title("Probability")
+# c_and_p_data %>%
+#   ggplot(aes(x = Age, y = Total_depression, z = c_preds)) +
+#   geom_raster(aes(fill = c_preds)) +
+#   geom_point(data = health_data, 
+#              aes(x = Age, y = Total_depression, z = NULL),
+#              alpha = 0.5) +
+#   scale_fill_viridis_c(option = "plasma") +
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
+#        x = "Age", y = "Total Depression") +
+#   theme_classic() +
+#   ggeasy::easy_center_title() +
+#   ggeasy::easy_add_legend_title("Probability")
 
 # Pap Smears
-c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression, z = p_preds)) +
-  geom_raster(aes(fill = p_preds)) +
-  geom_point(data = health_data, 
-             aes(x = Age, y = Total_depression, z = NULL),
-             alpha = 0.5) +
-  scale_fill_viridis_c(option = "plasma") +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a pap smear by depression and age",
-       x = "Age", y = "Total Depression") +
-  theme_classic() +
-  ggeasy::easy_center_title() +
-  ggeasy::easy_add_legend_title("Probability")
+# c_and_p_data %>%
+#   ggplot(aes(x = Age, y = Total_depression, z = p_preds)) +
+#   geom_raster(aes(fill = p_preds)) +
+#   geom_point(data = health_data, 
+#              aes(x = Age, y = Total_depression, z = NULL),
+#              alpha = 0.5) +
+#   scale_fill_viridis_c(option = "plasma") +
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   labs(title = "Predicted probability of getting a pap smear by depression and age",
+#        x = "Age", y = "Total Depression") +
+#   theme_classic() +
+#   ggeasy::easy_center_title() +
+#   ggeasy::easy_add_legend_title("Probability")
 
 # Dental Visits
-dental_data %>%
-  ggplot(aes(x = Age, y = Total_procrastination, z = preds)) +
-  geom_raster(aes(fill = preds)) +
-  geom_point(data = health_data, 
-             aes(x = Age, y = Total_procrastination, z = NULL),
-             alpha = 0.5) +
-  scale_fill_viridis_c(option = "plasma") +
-  scale_y_continuous(breaks = seq(0, 60, by = 10)) +
-  labs(title = "Predicted probability of visiting the dentist by procrastination and age",
-       x = "Age", y = "Total Procrastination") +
-  theme_classic() +
-  ggeasy::easy_center_title() +
-  ggeasy::easy_add_legend_title("Probability")
+# dental_data %>%
+#   ggplot(aes(x = Age, y = Total_procrastination, z = preds)) +
+#   geom_raster(aes(fill = preds)) +
+#   geom_point(data = health_data, 
+#              aes(x = Age, y = Total_procrastination, z = NULL),
+#              alpha = 0.5) +
+#   scale_fill_viridis_c(option = "plasma") +
+#   scale_y_continuous(breaks = seq(0, 60, by = 10)) +
+#   labs(title = "Predicted probability of visiting the dentist by procrastination and age",
+#        x = "Age", y = "Total Procrastination") +
+#   theme_classic() +
+#   ggeasy::easy_center_title() +
+#   ggeasy::easy_add_legend_title("Probability")
+
+# Saving 3D Plots
+# save_gam_plot("02__Protection", "04__Prostate_GAM.png", prostate_results)
+# save_gam_plot("02__Protection", "05__Pap_Smear_GAM.png", pap_results)
+# save_gam_plot("02__Protection", "06__Dentist_GAM.png", dental_results)
+# save_gam_plot("02__Protection", "07__Cholesterol_GAM.png", cholesterol_results)
+# save_gam_plot("02__Protection", "08__Interaction_grid.png", interaction_grid)
