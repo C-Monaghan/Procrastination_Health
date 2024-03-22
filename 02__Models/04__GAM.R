@@ -9,9 +9,8 @@ library(visreg)
 library(ggplot2)
 library(cowplot)
 library(patchwork)
-
-# Loading VSUP Functions -------------------------------------------------------
-source(file.path("./02__Models/Test Code/VSUP_updated.R"))
+library(scales)
+library(gtable)
 
 # Predictions Plot Function ----------------------------------------------------
 create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
@@ -58,6 +57,22 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   # Returning plot
   gam_plot
 }
+
+# create_heat_map <- function(data, x_var, y_var, z_var, se_var, title, x_lab, y_lab) {
+#   ggplot(data = data, aes_string(
+#     x = x_var, 
+#     y = y_var, 
+#     z = z_var, 
+#     alpha = sprintf("rescale(1/%s)", se_var))) +
+#     geom_raster(aes_string(fill = z_var)) +
+#     scale_fill_viridis_c(option = "plasma") +
+#     scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+#     scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#     labs(title = title, x = x_lab, y = y_lab, fill = "\U0177") +
+#     theme_classic() +
+#     guides(alpha = "none") +
+#     ggeasy::easy_center_title()
+# }
 
 # Exporting Plot Function ------------------------------------------------------
 save_gam_plot <- function(subfolder, filename, plot, height = 10, aspect_ratio = NULL){
@@ -328,191 +343,55 @@ dental_data$preds <- preds$fit
 dental_data$se <- preds$se.fit
 
 # Plotting ---------------------------------------------------------------------
-# Using a Value-Suppressing Uncertainty Palette
-# Red-blue colour scheme
-pal <- colorspace::diverge_hcl(palette = "Blue-Red 3", n = 8)
-
-# Prostate Exams
-prostate_VSUP <- prostate_data %>%
-  ggplot(aes(x = Total_procrastination, y = Total_depression)) +
-  geom_raster(aes(fill = zip(preds, rescale(se)))) +
-  # geom_jitter(data = health_data,
-  #             aes(x = Total_procrastination, y = Total_depression, z = NULL),
-  #             height = 0.05, size = 1) +
-  bivariate_scale(
-    name = c("\U0177", "Uncertainity"),
-    aesthetics = "fill",
-    limits = list(c(min(prostate_data$preds), max(prostate_data$preds)),
-                  c(0, 1)),
-    palette = pal_vsup(
-      values = pal,
-      unc_levels = 4, 
-      max_desat = 0.6,
-      pow_desat = 0.2,
-      max_light = 0.6,
-      pow_light = 1
-    ),
-    guide = "colorfan"
-  ) +
-  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
-       x = "Total Procrastination", y = "Total Depression") +
-  theme_classic(base_size = 14) +
-  theme(aspect.ratio = 1) +
-  ggeasy::easy_center_title()
-
-# Cholesterol Screening
-cholesterol_VSUP <- c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression)) +
-  geom_raster(aes(fill = zip(c_preds, rescale(c_se)))) +
-  # geom_jitter(data = health_data, 
-  #             aes(x = Age, y = Total_depression, z = NULL),
-  #             height = 0.05, size = 0.8, alpha = 0.5) +
-  bivariate_scale(
-    name = c("\U0177", "Uncertainity"),
-    aesthetics = "fill",
-    limits = list(c(min(c_and_p_data$c_preds), max(c_and_p_data$c_preds)), 
-                  c(0, 1)),
-    palette = pal_vsup(
-      values = pal,
-      unc_levels = 4, 
-      max_desat = 0.6,
-      pow_desat = 0.2,
-      max_light = 0.6,
-      pow_light = 1
-    ),
-    guide = "colorfan"
-  ) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
-       x = "Age", y = "Total Depression") +
-  theme_classic(base_size = 14) +
-  theme(aspect.ratio = 1) +
-  ggeasy::easy_center_title()
-
-# Pap Smears
-pap_VSUP <- c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression)) +
-  geom_raster(aes(fill = zip(p_preds, rescale(p_se)))) +
-  # geom_jitter(data = health_data, 
-  #             aes(x = Age, y = Total_depression, z = NULL),
-  #             height = 0.05, size = 0.8, alpha = 0.5) +
-  bivariate_scale(
-    name = c("\U0177", "Uncertainity"),
-    aesthetics = "fill",
-    limits = list(c(0, 0.8), 
-                  c(0, 1)),
-    palette = pal_vsup(
-      values = pal,
-      unc_levels = 4, 
-      max_desat = 0.6,
-      pow_desat = 0.2,
-      max_light = 0.6,
-      pow_light = 1
-    ),
-    guide = "colorfan"
-  ) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  labs(title = "Predicted probability of getting a pap smear by depression and age",
-       x = "Age", y = "Total Depression") +
-  theme_classic(base_size = 14) +
-  theme(aspect.ratio = 1) +
-  ggeasy::easy_center_title()
-
-# Dental Visits
-dental_VSUP <- dental_data %>%
-  ggplot(aes(x = Age, y = Total_procrastination)) +
-  geom_raster(aes(fill = zip(preds, rescale(se)))) +
-  # geom_point(data = health_data,
-  #            aes(x = Age, y = Total_procrastination, z = NULL),
-  #            alpha = 0.5, size = 0.8) +
-  bivariate_scale(
-    name = c("\U0177", "Uncertainity"),
-    aesthetics = "fill",
-    limits = list(c(0.2, 0.8), 
-                  c(0, 1)),
-    palette = pal_vsup(
-      values = pal,
-    ),
-    guide = "colorfan"
-  ) +
-  scale_y_continuous(breaks = seq(0, 60, by = 10)) +
-  labs(title = "Predicted probability of visiting the dentist by procrastination and age",
-       x = "Age", y = "Total Procrastination") +
-  theme_classic(base_size = 14) +
-  theme(aspect.ratio = 1) +
-  ggeasy::easy_center_title()
-
 # Using 2D heat map with alpha blending
 # Prostate Exams
-pe <- prostate_data %>%
+prosate_2d <- prostate_data %>%
   ggplot(aes(x = Total_procrastination, y = Total_depression, z = preds, alpha = rescale(1/se))) +
   geom_raster(aes(fill = preds)) +
-  geom_jitter(data = health_data,
-              aes(x = Total_procrastination, y = Total_depression, z = NULL),
-              height = 0.05, alpha = 0.5, size = 1) +
   scale_fill_viridis_c(option = "plasma") +
   scale_x_continuous(breaks = seq(0, 60, by = 10)) +
   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
   labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
-       x = "Total Procrastination", y = "Total Depression", fill = "Probability", alpha = "Certainity") +
-  theme_classic(base_size = 14) + 
-  theme(aspect.ratio = 1) +
+       x = "Total Procrastination", y = "Total Depression", fill = "\U0177") +
+  theme_classic() +
+  guides(alpha = "none") +
   ggeasy::easy_center_title() 
 
 # Cholesterol Screening
-cs <- c_and_p_data %>%
+cholesterol_2d <- c_and_p_data %>%
   ggplot(aes(x = Age, y = Total_depression, z = c_preds, alpha = rescale(1/c_se))) +
   geom_raster(aes(fill = c_preds)) +
-  geom_jitter(data = health_data,
-              aes(x = Age, y = Total_depression, z = NULL),
-              alpha = 0.5, height = 0.1, size = 1) +
   scale_fill_viridis_c(option = "plasma") +
   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
   labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
-       x = "Age", y = "Total Depression", fill = "Probability", alpha = "Certainity") +
-  theme_classic(base_size = 14) +
+       x = "Age", y = "Total Depression", fill = "\U0177") +
+  theme_classic() + 
+  guides(alpha = "none") +
   ggeasy::easy_center_title()
 
 # Pap Smears
-ps <- c_and_p_data %>%
+pap_2d <- c_and_p_data %>%
   ggplot(aes(x = Age, y = Total_depression, z = p_preds, alpha = rescale(1/p_se))) +
   geom_raster(aes(fill = p_preds)) +
-  geom_jitter(data = health_data,
-             aes(x = Age, y = Total_depression, z = NULL),
-             alpha = 1, height = 0.08, size = 1) +
   scale_fill_viridis_c(option = "plasma") +
   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
   labs(title = "Predicted probability of getting a pap smear by depression and age",
-       x = "Age", y = "Total Depression", fill = "Probability", alpha = "Certainity") +
-  theme_classic(14) +
+       x = "Age", y = "Total Depression", fill = "\U0177") +
+  theme_classic() +
+  guides(alpha = "none") +
   ggeasy::easy_center_title()
 
 # Dental Visits
-dv <- dental_data %>%
+dental_2d <- dental_data %>%
   ggplot(aes(x = Age, y = Total_procrastination, z = preds, alpha = rescale(1/se))) +
   geom_raster(aes(fill = preds)) +
-  geom_point(data = health_data,
-             aes(x = Age, y = Total_procrastination, z = NULL),
-             alpha = 1) +
   scale_fill_viridis_c(option = "plasma") +
   scale_y_continuous(breaks = seq(0, 60, by = 10)) +
   labs(title = "Predicted probability of visiting the dentist by procrastination and age",
-       x = "Age", y = "Total Procrastination", fill = "Probability", alpha = "Certainity") +
+       x = "Age", y = "Total Procrastination", fill = "\U0177") +
   theme_classic(base_size = 14) +
-  theme(aspect.ratio = 1) +
+  guides(alpha = "none") +
   ggeasy::easy_center_title()
-
-# Plotting beside each other for verification
-cowplot::plot_grid(prostate_VSUP, pe)
-cowplot::plot_grid(cholesterol_VSUP, cs)
-cowplot::plot_grid(pap_VSUP, ps)
-cowplot::plot_grid(dental_VSUP, dv)
-
-cowplot::plot_grid(prostate_VSUP, cholesterol_VSUP, 
-                   pap_VSUP, dental_VSUP,
-                   ncol = 2)
 
 
 # Exporting --------------------------------------------------------------------
@@ -536,11 +415,11 @@ save_gam_plot("02__Protection", "01__p_grid.png", protection_p_grid)
 save_gam_plot("02__Protection", "02__d_grid.png", protection_d_grid)
 save_gam_plot("02__Protection", "03__a_grid.png", protection_a_grid)
 
-# VSUP Plots
-save_gam_plot("02__Protection", "04__prostate_VSUP.png", prostate_VSUP)
-save_gam_plot("02__Protection", "05__cholesterol_VSUP.png", cholesterol_VSUP)
-save_gam_plot("02__Protection", "06__pap_VSUP.png", pap_VSUP)
-save_gam_plot("02__Protection", "07__dental_VSUP.png", dental_VSUP)
+# Heat Maps
+save_gam_plot("02__Protection", "04__prostate_map.png", prosate_2d)
+save_gam_plot("02__Protection", "05__cholesterol_map.png", cholesterol_2d)
+save_gam_plot("02__Protection", "06__pap_map.png", pap_2d)
+save_gam_plot("02__Protection", "07__dental_map.png", dental_2d)
 
 # OLD CODE --------------------------------------------------------------------
 # prostate_results <- wrap_elements(panel = ~ vis.gam(
@@ -590,3 +469,119 @@ save_gam_plot("02__Protection", "07__dental_VSUP.png", dental_VSUP)
 # save_gam_plot("02__Protection", "07__Cholesterol_GAM.png", cholesterol_results)
 # save_gam_plot("02__Protection", "08__Interaction_grid.png", interaction_grid)
 
+# Using a Value-Suppressing Uncertainty Palette
+# Red-blue colour scheme
+# pal <- colorspace::diverge_hcl(palette = "Blue-Red 3", n = 8)
+# 
+# # Prostate Exams
+# prostate_VSUP <- prostate_data %>%
+#   ggplot(aes(x = Total_procrastination, y = Total_depression)) +
+#   geom_raster(aes(fill = zip(preds, rescale(se)))) +
+#   geom_jitter(data = health_data,
+#               aes(x = Total_procrastination, y = Total_depression, z = NULL),
+#               height = 0.05, size = 1) +
+#   bivariate_scale(
+#     name = c("\U0177", "Uncertainity"),
+#     aesthetics = "fill",
+#     limits = list(c(0,1),
+#                   c(0, 1)),
+#     palette = pal_vsup(
+#       values = pal,
+#       unc_levels = 4, 
+#       max_desat = 0.6,
+#       pow_desat = 0.2,
+#       max_light = 0.6,
+#       pow_light = 1
+#     ),
+#     guide = "colorfan"
+#   ) +
+#   scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
+#        x = "Total Procrastination", y = "Total Depression") +
+#   theme_classic(base_size = 14) +
+#   ggeasy::easy_center_title()
+# 
+# prostate_VSUP
+# 
+# # Cholesterol Screening
+# cholesterol_VSUP <- c_and_p_data %>%
+#   ggplot(aes(x = Age, y = Total_depression)) +
+#   geom_raster(aes(fill = zip(c_preds, rescale(c_se)))) +
+#   # geom_jitter(data = health_data, 
+#   #             aes(x = Age, y = Total_depression, z = NULL),
+#   #             height = 0.05, size = 0.8, alpha = 0.5) +
+#   bivariate_scale(
+#     name = c("\U0177", "Uncertainity"),
+#     aesthetics = "fill",
+#     limits = list(c(min(c_and_p_data$c_preds), max(c_and_p_data$c_preds)), 
+#                   c(0, 1)),
+#     palette = pal_vsup(
+#       values = pal,
+#       unc_levels = 4, 
+#       max_desat = 0.6,
+#       pow_desat = 0.2,
+#       max_light = 0.6,
+#       pow_light = 1
+#     ),
+#     guide = "colorfan"
+#   ) +
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
+#        x = "Age", y = "Total Depression") +
+#   theme_classic(base_size = 14) +
+#   theme(aspect.ratio = 1) +
+#   ggeasy::easy_center_title()
+# 
+# # Pap Smears
+# pap_VSUP <- c_and_p_data %>%
+#   ggplot(aes(x = Age, y = Total_depression)) +
+#   geom_raster(aes(fill = zip(p_preds, rescale(p_se)))) +
+#   # geom_jitter(data = health_data, 
+#   #             aes(x = Age, y = Total_depression, z = NULL),
+#   #             height = 0.05, size = 0.8, alpha = 0.5) +
+#   bivariate_scale(
+#     name = c("\U0177", "Uncertainity"),
+#     aesthetics = "fill",
+#     limits = list(c(0, 0.8), 
+#                   c(0, 1)),
+#     palette = pal_vsup(
+#       values = pal,
+#       unc_levels = 4, 
+#       max_desat = 0.6,
+#       pow_desat = 0.2,
+#       max_light = 0.6,
+#       pow_light = 1
+#     ),
+#     guide = "colorfan"
+#   ) +
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   labs(title = "Predicted probability of getting a pap smear by depression and age",
+#        x = "Age", y = "Total Depression") +
+#   theme_classic(base_size = 14) +
+#   theme(aspect.ratio = 1) +
+#   ggeasy::easy_center_title()
+# 
+# # Dental Visits
+# dental_VSUP <- dental_data %>%
+#   ggplot(aes(x = Age, y = Total_procrastination)) +
+#   geom_raster(aes(fill = zip(preds, rescale(se)))) +
+#   # geom_point(data = health_data,
+#   #            aes(x = Age, y = Total_procrastination, z = NULL),
+#   #            alpha = 0.5, size = 0.8) +
+#   bivariate_scale(
+#     name = c("\U0177", "Uncertainity"),
+#     aesthetics = "fill",
+#     limits = list(c(0.2, 0.8), 
+#                   c(0, 1)),
+#     palette = pal_vsup(
+#       values = pal,
+#     ),
+#     guide = "colorfan"
+#   ) +
+#   scale_y_continuous(breaks = seq(0, 60, by = 10)) +
+#   labs(title = "Predicted probability of visiting the dentist by procrastination and age",
+#        x = "Age", y = "Total Procrastination") +
+#   theme_classic(base_size = 14) +
+#   theme(aspect.ratio = 1) +
+#   ggeasy::easy_center_title()
