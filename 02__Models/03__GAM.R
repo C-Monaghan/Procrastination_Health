@@ -322,7 +322,7 @@ map_grid <- ggpubr::ggarrange(
 
 # Exporting --------------------------------------------------------------------
 export_path_data <- "./02__Models/Results/"
-export_path_graphics <- "./02__Models/Results/Figures/03__GAM/"
+export_path_graphics <- "./02__Models/Results/Figures/02__GAM/"
 
 # GAM Results
 writexl::write_xlsx(path = file.path(export_path_data, "01__GAM_Problems.xlsx"), 
@@ -342,14 +342,3 @@ save_gam_plot("02__Protection", "05__cholesterol_map.png", cholesterol_2d)
 save_gam_plot("02__Protection", "06__pap_map.png", pap_2d)
 save_gam_plot("02__Protection", "07__dental_map.png", dental_2d)
 save_gam_plot("02__Protection", "08__map.png", map_grid)
-
-
-c_and_p_data %>%
-  mutate(Age = round(Age)) %>%
-  group_by(Age) %>%
-  select(Age, c_preds)
-
-health_data %>%
-  ggplot(aes(x = Age, y = Total_depression)) +
-  geom_jitter() +
-  theme_minimal()
