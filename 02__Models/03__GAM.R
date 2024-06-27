@@ -25,9 +25,8 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   
   # Define non-significant result combinations for highlighting in red
   non_significant_combinations <- list(
-    Total_procrastination = c("Cholesterol", "Heart condition", "Pap smears", "Flu shots"),
-    Total_depression = c("Diabetes", "Mammograms", "Flu shots", "Dental visits"),
-    Age = c("Back pain", "Fatigue", "Cholesterol")
+    Total_procrastination = c("Pap smears", "Flu shots"),
+    Total_depression = c("Mammograms", "Cholesterol screenings", "Pap smears", "Flu shots", "Dental visits")
   )
   
   # Retrieve axis details for the current x variable
@@ -95,8 +94,8 @@ health_protection_tidy <- c(
 formulas <- list(
   Mammogram = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
   Flu_shot = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
-  Pap_smear = "~ s(Total_procrastination) + te(Total_depression, Age)",
-  Cholesterol_screening = "~ s(Total_procrastination) + te(Total_depression, Age)",
+  Pap_smear = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
+  Cholesterol_screening = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
   Prostate_exam = "~ s(Age) + te(Total_procrastination, Total_depression)",
   Dental_visit_2_years = "~ s(Total_depression, k = 9) + te(Total_procrastination, Age)"
 )
@@ -115,16 +114,17 @@ protection_fit <- lapply(health_protection, function(x) {
 gam_results_protection <- data.frame(
   health_protection = c(
     "Prostate Exams", "Prostate Exams", "Mammograms", "Mammograms", "Mammograms",
-    "Cholesterol Screening", "Cholesterol Screening", "Pap Smears", "Pap Smears",
-    "Flu Shots", "Flu Shots", "Flu Shots", "Dental Visit", "Dental Visit"),
+    "Cholesterol Screening", "Cholesterol Screening", "Cholesterol Screening",
+    "Pap Smears", "Pap Smears", "Pap Smears", "Flu Shots", "Flu Shots", "Flu Shots", 
+    "Dental Visit", "Dental Visit"),
   predictor = c(
     "Age", "Procrastination x Depression", "Procrastination", "Depression", "Age",
-    "Procrastination", "Depression x Age", "Procrastination", "Depression x Age",
+    "Procrastination", "Depression", "Age", "Procrastination", "Depression", "Age",
     "Procrastination", "Depression", "Age", "Depression", "Procrastination x Age"),
-  edf = numeric(14),
-  ref_df = numeric(14),
-  chi_sq = numeric(14),
-  p_val = numeric(14)
+  edf = numeric(16),
+  ref_df = numeric(16),
+  chi_sq = numeric(16),
+  p_val = numeric(16)
 )
 
 # Initial index value
@@ -145,13 +145,11 @@ for(fit in protection_fit) {
   index <- index + num_rows
 }
 
-# Rounding to 5 decimal places
+# Rounding to 3 decimal places
 gam_results_protection <- gam_results_protection %>%
   mutate(across(!c(health_protection, predictor), round, digits = 3))
 
-
 # Plotting ---------------------------------------------------------------------
-# Health Protection
 # Initial empty lists to store plots for each factor
 protection_p_plots <- list()
 protection_d_plots <- list()
@@ -179,18 +177,14 @@ for(i in seq_along(protection_fit)){
 }
 
 # Combine each individual plot into a grid
-# Indexing because I want the plots without the interaction effects
-protection_p_grid <- plot_grid(
-  protection_p_plots[[2]], protection_p_plots[[3]],
-  protection_p_plots[[4]], protection_p_plots[[5]],
-  nrow = 2, ncol = 2)
-
-protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 5, 6)], ncol = 3)
-protection_a_grid <- plot_grid(plotlist = protection_a_plots[c(1, 2, 5)], ncol = 3)
+# Indexing because I only want main effects
+protection_p_grid <- plot_grid(plotlist = protection_p_plots[c(2, 3, 4, 5)])
+protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 3, 4, 5, 6)])
+protection_a_grid <- plot_grid(plotlist = protection_a_plots[c(1, 2, 3, 4, 5)])
 
 # Interaction Effects ----------------------------------------------------------
 # Making predictions datasets
-# Prostate Exams
+# Prostate Exams ---------------------------------------------------------------
 prostate_data <- expand.grid(
   Total_procrastination = seq(0, 60, length = 200),
   Total_depression = seq(0, 8, length = 200),
@@ -202,24 +196,6 @@ preds <- predict(protection_fit[[1]], newdata = prostate_data, type = "response"
 # Adding prostate predictions
 prostate_data$preds <- preds$fit
 prostate_data$se <- preds$se.fit
-
-# Cholesterol and Pap Smear ----------------------------------------------------
-c_and_p_data <- expand.grid(
-  Age = seq(50, 95, length = 200),
-  Total_depression = seq(0, 8, length = 200),
-  Total_procrastination = median(health_data$Total_procrastination))
-
-# Making predictions for cholesterol and pap smears
-c_preds <- predict(protection_fit[[3]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
-p_preds <- predict(protection_fit[[4]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
-
-# Adding cholesterol predictions
-c_and_p_data$c_preds <- c_preds$fit
-c_and_p_data$c_se <- c_preds$se.fit
-
-# Adding pap predictions
-c_and_p_data$p_preds <- p_preds$fit
-c_and_p_data$p_se <- p_preds$se.fit
 
 # Dental Visits ----------------------------------------------------------------
 dental_data <- expand.grid(
@@ -256,44 +232,6 @@ prosate_2d <- prostate_data %>%
   guides(alpha = "none") +
   ggeasy::easy_center_title()
 
-# Cholesterol Screening
-cholesterol_2d <- c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression)) +
-  # Heat map layer (with alpha blending)
-  geom_raster(aes(fill = rescale(c_preds), alpha = (1/c_se)^2 )) +
-  # Contour lines
-  geom_contour(aes(z = c_preds), col = 1, lwd = 0.2) +
-  # Colour scheme
-  scale_fill_viridis_c(option = "plasma") +
-  # Adjusting axis
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  # Plot title and labels
-  labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
-       x = "Age", y = "Total Depression", fill = "p̂") +
-  # Setting themes and legend
-  theme_classic(base_size = 12) + 
-  guides(alpha = "none") +
-  ggeasy::easy_center_title()
-
-# Pap Smears
-pap_2d <- c_and_p_data %>%
-  ggplot(aes(x = Age, y = Total_depression)) +
-  # Heat map layer (with alpha blending)
-  geom_raster(aes(fill = rescale(p_preds), alpha = (1/p_se)^2 )) +
-  # Contour lines
-  geom_contour(aes(z = p_preds), col = 1, lwd = 0.2) +
-  # Colour scheme
-  scale_fill_viridis_c(option = "plasma") +
-  # Adjusting axis
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  # Plot title and labels
-  labs(title = "Predicted probability of getting a pap smear by depression and age",
-       x = "Age", y = "Total Depression", fill = "p̂") +
-  # Setting themes and legend
-  theme_classic(base_size = 12) +
-  guides(alpha = "none") +
-  ggeasy::easy_center_title()
-
 # Dental Visits
 dental_2d <- dental_data %>%
   ggplot(aes(x = Total_procrastination, y = Age)) +
@@ -314,10 +252,9 @@ dental_2d <- dental_data %>%
   ggeasy::easy_center_title()
 
 map_grid <- ggpubr::ggarrange(
-  prosate_2d,dental_2d,
-  cholesterol_2d, pap_2d, 
+  prosate_2d, dental_2d,
   common.legend = TRUE, legend = "right", 
-  ncol = 2, nrow = 2
+  ncol = 2
 )
 
 # Exporting --------------------------------------------------------------------
@@ -325,20 +262,78 @@ export_path_data <- "./02__Models/Results/"
 export_path_graphics <- "./02__Models/Results/Figures/02__GAM/"
 
 # GAM Results
-writexl::write_xlsx(path = file.path(export_path_data, "01__GAM_Problems.xlsx"), 
-                    x = gam_results_problems, col_names = TRUE)
-writexl::write_xlsx(path = file.path(export_path_data, "02__GAM_Protection.xlsx"), 
-                    x = gam_results_protection, col_names = TRUE)
+writexl::write_xlsx(
+  path = file.path(export_path_data, "01__GAM_Protection.xlsx"),
+  x = gam_results_protection, col_names = TRUE)
 
 # Saving Main Effects Plots
 # Protection
 save_gam_plot("02__Protection", "01__p_grid.pdf", protection_p_grid)
-save_gam_plot("02__Protection", "02__d_grid.png", protection_d_grid)
-save_gam_plot("02__Protection", "03__a_grid.png", protection_a_grid)
+# save_gam_plot("02__Protection", "02__d_grid.png", protection_d_grid)
+# save_gam_plot("02__Protection", "03__a_grid.png", protection_a_grid)
 
 # Heat Maps
 save_gam_plot("02__Protection", "04__prostate_map.png", prosate_2d)
-save_gam_plot("02__Protection", "05__cholesterol_map.png", cholesterol_2d)
-save_gam_plot("02__Protection", "06__pap_map.png", pap_2d)
+# save_gam_plot("02__Protection", "05__cholesterol_map.png", cholesterol_2d)
+# save_gam_plot("02__Protection", "06__pap_map.png", pap_2d)
 save_gam_plot("02__Protection", "07__dental_map.png", dental_2d)
 save_gam_plot("02__Protection", "08__map.png", map_grid)
+
+
+# Non Procrastination Interaction Effects --------------------------------------
+# Cholesterol and Pap Smear ----------------------------------------------------
+# c_and_p_data <- expand.grid(
+#   Age = seq(50, 95, length = 200),
+#   Total_depression = seq(0, 8, length = 200),
+#   Total_procrastination = median(health_data$Total_procrastination))
+
+# Making predictions for cholesterol and pap smears
+# c_preds <- predict(protection_fit[[3]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
+# p_preds <- predict(protection_fit[[4]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
+
+# Adding cholesterol predictions
+# c_and_p_data$c_preds <- c_preds$fit
+# c_and_p_data$c_se <- c_preds$se.fit
+
+# Adding pap predictions
+# c_and_p_data$p_preds <- p_preds$fit
+# c_and_p_data$p_se <- p_preds$se.fit
+# 
+# PLotting ---------------------------------------------------------------------
+# Cholesterol Screening
+# cholesterol_2d <- c_and_p_data %>%
+#   ggplot(aes(x = Age, y = Total_depression)) +
+#   # Heat map layer (with alpha blending)
+#   geom_raster(aes(fill = rescale(c_preds), alpha = (1/c_se)^2 )) +
+#   # Contour lines
+#   geom_contour(aes(z = c_preds), col = 1, lwd = 0.2) +
+#   # Colour scheme
+#   scale_fill_viridis_c(option = "plasma") +
+#   # Adjusting axis
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   # Plot title and labels
+#   labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
+#        x = "Age", y = "Total Depression", fill = "p̂") +
+#   # Setting themes and legend
+#   theme_classic(base_size = 12) + 
+#   guides(alpha = "none") +
+#   ggeasy::easy_center_title()
+#   
+# Pap Smears
+# pap_2d <- c_and_p_data %>%
+#   ggplot(aes(x = Age, y = Total_depression)) +
+#   # Heat map layer (with alpha blending)
+#   geom_raster(aes(fill = rescale(p_preds), alpha = (1/p_se)^2 )) +
+#   # Contour lines
+#   geom_contour(aes(z = p_preds), col = 1, lwd = 0.2) +
+#   # Colour scheme
+#   scale_fill_viridis_c(option = "plasma") +
+#   # Adjusting axis
+#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+#   # Plot title and labels
+#   labs(title = "Predicted probability of getting a pap smear by depression and age",
+#        x = "Age", y = "Total Depression", fill = "p̂") +
+#   # Setting themes and legend
+#   theme_classic(base_size = 12) +
+#   guides(alpha = "none") +
+#   ggeasy::easy_center_title()
