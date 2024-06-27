@@ -17,7 +17,7 @@ As such, this study aimed to explore the associations between procrastination an
 
 ## Repository Structure
 The repository is organized as follows:
-- **00__Prerequisites:** Contains .pdf files about health protective measures within the HRS.
+- **00__Documentation:** Contains .pdf files about health protective measures within the HRS.
 - **01__Data:** Contains both the raw and processed data files.
 - **02__Models:** Contains all the project code.
   - **00__Functions.R:** Contains repeatedly used functions throughout the project.
