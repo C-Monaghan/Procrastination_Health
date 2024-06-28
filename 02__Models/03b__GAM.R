@@ -8,9 +8,7 @@ library(mgcv) # For working with GAMs
 library(visreg)
 library(ggplot2)
 library(cowplot)
-library(patchwork)
 library(scales)
-library(gtable)
 
 # Predictions Plot Function ----------------------------------------------------
 create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
@@ -25,8 +23,9 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   
   # Define non-significant result combinations for highlighting in red
   non_significant_combinations <- list(
-    Total_procrastination = c("Pap smears", "Flu shots"),
-    Total_depression = c("Mammograms", "Cholesterol screenings", "Pap smears", "Flu shots", "Dental visits")
+    Total_procrastination = c("Cholesterol screenings", "Pap smears", "Flu shots"),
+    Total_depression = c("Mammograms", "Cholesterol screenings", "Pap smears", "Flu shots", "Dental visits"),
+    Age = c("Dental visits")
   )
   
   # Retrieve axis details for the current x variable
@@ -49,8 +48,14 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   # Highlight the title and subtitle in red if the combination of X and Y is non-significant
   if (y_label %in% non_significant_combinations[[x_var]]) {
     gam_plot <- gam_plot +
-      theme(plot.title = element_text(colour = "red"),
-            plot.subtitle = element_text(colour = "red"))
+      theme(plot.title = element_text(colour = "#D2042D"), # Cherry red
+            plot.subtitle = element_text(colour = "#D2042D")) # Cherry Red
+  }
+  
+  if(y_label == "Cholesterol screenings" & x_label == "Procrastination"){
+    gam_plot <- gam_plot +
+      theme(plot.title = element_text(colour = "#8B8000"), # Amber yellow
+            plot.subtitle = element_text(colour = "#8B8000")) # Amber yellow
   }
   
   # Returning plot
@@ -58,9 +63,9 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
 }
 
 # Exporting Plot Function ------------------------------------------------------
-save_gam_plot <- function(subfolder, filename, plot, height = 10, aspect_ratio = NULL){
+save_gam_plot <- function(filename, plot, height = 10, aspect_ratio = NULL){
   # Getting file path
-  file_path <- file.path(export_path_graphics, subfolder, filename)
+  file_path <- file.path(export_path_graphics, filename)
   
   # Seperate saving if the aspect ratio value is present
   if(!is.null(aspect_ratio)){
@@ -97,7 +102,7 @@ formulas <- list(
   Pap_smear = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
   Cholesterol_screening = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
   Prostate_exam = "~ s(Age) + te(Total_procrastination, Total_depression)",
-  Dental_visit_2_years = "~ s(Total_depression, k = 9) + te(Total_procrastination, Age)"
+  Dental_visit_2_years = "~ s(Age) + te(Total_procrastination, Total_depression)"
 )
 
 # Apply the GAM model to each protection variable and store it in the list
@@ -110,6 +115,12 @@ protection_fit <- lapply(health_protection, function(x) {
       family = "binomial", method = "REML")
 })
 
+# Running k.check on each model ------------------------------------------------
+diagnostic <- lapply(protection_fit, function(x){
+  k.check(x)
+})
+
+
 # Creating a dataset (I can't think of a non-hard code way)
 gam_results_protection <- data.frame(
   health_protection = c(
@@ -120,7 +131,7 @@ gam_results_protection <- data.frame(
   predictor = c(
     "Age", "Procrastination x Depression", "Procrastination", "Depression", "Age",
     "Procrastination", "Depression", "Age", "Procrastination", "Depression", "Age",
-    "Procrastination", "Depression", "Age", "Depression", "Procrastination x Age"),
+    "Procrastination", "Depression", "Age", "Age", "Procrastination x Depression"),
   edf = numeric(16),
   ref_df = numeric(16),
   chi_sq = numeric(16),
@@ -179,46 +190,36 @@ for(i in seq_along(protection_fit)){
 # Combine each individual plot into a grid
 # Indexing because I only want main effects
 protection_p_grid <- plot_grid(plotlist = protection_p_plots[c(2, 3, 4, 5)])
-protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 3, 4, 5, 6)])
-protection_a_grid <- plot_grid(plotlist = protection_a_plots[c(1, 2, 3, 4, 5)])
+protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 3, 4, 5)])
+protection_a_grid <- plot_grid(plotlist = protection_a_plots)
 
 # Interaction Effects ----------------------------------------------------------
 # Making predictions datasets
-# Prostate Exams ---------------------------------------------------------------
-prostate_data <- expand.grid(
+new_data <- expand.grid(
   Total_procrastination = seq(0, 60, length = 200),
   Total_depression = seq(0, 8, length = 200),
   Age = median(health_data$Age))
 
-# Making predictions for prostate exams
-preds <- predict(protection_fit[[1]], newdata = prostate_data, type = "response", se.fit = TRUE)
+# Making predictions
+prostate_preds <- predict(protection_fit[[1]], newdata = new_data, type = "response", se.fit = TRUE)
+dental_preds <- predict(protection_fit[[6]], newdata = new_data, type = "response", se.fit = TRUE)
 
-# Adding prostate predictions
-prostate_data$preds <- preds$fit
-prostate_data$se <- preds$se.fit
+# Adding predictions
+new_data$prostate_preds <- prostate_preds$fit
+new_data$prostate_se <- prostate_preds$se.fit
 
-# Dental Visits ----------------------------------------------------------------
-dental_data <- expand.grid(
-  Total_procrastination = seq(0, 60, length = 200),
-  Age = seq(50, 95, length = 200),
-  Total_depression = median(health_data$Total_depression))
-
-# Making predictions for dental visits
-preds <- predict(protection_fit[[6]], newdata = dental_data, type = "response", se.fit = TRUE)
-
-# Adding dental predictions
-dental_data$preds <- preds$fit
-dental_data$se <- preds$se.fit
+new_data$dental_preds <- dental_preds$fit
+new_data$dental_se <- dental_preds$se.fit
 
 # Plotting ---------------------------------------------------------------------
 # Using 2D heat map with alpha blending
 # Prostate Exams
-prosate_2d <- prostate_data %>%
+prosate_2d <- new_data %>%
   ggplot(aes(x = Total_procrastination, y = Total_depression)) +
   # Heat map layer (with alpha blending)
-  geom_raster(aes(fill = rescale(preds), alpha = (1/se)^2 )) +
+  geom_raster(aes(fill = rescale(prostate_preds), alpha = (1/prostate_se)^2 )) +
   # Contour lines
-  geom_contour(aes(z = preds), col = 1, lwd = 0.2) +
+  geom_contour(aes(z = prostate_preds), col = 1, lwd = 0.2) +
   # Colour scheme
   scale_fill_viridis_c(option = "plasma") +
   # Adjusting axis
@@ -228,26 +229,27 @@ prosate_2d <- prostate_data %>%
   labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
        x = "Total Procrastination", y = "Total Depression", fill = "p̂") +
   # Setting themes and legends
-  theme_classic(base_size = 12) +
+  theme_classic() +
   guides(alpha = "none") +
   ggeasy::easy_center_title()
 
 # Dental Visits
-dental_2d <- dental_data %>%
-  ggplot(aes(x = Total_procrastination, y = Age)) +
+dental_2d <- new_data %>%
+  ggplot(aes(x = Total_procrastination, y = Total_depression)) +
   # Heat map layer (with alpha blending)
-  geom_raster(aes(fill = rescale(preds), alpha = (1/se)^2 )) +
+  geom_raster(aes(fill = rescale(dental_preds), alpha = (1/dental_se)^2 )) +
   # Contour lines
-  geom_contour(aes(z = preds), col = 1, lwd = 0.2) +
+  geom_contour(aes(z = dental_preds), col = 1, lwd = 0.2) +
   # Colour scheme
   scale_fill_viridis_c(option = "plasma") +
   # Adjusting axis
   scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
   # Plot title and labels
-  labs(title = "Predicted probability of visiting the dentist by procrastination and age",
-       x = "Total Procrastination", y = "Age", fill = "p̂") +
+  labs(title = "Predicted probability of visiting the dentist by procrastination and depression",
+       x = "Total Procrastination", y = "Total Depression", fill = "p̂") +
   # Setting themes and legend
-  theme_classic(base_size = 12) +
+  theme_classic() +
   guides(alpha = "none") +
   ggeasy::easy_center_title()
 
@@ -268,72 +270,12 @@ writexl::write_xlsx(
 
 # Saving Main Effects Plots
 # Protection
-save_gam_plot("02__Protection", "01__p_grid.pdf", protection_p_grid)
-# save_gam_plot("02__Protection", "02__d_grid.png", protection_d_grid)
-# save_gam_plot("02__Protection", "03__a_grid.png", protection_a_grid)
+save_gam_plot("01__p_grid.png", protection_p_grid)
+save_gam_plot("02__d_grid.png", protection_d_grid)
+save_gam_plot("03__a_grid.png", protection_a_grid)
 
 # Heat Maps
 save_gam_plot("02__Protection", "04__prostate_map.png", prosate_2d)
-# save_gam_plot("02__Protection", "05__cholesterol_map.png", cholesterol_2d)
-# save_gam_plot("02__Protection", "06__pap_map.png", pap_2d)
-save_gam_plot("02__Protection", "07__dental_map.png", dental_2d)
-save_gam_plot("02__Protection", "08__map.png", map_grid)
+save_gam_plot("02__Protection", "05__dental_map.png", dental_2d)
+save_gam_plot("02__Protection", "06__map.png", map_grid)
 
-
-# Non Procrastination Interaction Effects --------------------------------------
-# Cholesterol and Pap Smear ----------------------------------------------------
-# c_and_p_data <- expand.grid(
-#   Age = seq(50, 95, length = 200),
-#   Total_depression = seq(0, 8, length = 200),
-#   Total_procrastination = median(health_data$Total_procrastination))
-
-# Making predictions for cholesterol and pap smears
-# c_preds <- predict(protection_fit[[3]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
-# p_preds <- predict(protection_fit[[4]], newdata = c_and_p_data, type = "response", se.fit = TRUE)
-
-# Adding cholesterol predictions
-# c_and_p_data$c_preds <- c_preds$fit
-# c_and_p_data$c_se <- c_preds$se.fit
-
-# Adding pap predictions
-# c_and_p_data$p_preds <- p_preds$fit
-# c_and_p_data$p_se <- p_preds$se.fit
-# 
-# PLotting ---------------------------------------------------------------------
-# Cholesterol Screening
-# cholesterol_2d <- c_and_p_data %>%
-#   ggplot(aes(x = Age, y = Total_depression)) +
-#   # Heat map layer (with alpha blending)
-#   geom_raster(aes(fill = rescale(c_preds), alpha = (1/c_se)^2 )) +
-#   # Contour lines
-#   geom_contour(aes(z = c_preds), col = 1, lwd = 0.2) +
-#   # Colour scheme
-#   scale_fill_viridis_c(option = "plasma") +
-#   # Adjusting axis
-#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-#   # Plot title and labels
-#   labs(title = "Predicted probability of getting a cholesterol screening by depression and age",
-#        x = "Age", y = "Total Depression", fill = "p̂") +
-#   # Setting themes and legend
-#   theme_classic(base_size = 12) + 
-#   guides(alpha = "none") +
-#   ggeasy::easy_center_title()
-#   
-# Pap Smears
-# pap_2d <- c_and_p_data %>%
-#   ggplot(aes(x = Age, y = Total_depression)) +
-#   # Heat map layer (with alpha blending)
-#   geom_raster(aes(fill = rescale(p_preds), alpha = (1/p_se)^2 )) +
-#   # Contour lines
-#   geom_contour(aes(z = p_preds), col = 1, lwd = 0.2) +
-#   # Colour scheme
-#   scale_fill_viridis_c(option = "plasma") +
-#   # Adjusting axis
-#   scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-#   # Plot title and labels
-#   labs(title = "Predicted probability of getting a pap smear by depression and age",
-#        x = "Age", y = "Total Depression", fill = "p̂") +
-#   # Setting themes and legend
-#   theme_classic(base_size = 12) +
-#   guides(alpha = "none") +
-#   ggeasy::easy_center_title()
