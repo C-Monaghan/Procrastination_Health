@@ -23,7 +23,7 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   
   # Define non-significant result combinations for highlighting in red
   non_significant_combinations <- list(
-    Total_procrastination = c("Cholesterol screenings", "Pap smears", "Flu shots"),
+    Total_procrastination = c("Mammograms", "Cholesterol screenings"),
     Total_depression = c("Mammograms", "Cholesterol screenings", "Pap smears", "Flu shots", "Dental visits"),
     Age = c("Dental visits")
   )
@@ -60,6 +60,36 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   
   # Returning plot
   gam_plot
+}
+
+# Creating a heat map (with alpha blending)
+create_heatmap <- function(data, preds, se, title) {
+  ggplot(data, aes(x = Total_procrastination, y = Total_depression)) +
+    # Heat map layer (with alpha blending)
+    geom_raster(aes(fill = rescale(!!sym(preds)), alpha = (1/!!sym(se))^2)) +
+    # Contour lines
+    geom_contour(aes(z = !!sym(preds)), color = "black", size = 0.3) +
+    # Adding data points
+    geom_jitter(data = health_data, aes(x = Total_procrastination, y = Total_depression),
+                height = 0.08, width = 0.2, alpha = 0.7, size = 1) +
+    # Colour scheme
+    scale_fill_viridis_c(option = "plasma") +
+    # Adjusting axis
+    scale_x_continuous(breaks = seq(0, 60, by = 10)) +
+    scale_y_continuous(breaks = seq(0, 8, by = 1)) +
+    # Plot title and labels
+    labs(title = title, x = "Total Procrastination", y = "Total Depression", fill = expression(hat(p))) +
+    # Setting themes and legends
+    theme_classic() +
+    theme(
+      title = element_text(size = 8),
+      axis.title = element_text(size = 8),
+      axis.text = element_text(size = 8),
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 8),
+      plot.title = element_text(hjust = 0.5)
+    ) +
+    guides(alpha = "none")
 }
 
 # Exporting Plot Function ------------------------------------------------------
@@ -119,7 +149,6 @@ protection_fit <- lapply(health_protection, function(x) {
 diagnostic <- lapply(protection_fit, function(x){
   k.check(x)
 })
-
 
 # Creating a dataset (I can't think of a non-hard code way)
 gam_results_protection <- data.frame(
@@ -212,49 +241,18 @@ new_data$dental_preds <- dental_preds$fit
 new_data$dental_se <- dental_preds$se.fit
 
 # Plotting ---------------------------------------------------------------------
-# Using 2D heat map with alpha blending
-# Prostate Exams
-prosate_2d <- new_data %>%
-  ggplot(aes(x = Total_procrastination, y = Total_depression)) +
-  # Heat map layer (with alpha blending)
-  geom_raster(aes(fill = rescale(prostate_preds), alpha = (1/prostate_se)^2 )) +
-  # Contour lines
-  geom_contour(aes(z = prostate_preds), col = 1, lwd = 0.2) +
-  # Colour scheme
-  scale_fill_viridis_c(option = "plasma") +
-  # Adjusting axis
-  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  # Plot title and labels
-  labs(title = "Predicted probability of getting a prostate exam by procrastination and depression",
-       x = "Total Procrastination", y = "Total Depression", fill = "p̂") +
-  # Setting themes and legends
-  theme_classic() +
-  guides(alpha = "none") +
-  ggeasy::easy_center_title()
+# Using heat map function
+prostate_map <- create_heatmap(
+  data = new_data, preds = "prostate_preds", se = "prostate_se", 
+  title = "Predicted probability of prostate exam\nby procrastination and depression")
 
-# Dental Visits
-dental_2d <- new_data %>%
-  ggplot(aes(x = Total_procrastination, y = Total_depression)) +
-  # Heat map layer (with alpha blending)
-  geom_raster(aes(fill = rescale(dental_preds), alpha = (1/dental_se)^2 )) +
-  # Contour lines
-  geom_contour(aes(z = dental_preds), col = 1, lwd = 0.2) +
-  # Colour scheme
-  scale_fill_viridis_c(option = "plasma") +
-  # Adjusting axis
-  scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-  scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-  # Plot title and labels
-  labs(title = "Predicted probability of visiting the dentist by procrastination and depression",
-       x = "Total Procrastination", y = "Total Depression", fill = "p̂") +
-  # Setting themes and legend
-  theme_classic() +
-  guides(alpha = "none") +
-  ggeasy::easy_center_title()
+dental_map <- create_heatmap(
+  data = new_data, preds = "dental_preds", se = "dental_se", 
+  title = "Predicted probability of dental visit\nby procrastination and depression")
+
 
 map_grid <- ggpubr::ggarrange(
-  prosate_2d, dental_2d,
+  prostate_map, dental_map,
   common.legend = TRUE, legend = "right", 
   ncol = 2
 )
@@ -275,7 +273,7 @@ save_gam_plot("02__d_grid.png", protection_d_grid)
 save_gam_plot("03__a_grid.png", protection_a_grid)
 
 # Heat Maps
-save_gam_plot("02__Protection", "04__prostate_map.png", prosate_2d)
-save_gam_plot("02__Protection", "05__dental_map.png", dental_2d)
-save_gam_plot("02__Protection", "06__map.png", map_grid)
+save_gam_plot("04__prostate_map.png", prosate_2d)
+save_gam_plot("05__dental_map.png", dental_2d)
+save_gam_plot("06b__map.png", map_grid, height = 5)
 
