@@ -23,7 +23,7 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
   
   # Define non-significant result combinations for highlighting in red
   non_significant_combinations <- list(
-    Total_procrastination = c("Mammograms", "Cholesterol screenings"),
+    Total_procrastination = c("Mammograms", "Cholesterol screenings"), # Side note: These are actually significant/marginal
     Total_depression = c("Mammograms", "Cholesterol screenings", "Pap smears", "Flu shots", "Dental visits"),
     Age = c("Dental visits")
   )
@@ -52,7 +52,7 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
             plot.subtitle = element_text(colour = "#D2042D")) # Cherry Red
   }
   
-  if(y_label == "Cholesterol screenings" & x_label == "Procrastination"){
+  if(y_label == "Cholesterol screenings" & x_label == "Procrastination"){ # Overriding for cholesterol screenings
     gam_plot <- gam_plot +
       theme(plot.title = element_text(colour = "#8B8000"), # Amber yellow
             plot.subtitle = element_text(colour = "#8B8000")) # Amber yellow
@@ -69,9 +69,9 @@ create_heatmap <- function(data, preds, se, title) {
     geom_raster(aes(fill = rescale(!!sym(preds)), alpha = (1/!!sym(se))^2)) +
     # Contour lines
     geom_contour(aes(z = !!sym(preds)), color = "black", size = 0.3) +
-    # Adding data points
+    # Data points
     geom_jitter(data = health_data, aes(x = Total_procrastination, y = Total_depression),
-                height = 0.08, width = 0.2, alpha = 0.7, size = 1) +
+                width = 0.2, height = 0.15, alpha = 0.5) +
     # Colour scheme
     scale_fill_viridis_c(option = "plasma") +
     # Adjusting axis
@@ -268,12 +268,12 @@ writexl::write_xlsx(
 
 # Saving Main Effects Plots
 # Protection
-save_gam_plot("01__p_grid.png", protection_p_grid)
+save_gam_plot("01__p_grid.pdf", protection_p_grid)
 save_gam_plot("02__d_grid.png", protection_d_grid)
 save_gam_plot("03__a_grid.png", protection_a_grid)
 
 # Heat Maps
 save_gam_plot("04__prostate_map.png", prosate_2d)
 save_gam_plot("05__dental_map.png", dental_2d)
-save_gam_plot("06b__map.png", map_grid, height = 5)
+save_gam_plot("06a__map_data.png", map_grid, height = 8)
 
