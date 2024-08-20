@@ -45,7 +45,7 @@ create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
     theme(plot.title = element_text(hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5))
   
-  # Highlight the title and subtitle in red if the combination of X and Y is non-significant
+  # Highlight the title and subtitle in red if the combination of X and Y is significant
   if (y_label %in% non_significant_combinations[[x_var]]) {
     gam_plot <- gam_plot +
       theme(plot.title = element_text(colour = "#D2042D"), # Cherry red
@@ -268,12 +268,12 @@ writexl::write_xlsx(
 
 # Saving Main Effects Plots
 # Protection
-save_gam_plot("01__p_grid.pdf", protection_p_grid)
+save_gam_plot("01__p_grid.png", protection_p_grid)
 save_gam_plot("02__d_grid.png", protection_d_grid)
 save_gam_plot("03__a_grid.png", protection_a_grid)
 
 # Heat Maps
 save_gam_plot("04__prostate_map.png", prosate_2d)
 save_gam_plot("05__dental_map.png", dental_2d)
-save_gam_plot("06a__map_data.png", map_grid, height = 8)
+save_gam_plot("06a__map.png", map_grid, height = 8)
 
