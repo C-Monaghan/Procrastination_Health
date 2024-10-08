@@ -277,3 +277,8 @@ save_gam_plot("04__prostate_map.png", prosate_2d)
 save_gam_plot("05__dental_map.png", dental_2d)
 save_gam_plot("06a__map.png", map_grid, height = 8)
 
+
+library(patchwork)
+
+(protection_a_plots[[1]] + protection_a_plots[[2]] + protection_a_plots[[3]]) /
+  (protection_a_plots[[4]] + plot_spacer() + protection_a_plots[[5]])
