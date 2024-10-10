@@ -45,16 +45,21 @@ plot_predictions <- function(model, data, x_var, y_var, x_label, y_label, gender
     scale_x_continuous(breaks = seq(0, 60, by = 10)) +
     # Labelling
     labs(
-      title = paste(y_label, "and", x_label),
-      x = x_label, 
+      title = paste(y_label, "(", gender, ")"),
+      x = NULL, 
       y = paste("Prob(", y_label, ")")) +
-    theme_bw(base_size = 12) +
+    theme_bw() +
     theme(
-      plot.title = element_text(hjust = 0.5))
+      plot.title   = element_text(size = 12, lineheight = 1.1, hjust = 0.5), 
+      axis.title.y = element_text(size = 12))
   
-  if(gender == "female" && y_label %in% c("Mammograms", "Cholesterol screenings")) {
+  # Additional selective customization
+  if(gender == "Women" && y_label %in% c("Mammograms", "Cholesterol screenings")) {
     plot <- plot +
       theme(plot.title = element_text(colour = "#D2042D"))
+  } else if(gender == "Men") {
+    plot <- plot +
+      labs(x = "Procrastination")
   }
   
   return(plot)

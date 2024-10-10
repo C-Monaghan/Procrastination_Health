@@ -113,22 +113,22 @@ for(m in seq_along(fit_males)) {
   plots_males[[m]] <- plot_predictions(
     model = fit_males[[m]], data = health_data_males,
     x_var = "Total_procrastination", y_var = prevention_males[m],
-    x_label = "Procrastination", y_label = prevention_males_tidy[m], gender = "male")
+    x_label = "Procrastination", y_label = prevention_males_tidy[m], gender = "Men")
 }
 
 for(f in seq_along(fit_females)) {
   plots_females[[f]] <- plot_predictions(
     model = fit_females[[f]], data = health_data_females,
     x_var = "Total_procrastination", y_var = prevention_females[f],
-    x_label = "Procrastination", y_label = prevention_females_tidy[f], gender = "female")
+    x_label = "Procrastination", y_label = prevention_females_tidy[f], gender = "Women")
 }
 
 # Plotting as a grid 
-grid_males   <- plots_males[[2]] + plots_males[[3]] + 
-  plot_layout(axis_titles = "collect_x")
-
-grid_females <- (plots_females[[1]] + plots_females[[2]]) / (plots_females[[3]] + plots_females[[4]]) +
-  plot_layout(axis_titles = "collect_x")
+main_effects <- (plots_females[[1]] + plots_females[[2]]) / (plots_females[[3]] + plots_females[[4]]) / (plots_males[[2]] + plots_males[[3]]) +
+  plot_annotation(
+    title = "Predicted probabilties from generalised additive models (Main effects)",
+    theme = theme(
+      plot.title = element_text(size = 15, face = "bold", lineheight = 1.1, hjust = 0.5)))
 
 # INTERACTION EFFECTS ----------------------------------------------------------
 # Making a new dataset
@@ -189,8 +189,10 @@ writexl::write_xlsx(
   tidy_females, col_names = TRUE)
 
 # Saving plots
-save_gam_plot("Main_effects_males.png", grid_males)
-save_gam_plot("Main_effects_females.png", grid_females)
+# save_gam_plot("Main_effects_males.png", grid_males)
+# save_gam_plot("Main_effects_females.png", grid_females)
 save_gam_plot("Map_males.png", map_males, height = 8)
 save_gam_plot("Map_females.png", map_females, height = 8)
+
+save_gam_plot("Main_effects.png", main_effects)
 

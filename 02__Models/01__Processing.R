@@ -204,6 +204,9 @@ health_data <- health_data %>%
     # How many chronic illnesses does someone have
     Total_ci              = rowSums(select(., c(Hypertension:Stroke)), na.rm = TRUE),
     
+    # Does the person have any chronic illnesses
+    ci_binary             = ifelse(Total_ci == 0, 0, 1),
+    
     # Total Depression and procrastination
     Total_depression      = rowSums(select(., starts_with("D_")), na.rm = TRUE),
     Total_procrastination = rowSums(select(., starts_with("P_")), na.rm = TRUE),
