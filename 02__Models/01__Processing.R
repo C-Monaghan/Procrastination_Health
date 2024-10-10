@@ -152,6 +152,7 @@ health_data <- health_data %>%
     # Covariates
     Gender              = ifelse(Gender == 1, 0, 1),
     Health_assessment   = recode(Health_assessment, '1' = 5, '2' = 4, '3' = 3, '4' = 2, '5' = 1),
+    Medicare_coverage   = ifelse(Medicare_coverage == 5, 0, 1),
     
     # Chronic illnesses
     Hypertension        = ifelse(Hypertension %in% c(4, 5, 6), 0, 1),
@@ -181,19 +182,21 @@ health_data <- health_data %>%
   # Adding some binary dummy coded variables
   # Does the person have a college education
   mutate(
-    College        = ifelse(Education %in% c(0, 1, 2), 0, 1), .after = Education) %>%
+    College          = ifelse(Education %in% c(0, 1, 2), 0, 1), .after = Education) %>%
   # Is the person married
   mutate(
-    Married        = ifelse(Marital_status == 1, 1, 0), .after = Marital_status) %>%
+    Married          = ifelse(Marital_status == 1, 1, 0), .after = Marital_status) %>%
   # Is the person widowed
   mutate(
-    Widowed        = ifelse(Marital_status == 2, 1, 0), .after = Married) %>%
+    Widowed          = ifelse(Marital_status == 2, 1, 0), .after = Married) %>%
   # Is the person working
-  mutate(Working   = ifelse(Job_status == 1, 1, 0), .after = Job_status) %>%
+  mutate(Working     = ifelse(Job_status == 1, 1, 0), .after = Job_status) %>%
   # Is the person retired
-  mutate(Retired   = ifelse(Job_status == 5, 1, 0), .after = Working) %>%
+  mutate(Retired     = ifelse(Job_status == 5, 1, 0), .after = Working) %>%
   # Is the person unable to work because of a disability
-  mutate(Diability = ifelse(Job_status == 4, 1, 0), .after = Retired)
+  mutate(Diability   = ifelse(Job_status == 4, 1, 0), .after = Retired) %>%
+  # Does the person consider their health to be good
+  mutate(Good_health = ifelse(Health_assessment %in% c(3, 4, 5), 1, 0), .after = Health_assessment)
 
 # Creating total columns -------------------------------------------------------
 health_data <- health_data %>%
