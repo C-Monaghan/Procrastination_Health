@@ -57,6 +57,15 @@ formulas_females <- list(
 fit_males   <- fit_gam_models(health_data_males, formulas_males)
 fit_females <- fit_gam_models(health_data_females, formulas_females)
 
+k.check(fit_males[[1]]) %>%
+  as.data.frame() %>%
+  mutate(across(c(edf, "k-index"), \(x) round(x, digits = 2))) %>%
+  mutate("p-value" = round(`p-value`, digits = 3))
+
+AIC(fit_males[[1]])
+
+sapply(fit_males, AIC)
+
 # Summarizing and tidying output -----------------------------------------------
 # Creating vectors of responses and terms
 # Males
