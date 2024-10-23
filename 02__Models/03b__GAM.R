@@ -2,108 +2,21 @@ rm(list = ls())
 
 set.seed(2468) # Reproducibility
 
-library(dplyr)
-library(purrr) # For using the %||% operator
-library(mgcv) # For working with GAMs
-library(visreg)
-library(ggplot2)
-library(cowplot)
-library(scales)
+# Loading libraries ------------------------------------------------------------
+pacman::p_load(
+  dplyr,         # Data manipulation
+  purrr,         # Easily map functions onto data
+  broom,         # Tidy model out
+  mgcv,          # For using GAMs
+  visreg,        # Visualize GAMs
+  ggplot2,       # Extend GAM visualization
+  cowplot,       # Saving plots
+  patchwork,     # Plotting grids
+  scales         # Adjusting scales
+)
 
-# Predictions Plot Function ----------------------------------------------------
-create_health_plot <- function(model, data, x_var, y_var, x_label, y_label) {
-  
-  # Setting up -----------------------------------------------------------------
-  # Defining x-axis details and sub caption for different x variables
-  axis_details <- list(
-    Total_procrastination = list(subtitle = "Controlling for depression and age", min = 0, max = 60, step = 10),
-    Total_depression = list(subtitle = "Controlling for procrastination and age", min = 0, max = 8, step = 1),
-    Age = list(subtitle = "Controlling for procrastination and depression", min = 50, max = 100, step = 10)
-  )
-  
-  # Define non-significant result combinations for highlighting in red
-  non_significant_combinations <- list(
-    Total_procrastination = c("Mammograms", "Cholesterol screenings"), # Side note: These are actually significant/marginal
-    Total_depression = c("Mammograms", "Cholesterol screenings", "Pap smears", "Flu shots", "Dental visits"),
-    Age = c("Dental visits")
-  )
-  
-  # Retrieve axis details for the current x variable
-  details <- axis_details[[x_var]] %||% list(subtitle = NULL)
-  
-  # Plotting GAM results -------------------------------------------------------
-  gam_plot <- visreg(fit = model, xvar = x_var,
-                     gg = TRUE, scale = "response", rug = FALSE) +
-    geom_jitter(data = data, aes_string(x = x_var, y = y_var),
-                height = 0.05, alpha = 0.5, size = 0.8) +
-    scale_x_continuous(breaks = seq(details$min, details$max, by = details$step)) +
-    labs(title = paste(y_label, "and", x_label),
-         subtitle = details$subtitle,
-         x = x_label, 
-         y = paste("Prob(", y_label, ")")) +
-    theme_bw(base_size = 12) +
-    theme(plot.title = element_text(hjust = 0.5),
-          plot.subtitle = element_text(hjust = 0.5))
-  
-  # Highlight the title and subtitle in red if the combination of X and Y is significant
-  if (y_label %in% non_significant_combinations[[x_var]]) {
-    gam_plot <- gam_plot +
-      theme(plot.title = element_text(colour = "#D2042D"), # Cherry red
-            plot.subtitle = element_text(colour = "#D2042D")) # Cherry Red
-  }
-  
-  if(y_label == "Cholesterol screenings" & x_label == "Procrastination"){ # Overriding for cholesterol screenings
-    gam_plot <- gam_plot +
-      theme(plot.title = element_text(colour = "#8B8000"), # Amber yellow
-            plot.subtitle = element_text(colour = "#8B8000")) # Amber yellow
-  }
-  
-  # Returning plot
-  gam_plot
-}
-
-# Creating a heat map (with alpha blending)
-create_heatmap <- function(data, preds, se, title) {
-  ggplot(data, aes(x = Total_procrastination, y = Total_depression)) +
-    # Heat map layer (with alpha blending)
-    geom_raster(aes(fill = rescale(!!sym(preds)), alpha = (1/!!sym(se))^2)) +
-    # Contour lines
-    geom_contour(aes(z = !!sym(preds)), color = "black", size = 0.3) +
-    # Data points
-    geom_jitter(data = health_data, aes(x = Total_procrastination, y = Total_depression),
-                width = 0.2, height = 0.15, alpha = 0.5) +
-    # Colour scheme
-    scale_fill_viridis_c(option = "plasma") +
-    # Adjusting axis
-    scale_x_continuous(breaks = seq(0, 60, by = 10)) +
-    scale_y_continuous(breaks = seq(0, 8, by = 1)) +
-    # Plot title and labels
-    labs(title = title, x = "Total Procrastination", y = "Total Depression", fill = expression(hat(p))) +
-    # Setting themes and legends
-    theme_classic() +
-    theme(
-      title = element_text(size = 8),
-      axis.title = element_text(size = 8),
-      axis.text = element_text(size = 8),
-      legend.title = element_text(size = 10),
-      legend.text = element_text(size = 8),
-      plot.title = element_text(hjust = 0.5)
-    ) +
-    guides(alpha = "none")
-}
-
-# Exporting Plot Function ------------------------------------------------------
-save_gam_plot <- function(filename, plot, height = 10, aspect_ratio = NULL){
-  # Getting file path
-  file_path <- file.path(export_path_graphics, filename)
-  
-  # Seperate saving if the aspect ratio value is present
-  if(!is.null(aspect_ratio)){
-    save_plot(filename = file_path, plot = plot, base_height = height, base_aspect_ratio = aspect_ratio)
-  } else{
-    save_plot(filename = file_path, plot = plot, base_height = height)
-  }
-}
+# Source files with all GAM functions
+source(file = here::here("02__Models/00b__Functions_GAM.R"))
 
 # Data Importing ---------------------------------------------------------------
 path_data <- "./01__Data/02__Processed/"
@@ -111,174 +24,184 @@ path_data <- "./01__Data/02__Processed/"
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
 
+# Data processing --------------------------------------------------------------
+# Filtering to be people 50 or over removing those with a high level of 
+# missingness in procrastination
 health_data <- health_data %>%
   filter(Age >= 50) %>%
   filter(!is.na(Total_procrastination))
 
-# Health Protection ------------------------------------------------------------
-# Creating a vector of health protection (and tidy names)
-health_protection <- c(
-  "Prostate_exam", "Mammogram", "Cholesterol_screening", "Pap_smear", 
-  "Flu_shot", "Dental_visit_2_years")
+# Stratifying by sex
+health_data_males <- health_data %>% filter(Gender == 0)
 
-health_protection_tidy <- c(
-  "Prostate exams", "Mammograms", "Cholesterol screenings",
-  "Pap smears", "Flu shots", "Dental visits")
+health_data_females <- health_data %>% filter(Gender == 1)
 
-# Different formulas for different protective behaviors
-formulas <- list(
-  Mammogram = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
-  Flu_shot = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
-  Pap_smear = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
-  Cholesterol_screening = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age)",
-  Prostate_exam = "~ s(Age) + te(Total_procrastination, Total_depression)",
-  Dental_visit_2_years = "~ s(Age) + te(Total_procrastination, Total_depression)"
+# Analyzing data using GAMs ----------------------------------------------------
+# Sex specific formulas 
+formulas_males <- list(
+  Prostate_exam  = "~ s(Age) + te(Total_procrastination, Total_depression) + ci_binary + Retired + Medicare_coverage",
+  C_screening    = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + ci_binary + Retired + Medicare_coverage",
+  Flu_shot       = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + ci_binary + Retired + Medicare_coverage",
+  Dental_visit   = "~ s(Age) + te(Total_procrastination, Total_depression) + ci_binary + Retired + Medicare_coverage"
 )
 
-# Apply the GAM model to each protection variable and store it in the list
-protection_fit <- lapply(health_protection, function(x) {
-  # Getting relevant formula for each protective behavior
-  formula <- as.formula(paste(x, formulas[[x]]))
-  
-  # Fitting GAM
-  gam(formula = formula, data = health_data, 
-      family = "binomial", method = "REML")
-})
-
-# Running k.check on each model ------------------------------------------------
-diagnostic <- lapply(protection_fit, function(x){
-  k.check(x)
-})
-
-# Creating a dataset (I can't think of a non-hard code way)
-gam_results_protection <- data.frame(
-  health_protection = c(
-    "Prostate Exams", "Prostate Exams", "Mammograms", "Mammograms", "Mammograms",
-    "Cholesterol Screening", "Cholesterol Screening", "Cholesterol Screening",
-    "Pap Smears", "Pap Smears", "Pap Smears", "Flu Shots", "Flu Shots", "Flu Shots", 
-    "Dental Visit", "Dental Visit"),
-  predictor = c(
-    "Age", "Procrastination x Depression", "Procrastination", "Depression", "Age",
-    "Procrastination", "Depression", "Age", "Procrastination", "Depression", "Age",
-    "Procrastination", "Depression", "Age", "Age", "Procrastination x Depression"),
-  edf = numeric(16),
-  ref_df = numeric(16),
-  chi_sq = numeric(16),
-  p_val = numeric(16)
+formulas_females <- list(
+  Mammogram      = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + ci_binary + Retired + Medicare_coverage",
+  C_screening    = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + ci_binary + Retired + Medicare_coverage",
+  Pap_smear      = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + ci_binary + Retired + Medicare_coverage",
+  Flu_shot       = "~ s(Total_procrastination) + s(Total_depression, k = 9) + s(Age) + ci_binary + Retired + Medicare_coverage",
+  Dental_visit   = "~ s(Age) + te(Total_procrastination, Total_depression) + ci_binary + Retired + Medicare_coverage"
 )
 
-# Initial index value
-index <- 1
+# Fitting GAM
+fit_males   <- fit_gam_models(health_data_males, formulas_males)
+fit_females <- fit_gam_models(health_data_females, formulas_females)
 
-# Filling in dataset
-for(fit in protection_fit) {
-  
-  fit_sum <- summary(fit)
-  num_rows <- length(fit_sum$edf)
-  
-  # Extract the effective degrees of freedom, reference degrees of freedom,
-  # chi-squared value, and p-values from the model summary
-  gam_results_protection[index:(index + num_rows - 1), c("edf", "ref_df", "chi_sq", "p_val")] <- 
-    cbind(fit_sum$edf, fit_sum$s.table[, 2], fit_sum$chi.sq, fit_sum$s.pv)
-  
-  # Increment the index to move to the next set of rows
-  index <- index + num_rows
+k.check(fit_males[[1]]) %>%
+  as.data.frame() %>%
+  mutate(across(c(edf, "k-index"), \(x) round(x, digits = 2))) %>%
+  mutate("p-value" = round(`p-value`, digits = 3))
+
+AIC(fit_males[[1]])
+
+sapply(fit_males, AIC)
+
+# Summarizing and tidying output -----------------------------------------------
+# Creating vectors of responses and terms
+# Males
+responses_males <- c(
+  "Prostate Exams", "Prostate Exams", "Cholesterol Screening",
+  "Cholesterol Screening", "Cholesterol Screening", "Flu Shots",
+  "Flu Shots", "Flu Shots", "Dental Visit", "Dental Visit")
+
+terms_males <- c(
+  "Age", "Procrastination x Depression", "Procrastination", "Depression", "Age",
+  "Procrastination", "Depression", "Age", "Age", "Procrastination x Depression")
+
+# Females
+responses_females <- c(
+  "Mammograms", "Mammograms", "Mammograms",
+  "Cholesterol Screening", "Cholesterol Screening", "Cholesterol Screening",
+  "Pap Smears", "Pap Smears", "Pap Smears", 
+  "Flu Shots", "Flu Shots", "Flu Shots", "Dental Visit", "Dental Visit")
+
+terms_females <- c(
+  "Procrastination", "Depression", "Age",
+  "Procrastination", "Depression", "Age", "Procrastination", "Depression", "Age",
+  "Procrastination", "Depression", "Age", "Age", "Procrastination x Depression")
+
+# Creating dataframe of fits
+tidy_males   <- tidy_and_combine(fit_males, responses_males, terms_males)
+tidy_females <- tidy_and_combine(fit_females, responses_females, terms_females)
+
+# Visualizing models -----------------------------------------------------------
+# MAIN EFFECTS -----------------------------------------------------------------
+# For axis labeling
+prevention_males <- c(
+  "Prostate_exam", "C_screening", 
+  "Flu_shot", "Dental_visit")
+
+prevention_males_tidy <- c(
+  "Prostate exams", "Cholesterol screenings", 
+  "Flu shots", "Dental visits")
+
+prevention_females <- c(
+  "Mammogram", "C_screening", "Pap_smear", 
+  "Flu_shot", "Dental_visit")
+
+prevention_females_tidy <- c(
+  "Mammograms", "Cholesterol screenings", "Pap smears", 
+  "Flu shots", "Dental visits")
+
+# Creating plots
+plots_males   <- list()
+plots_females <- list()
+
+for(m in seq_along(fit_males)) {
+
+  plots_males[[m]] <- plot_predictions(
+    model = fit_males[[m]], data = health_data_males,
+    x_var = "Total_procrastination", y_var = prevention_males[m],
+    x_label = "Procrastination", y_label = prevention_males_tidy[m], gender = "Men")
 }
 
-# Rounding to 3 decimal places
-gam_results_protection <- gam_results_protection %>%
-  mutate(across(!c(health_protection, predictor), round, digits = 3))
-
-# Plotting ---------------------------------------------------------------------
-# Initial empty lists to store plots for each factor
-protection_p_plots <- list()
-protection_d_plots <- list()
-protection_a_plots <- list()
-
-# Loop through each fitted GAM model to create plots for each health protective behavior
-for(i in seq_along(protection_fit)){
-  # Procrastination
-  protection_p_plots[[i]] <- create_health_plot(
-    model = protection_fit[[i]], data = health_data, 
-    x_var = "Total_procrastination", y_var = health_protection[i], 
-    x_label = "Procrastination", y_label = health_protection_tidy[i])
-  
-  # Depression
-  protection_d_plots[[i]] <- create_health_plot(
-    model = protection_fit[[i]], data = health_data, 
-    x_var = "Total_depression", y_var = health_protection[i], 
-    x_label = "Depression", y_label = health_protection_tidy[i])
-  
-  # Age
-  protection_a_plots[[i]] <- create_health_plot(
-    model = protection_fit[[i]], data = health_data, 
-    x_var = "Age", y_var = health_protection[i], 
-    x_label = "Age", y_label = health_protection_tidy[i])
+for(f in seq_along(fit_females)) {
+  plots_females[[f]] <- plot_predictions(
+    model = fit_females[[f]], data = health_data_females,
+    x_var = "Total_procrastination", y_var = prevention_females[f],
+    x_label = "Procrastination", y_label = prevention_females_tidy[f], gender = "Women")
 }
 
-# Combine each individual plot into a grid
-# Indexing because I only want main effects
-protection_p_grid <- plot_grid(plotlist = protection_p_plots[c(2, 3, 4, 5)])
-protection_d_grid <- plot_grid(plotlist = protection_d_plots[c(2, 3, 4, 5)])
-protection_a_grid <- plot_grid(plotlist = protection_a_plots)
+# Plotting as a grid 
+main_effects <- (plots_females[[1]] + plots_females[[2]]) / (plots_females[[3]] + plots_females[[4]]) / (plots_males[[2]] + plots_males[[3]]) +
+  plot_annotation(
+    title = "Predicted probabilties from generalised additive models (Main effects)",
+    theme = theme(
+      plot.title = element_text(size = 15, face = "bold", lineheight = 1.1, hjust = 0.5)))
 
-# Interaction Effects ----------------------------------------------------------
-# Making predictions datasets
+# INTERACTION EFFECTS ----------------------------------------------------------
+# Making a new dataset
 new_data <- expand.grid(
   Total_procrastination = seq(0, 60, length = 200),
   Total_depression = seq(0, 8, length = 200),
-  Age = median(health_data$Age))
+  Age = median(health_data$Age),
+  ci_binary = 0,
+  Retired = 0,
+  Medicare_coverage = 0)
 
 # Making predictions
-prostate_preds <- predict(protection_fit[[1]], newdata = new_data, type = "response", se.fit = TRUE)
-dental_preds <- predict(protection_fit[[6]], newdata = new_data, type = "response", se.fit = TRUE)
+prostate_preds       <- predict(fit_males[[1]],   newdata = new_data, type = "response", se.fit = TRUE)
+dental_preds_males   <- predict(fit_males[[4]],   newdata = new_data, type = "response", se.fit = TRUE)
+dental_preds_females <- predict(fit_females[[4]], newdata = new_data, type = "response", se.fit = TRUE)
 
-# Adding predictions
-new_data$prostate_preds <- prostate_preds$fit
-new_data$prostate_se <- prostate_preds$se.fit
+# Adding to dataset (incl std errors)
+new_data$prostate_preds       <- prostate_preds$fit
+new_data$prostate_se          <- prostate_preds$se.fit
 
-new_data$dental_preds <- dental_preds$fit
-new_data$dental_se <- dental_preds$se.fit
+new_data$dental_preds_males   <- dental_preds_males$fit
+new_data$dental_se_males      <- dental_preds_males$se.fit
 
-# Plotting ---------------------------------------------------------------------
-# Using heat map function
-prostate_map <- create_heatmap(
-  data = new_data, preds = "prostate_preds", se = "prostate_se", 
-  title = "Predicted probability of prostate exam\nby procrastination and depression")
+new_data$dental_preds_females <- dental_preds_females$fit
+new_data$dental_se_females    <- dental_preds_females$se.fit
 
-dental_map <- create_heatmap(
-  data = new_data, preds = "dental_preds", se = "dental_se", 
-  title = "Predicted probability of dental visit\nby procrastination and depression")
-
-
-map_grid <- ggpubr::ggarrange(
-  prostate_map, dental_map,
-  common.legend = TRUE, legend = "right", 
-  ncol = 2
+# Plotting interaction predictions ---------------------------------------------
+prostate <- create_heatmap(
+  data = new_data, preds = "prostate_preds", se = "prostate_se",
+  title = "Predicted probability of prostate exam for men\nby procrastination and depression"
 )
 
+dental_male <- create_heatmap(
+  data = new_data, preds = "dental_preds_males", se = "dental_se_males",
+  title = "Predicted probability of dental visit for men\nby procrastination and depression"
+)
+
+dental_female <- create_heatmap(
+  data = new_data, preds = "dental_preds_females", se = "dental_se_females",
+  title = "Predicted probability of dental visit for women\nby procrastination and depression"
+)
+
+# Plotting as grid 
+map_males <- prostate + dental_male + plot_layout(axis_titles = "collect", guides = "collect")
+map_females <- dental_female
+
 # Exporting --------------------------------------------------------------------
-export_path_data <- "./02__Models/Results/"
+export_path_data     <- "./02__Models/Results/"
 export_path_graphics <- "./02__Models/Results/Figures/02__GAM/"
 
-# GAM Results
+# Saving results of GAMs
 writexl::write_xlsx(
-  path = file.path(export_path_data, "01__GAM_Protection.xlsx"),
-  x = gam_results_protection, col_names = TRUE)
+  path = here::here(export_path_data, "01__Results_Males.xlsx"),
+  tidy_males, col_names = TRUE)
 
-# Saving Main Effects Plots
-# Protection
-save_gam_plot("01__p_grid.png", protection_p_grid)
-save_gam_plot("02__d_grid.png", protection_d_grid)
-save_gam_plot("03__a_grid.png", protection_a_grid)
+writexl::write_xlsx(
+  path = here::here(export_path_data, "02__Results_Females.xlsx"),
+  tidy_females, col_names = TRUE)
 
-# Heat Maps
-save_gam_plot("04__prostate_map.png", prosate_2d)
-save_gam_plot("05__dental_map.png", dental_2d)
-save_gam_plot("06a__map.png", map_grid, height = 8)
+# Saving plots
+# save_gam_plot("Main_effects_males.png", grid_males)
+# save_gam_plot("Main_effects_females.png", grid_females)
+save_gam_plot("Map_males.png", map_males, height = 8)
+save_gam_plot("Map_females.png", map_females, height = 8)
 
+save_gam_plot("Main_effects.png", main_effects)
 
-library(patchwork)
-
-(protection_a_plots[[1]] + protection_a_plots[[2]] + protection_a_plots[[3]]) /
-  (protection_a_plots[[4]] + plot_spacer() + protection_a_plots[[5]])
