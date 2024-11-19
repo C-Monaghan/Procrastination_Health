@@ -30,7 +30,7 @@ To get started with using this repository, follow these steps:
 Clone the repository to your local machine using the following command:
 
 ```bash
-https://github.com/C-Monaghan/Procrastination_Health.git
+git clone https://github.com/C-Monaghan/Procrastination_Health.git
 ```
 
 Open the R project
