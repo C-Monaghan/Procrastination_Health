@@ -2,7 +2,6 @@ rm(list = ls())
 
 set.seed(2468) # Reproducibility
 
-
 # Loading libraries ------------------------------------------------------------
 pacman::p_load(
   dplyr,         # Data manipulation
@@ -20,7 +19,7 @@ pacman::p_load(
 source(file = here::here("02__Models/00b__Functions_GAM.R"))
 
 # Data Importing ---------------------------------------------------------------
-path_data <- "./01__Data/02__Processed/"
+path_data   <- "./01__Data/02__Processed/"
 
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
@@ -33,7 +32,7 @@ health_data <- health_data %>%
   filter(!is.na(Total_procrastination))
 
 # Stratifying by sex
-health_data_males <- health_data %>% filter(Gender == 0)
+health_data_males   <- health_data %>% filter(Gender == 0)
 
 health_data_females <- health_data %>% filter(Gender == 1)
 
@@ -58,14 +57,9 @@ formulas_females <- list(
 fit_males   <- fit_gam_models(health_data_males, formulas_males)
 fit_females <- fit_gam_models(health_data_females, formulas_females)
 
-k.check(fit_males[[1]]) %>%
-  as.data.frame() %>%
-  mutate(across(c(edf, "k-index"), \(x) round(x, digits = 2))) %>%
-  mutate("p-value" = round(`p-value`, digits = 3))
-
-AIC(fit_males[[1]])
-
-sapply(fit_males, AIC)
+# Checking basis dimensions
+sapply(fit_males, k.check)
+sapply(fit_females, k.check)
 
 # Summarizing and tidying output -----------------------------------------------
 # Creating vectors of responses and terms
@@ -182,8 +176,7 @@ dental_female <- create_heatmap(
 )
 
 # Plotting as grid 
-map_males <- prostate + dental_male + plot_layout(axis_titles = "collect", guides = "collect")
-map_females <- dental_female
+map <- prostate + dental_male + dental_female + plot_layout(axis_titles = "collect", guides = "collect")
 
 # Exporting --------------------------------------------------------------------
 export_path_data     <- "./02__Models/Results/"
@@ -199,10 +192,5 @@ writexl::write_xlsx(
   tidy_females, col_names = TRUE)
 
 # Saving plots
-# save_gam_plot("Main_effects_males.png", grid_males)
-# save_gam_plot("Main_effects_females.png", grid_females)
-save_gam_plot("Map_males.png", map_males, height = 8)
-save_gam_plot("Map_females.png", map_females, height = 8)
-
-save_gam_plot("Main_effects.png", main_effects)
-
+save_gam_plot("Figure_1.tiff", map, height = 8)
+save_gam_plot("Figure_2.tiff", main_effects)
