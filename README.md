@@ -1,3 +1,9 @@
+<p align="left">
+  <a href="https://doi.org/10.1016/j.ypmed.2024.108185" target="_blank">
+    <img src="https://img.shields.io/badge/doi-10.1016/j.ypmed.2024.108185-yellow.svg" alt="DOI Badge">
+  </a>
+</p>
+
 <h2 align = "center" > Procrastination and preventive health-care in the older U.S. population </h2>
 <h4 align = "center"> Cormac Monaghan<sup>1,3</sup>, Dr. Rafael de Andrade Moral<sup>2</sup>, & Dr. Joanna McHugh Power<sup>3</sup> </h4>
 
