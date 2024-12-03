@@ -28,10 +28,12 @@ The repository is organized as follows:
 - **00__Documentation:** Contains .pdf files about health protective measures within the HRS.
 - **01__Data:** Contains both the raw and processed data files.
 - **02__Models:** Contains all the project code.
-  - **00__Functions.R:** Contains repeatedly used functions throughout the project.
+  - **00a__Functions.R:** Contains repeatedly used EDA functions throughout the project.
+  - **00b__Functions_GAM.R:** Contains repeatedly used GAM functions throughout the project
   - **01__Processing.R:** Code to process the raw data.
   - **02__Exploratory.R:** Code to create exploratory visualisations.
-  - **03__GAM.R:** Code to create, process, and visualise GAM models.
+  - **03a__Preliminary_Analysis.R:** Code to run preliminary analysis found in supplementary materials
+  - **03b__GAM.R:** Code to create, process, and visualise GAM models.
 
 ## Getting started
 To get started with using this repository, follow these steps:
