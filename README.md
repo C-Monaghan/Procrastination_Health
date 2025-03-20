@@ -14,7 +14,7 @@
 #### [Paper Link](https://doi.org/10.1016/j.ypmed.2024.108185)
 
 > [!Important]
-> The Health and Retirement Study (HRS) provides a special file called a cross-wave tracker file to help analyze data across different HRS surveys (called waves). This file is used for the included script, [Processing.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/02__Models/01__Processing.R). However, the file is quite large (185 MB) and exceeds typical file size limits.
+> The Health and Retirement Study (HRS) provides a special file called a cross-wave tracker file to help analyze data across different HRS surveys (called waves). This file is used for the included script, [Processing.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/R/01__Processing.R). However, the file is quite large (185 MB) and exceeds typical file size limits.
 >
 > To run the script, download the cross-wave tracker file from the [HRS website](https://hrsdata.isr.umich.edu/data-products/cross-wave-tracker-file) and save it in the following directory with the filename **./01__Data/01__Raw_Data/Tracker.sav**.
 
