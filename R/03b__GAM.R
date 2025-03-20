@@ -16,10 +16,10 @@ pacman::p_load(
 )
 
 # Source files with all GAM functions
-source(file = here::here("02__Models/00b__Functions_GAM.R"))
+source(file = here::here("R/00b__Functions_GAM.R"))
 
 # Data Importing ---------------------------------------------------------------
-path_data   <- "./01__Data/02__Processed/"
+path_data   <- "./data"
 
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
@@ -179,8 +179,8 @@ dental_female <- create_heatmap(
 map <- prostate + dental_male + dental_female + plot_layout(axis_titles = "collect", guides = "collect")
 
 # Exporting --------------------------------------------------------------------
-export_path_data     <- "./02__Models/Results/"
-export_path_graphics <- "./02__Models/Results/Figures/02__GAM/"
+export_path_data     <- "./R/Results/"
+export_path_graphics <- "./R/Results/Figures/02__GAM/"
 
 # Saving results of GAMs
 writexl::write_xlsx(

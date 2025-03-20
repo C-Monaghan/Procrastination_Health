@@ -4,9 +4,9 @@ library(dplyr)
 library(ggplot2)
 
 # Custom functions -------------------------------------------------------------
-source(file.path("./02__Models/00__Functions.R"))
+source(here::here(file.path("./R/00a__Functions.R")))
 
-path_data <- "./01__Data/02__Processed/"
+path_data <- "./data"
 
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
@@ -146,7 +146,7 @@ health_procrastination_grouped <- cowplot::plot_grid(
 )
 
 # Exporting --------------------------------------------------------------------
-export_path <- "./02__Models/Results/Figures/01__Exploratory"
+export_path <- "./R/Results/Figures/01__Exploratory"
 
 cowplot::save_plot(filename = file.path(export_path, "01__Distributions.png"),
                    plot = distributions_grouped, base_height = 10)

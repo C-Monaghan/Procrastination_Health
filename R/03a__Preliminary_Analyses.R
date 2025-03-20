@@ -6,7 +6,7 @@ rm(list = ls())
 library(dplyr)
 
 # Data Importing ---------------------------------------------------------------
-path_data <- "./01__Data/02__Processed/"
+path_data <- "./data"
 
 # Reading in data
 health_data <- readxl::read_xlsx(file.path(path_data, "Health_HRS.xlsx"))
@@ -66,7 +66,7 @@ aic_scores <- aic_scores %>%
   mutate(across(!c(Response), round, digits = 2))
 
 # Exporting --------------------------------------------------------------------
-export_path <- "./02__Models/Results/"
+export_path <- "./R/Results/"
 
 # Supplementary_Table_S1
 writexl::write_xlsx(x = aic_scores, path = file.path(export_path, "00__Supplementary_Table_S1.xlsx"))

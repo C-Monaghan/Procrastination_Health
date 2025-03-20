@@ -7,7 +7,7 @@ library(haven)
 library(here)
 library(dplyr)
 
-path_data <- "./01__Data/01__Raw/"
+path_data <- "data-raw"
 
 # Reading in Data --------------------------------------------------------------
 # Tracker file containing information on each participant
@@ -215,6 +215,6 @@ health_data <- health_data %>%
   mutate(across(c("Total_procrastination"), ~ ifelse(. %in% 0, NA, .)))
 
 # Exporting --------------------------------------------------------------------
-export_path <- "./01__Data/02__Processed/"
+export_path <- "data"
 
 writexl::write_xlsx(health_data, path = file.path(export_path, "Health_HRS.xlsx"))
