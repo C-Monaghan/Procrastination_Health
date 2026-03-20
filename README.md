@@ -13,6 +13,9 @@
 
 #### [Paper Link](https://doi.org/10.1016/j.ypmed.2024.108185)
 
+> [!IMPORTANT]
+> This repository is now archived with a clone of it available at [https://github.com/C-Monaghan/foolish-commander](https://github.com/C-Monaghan/foolish-commander).
+
 > [!Important]
 > The Health and Retirement Study (HRS) provides a special file called a cross-wave tracker file to help analyze data across different HRS surveys (called waves). This file is used for the included script, [Processing.R](https://github.com/C-Monaghan/Procrastination_Health/blob/main/R/01__Processing.R). However, the file is quite large (185 MB) and exceeds typical file size limits.
 >
